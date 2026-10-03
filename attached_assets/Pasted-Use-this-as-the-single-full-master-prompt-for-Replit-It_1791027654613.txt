@@ -1,0 +1,2077 @@
+Use this as the **single full master prompt** for Replit. It incorporates the original MVP, destination engine, specialist Fishing Away engine, specific coastal bays/spots, angler/community information, and the architecture for future specialist categories.
+
+BUILD MY WEEKEND — FULL MASTER BUILD PROMPT V1
+
+IMPORTANT:
+
+You are modifying an EXISTING working Replit project.
+
+DO NOT rebuild the application from scratch.
+
+DO NOT remove working functionality.
+
+DO NOT replace the existing calculation engine unnecessarily.
+
+The objective is to turn the current prototype into a stronger FREE MVP that demonstrates the actual BUILD MY WEEKEND concept.
+
+==================================================
+
+1. PRODUCT
+   ==================================================
+
+PRODUCT NAME:
+
+BUILD MY WEEKEND
+
+CORE PROMISE:
+
+"Tell us what you have.
+Tell us what you want.
+We'll work out where you can go."
+
+Alternative supporting messages:
+
+"I have R3,000. Get me away."
+
+"What will this weekend really cost?"
+
+"How far can R3,000 take me?"
+
+This is NOT a normal tourism directory.
+
+It is a PERSONALIZED WEEKEND DECISION ENGINE.
+
+The app must help answer:
+
+* Where can I go?
+* How far can I realistically go?
+* Can I afford it?
+* What will getting there cost?
+* How much fuel will I actually use?
+* How much additional fuel must I buy?
+* What will accommodation cost?
+* What will food cost?
+* What will activities cost?
+* How much money will remain?
+* What can I do there?
+* Which option best matches what I want?
+* What should I know before I go?
+* For specialist categories, what specific places/spots should I consider?
+
+==================================================
+2. CORE ARCHITECTURE
+====================
+
+The application must use this architecture:
+
+COMMON WEEKEND ENGINE
+
+Budget
++
+People
++
+Dates
++
+Vehicle
++
+Fuel
++
+Distance
++
+Accommodation
++
+Food
++
+Activities
++
+Trip Cost
++
+Money Remaining
++
+Cost Per Person
+
+THEN:
+
+SPECIALIST CATEGORY ENGINE
+
+Fishing Away
+→ fishing intelligence
+→ fishing spots
+→ bays
+→ beaches
+→ rocks
+→ reefs
+→ estuaries
+→ harbours
+→ angler knowledge
+
+Hiking Away
+→ future hiking intelligence
+
+Camping Away
+→ future camping intelligence
+
+Family Away
+→ future family intelligence
+
+Beach Away
+→ future beach intelligence
+
+Cycling Away
+→ future cycling intelligence
+
+Wildlife Away
+→ future wildlife intelligence
+
+Road Trip Away
+→ future road-trip intelligence
+
+Couples Away
+→ future couples intelligence
+
+Surprise Me
+→ common engine + broad matching
+
+==================================================
+3. CURRENT MVP LIMITATION
+=========================
+
+The current application already calculates and displays weekend scenarios.
+
+PRESERVE THAT.
+
+However, improve the engine so that results are not always the same three destinations.
+
+The system must evaluate the COMPLETE static dataset and dynamically generate recommendations based on the user's inputs.
+
+The application must NOT simply show:
+
+1. Destination A
+2. Destination B
+3. Destination C
+
+for every search.
+
+Different inputs must produce different relevant results.
+
+==================================================
+4. FREE MVP REQUIREMENT
+=======================
+
+THIS MUST REMAIN A FREE MVP.
+
+DO NOT ADD:
+
+* paid APIs
+* paid databases
+* payment systems
+* user subscriptions
+* login
+* accounts
+* booking integrations
+* paid AI services
+* expensive map services
+* live scraping
+* complex backend infrastructure
+
+Use:
+
+* HTML
+* CSS
+* JavaScript
+* localStorage where useful
+* static curated data
+* browser-side calculations
+
+The architecture must nevertheless be designed so APIs can be added later.
+
+==================================================
+5. GEOGRAPHIC SCOPE
+===================
+
+Initial demonstration region:
+
+WESTERN CAPE, SOUTH AFRICA
+
+Include representative areas from:
+
+* Cape Town
+* Cape Peninsula
+* False Bay
+* Southern Cape
+* Overberg
+* West Coast
+* Garden Route
+
+Do NOT attempt full South African coverage in this MVP.
+
+Quality and usefulness are more important than quantity.
+
+Target approximately 30+ useful destinations where practical.
+
+==================================================
+6. MAIN CATEGORIES
+==================
+
+The main category selector must contain:
+
+Fishing Away
+
+Hiking Away
+
+Camping Away
+
+Family Away
+
+Couples Away
+
+Cycling Away
+
+Beach Away
+
+Wildlife Away
+
+Road Trip Away
+
+Surprise Me
+
+The system architecture must allow each category to eventually have its own specialist intelligence.
+
+==================================================
+7. MAIN USER INPUTS
+===================
+
+The user must be able to enter:
+
+BUDGET
+
+GROUP SIZE
+
+EXPERIENCE / CATEGORY
+
+MAXIMUM DISTANCE
+
+DATES
+
+VEHICLE
+
+FUEL CONSUMPTION
+
+FUEL ALREADY IN VEHICLE
+
+FUEL PRICE
+
+OPTIONAL:
+
+Specific destination
+
+If the user enters a specific destination, the engine must calculate that destination rather than forcing them to choose from only the recommendation scenarios.
+
+==================================================
+8. VEHICLE AND FUEL ENGINE
+==========================
+
+Maintain the existing fuel calculation logic.
+
+Inputs:
+
+* vehicle
+* fuel type
+* consumption L/100km
+* fuel price
+* fuel already in tank
+
+Trip calculation:
+
+returnDistance =
+oneWayDistance × 2
+
+litresConsumed =
+returnDistance × consumption / 100
+
+trueFuelCost =
+litresConsumed × fuelPrice
+
+additionalFuelPurchase =
+MAX(0, trueFuelCost - fuelAlreadyOwned)
+
+IMPORTANT:
+
+Distinguish between:
+
+1. FUEL ALREADY OWNED
+2. ADDITIONAL FUEL THAT MUST BE PURCHASED
+3. TRUE FUEL CONSUMED
+
+Example:
+
+Fuel already in vehicle:
+R650
+
+Trip consumes:
+R1,050
+
+Additional fuel purchase:
+R400
+
+True economic fuel cost:
+R1,050
+
+Cash required now:
+R400
+
+The trip budget calculation should use the appropriate cash-spend logic while clearly displaying the true fuel consumption.
+
+==================================================
+9. TRIP COST ENGINE
+===================
+
+For each destination calculate:
+
+Fuel
+
+Accommodation
+
+Food
+
+Activities
+
+Specialist activity costs
+
+Other known trip costs
+
+Total trip spend
+
+Money remaining
+
+Cost per person
+
+Formula:
+
+totalTripSpend =
+additionalFuelPurchase
++
+accommodation
++
+food
++
+activities
++
+specialistCosts
+
+moneyRemaining =
+budget - totalTripSpend
+
+costPerPerson =
+totalTripSpend / people
+
+Do not recommend destinations where the trip exceeds the available budget unless explicitly displaying them as an "over budget" alternative.
+
+==================================================
+10. DESTINATION DATASET
+=======================
+
+Create a richer static destination dataset.
+
+Each destination should contain:
+
+{
+id,
+name,
+province,
+region,
+categories,
+distance,
+driveTime,
+
+accommodationLow,
+accommodationTypical,
+accommodationHigh,
+
+foodLow,
+foodTypical,
+foodHigh,
+
+activitiesLow,
+activitiesTypical,
+
+description,
+suitableFor,
+
+practicalInfo,
+
+hospitalAccess,
+pharmacyAccess,
+fuelAccess,
+
+itinerary,
+
+specialistData
+}
+
+Use realistic DEMONSTRATION values.
+
+Clearly label static/demo information.
+
+Do not pretend static values are live prices.
+
+==================================================
+11. EXAMPLE DESTINATIONS
+========================
+
+Include representative destinations such as:
+
+Hermanus
+
+Greyton
+
+Paternoster
+
+Langebaan
+
+Arniston
+
+Struisbaai
+
+Agulhas
+
+Witsand
+
+De Hoop
+
+Kleinmond
+
+Betty's Bay
+
+Pringle Bay
+
+Rooi Els
+
+Gordon's Bay
+
+Yzerfontein
+
+Velddrif
+
+Dwarskersbos
+
+Mossel Bay
+
+Wilderness
+
+Knysna
+
+Plettenberg Bay
+
+and other suitable Western Cape / nearby Garden Route examples.
+
+The dataset may be expanded where useful.
+
+==================================================
+12. RECOMMENDATION ENGINE
+=========================
+
+Do NOT hard-code the same three destinations.
+
+For each destination:
+
+1. Check category suitability.
+2. Check distance.
+3. Calculate fuel.
+4. Calculate accommodation.
+5. Calculate food.
+6. Calculate activities.
+7. Calculate total trip cost.
+8. Calculate money remaining.
+9. Calculate cost per person.
+10. Calculate category relevance.
+11. Calculate specialist relevance where applicable.
+12. Generate a recommendation explanation.
+
+Results should be dynamically sorted.
+
+Provide:
+
+CLOSEST AFFORDABLE
+
+BEST VALUE
+
+FURTHEST AFFORDABLE
+
+BEST EXPERIENCE MATCH
+
+LOWEST COST
+
+These are recommendation TYPES, not permanent destinations.
+
+==================================================
+13. "WHY THIS MATCHED"
+======================
+
+Every recommendation must explain itself.
+
+Example:
+
+WHY THIS MATCHED
+
+* Within your R3,000 budget
+* 120 km from your starting point
+* Fits your maximum distance
+* Suitable for 4 people
+* Matches your fishing preference
+* Leaves approximately R1,000 remaining
+
+Do not use unexplained scoring.
+
+==================================================
+14. NUMBER OF RESULTS
+=====================
+
+Do not limit the engine to exactly three possible destinations.
+
+Show a useful result set.
+
+Example:
+
+"WE FOUND 8 OPTIONS THAT FIT YOUR SEARCH."
+
+Then show:
+
+* closest
+* best value
+* lowest cost
+* furthest
+* best experience match
+
+The user should be able to view additional matching destinations.
+
+==================================================
+15. FISHING AWAY
+================
+
+Fishing Away is the FIRST fully developed specialist category.
+
+It must not simply be a filter on generic destinations.
+
+It must activate:
+
+COMMON WEEKEND ENGINE
+
+*
+
+FISHING DESTINATION ENGINE
+
+*
+
+FISHING SPOT ENGINE
+
+*
+
+ANGLER KNOWLEDGE ENGINE
+
+==================================================
+16. FISHING USER INPUTS
+=======================
+
+When Fishing Away is selected, reveal additional controls.
+
+TARGET SPECIES:
+
+Any
+
+Galjoen
+
+Steenbras
+
+Other
+
+FISHING STYLE:
+
+Any
+
+Shore
+
+Rock
+
+Estuary
+
+Freshwater
+
+Boat
+
+FISHING SPOT PREFERENCE:
+
+Let the app choose
+
+Bay
+
+Beach
+
+Rocks
+
+Point
+
+Reef
+
+Estuary
+
+Lagoon
+
+Harbour
+
+River Mouth
+
+Local / Informal Spot
+
+PRIORITY:
+
+Best Fishing Opportunity
+
+Lowest Cost
+
+Shortest Drive
+
+Best Overall Weekend
+
+==================================================
+17. FISHING DESTINATION DATA
+============================
+
+Each fishing destination should support:
+
+fishing: {
+
+suitable: true,
+
+fishingTypes: [],
+
+targetSpecies: [],
+
+accessType: [],
+
+bestFor: [],
+
+tideImportance: "",
+
+windSensitivity: "",
+
+swellSensitivity: "",
+
+fishingWindow: "",
+
+permitNote: "",
+
+baitTackleNote: "",
+
+fishingCost: 0,
+
+fishingConditions: {
+tide: "DEMO",
+wind: "DEMO",
+swell: "DEMO",
+waterCondition: "DEMO"
+},
+
+fishingSpots: []
+
+}
+
+==================================================
+18. FISHING SPOT ENGINE
+=======================
+
+THIS IS CRITICAL.
+
+The app must not only know:
+
+"Hermanus is a fishing destination."
+
+It must also know that a fishing destination can contain specific fishing areas.
+
+Create:
+
+fishingSpots: []
+
+Each spot should contain:
+
+{
+id: "",
+destinationId: "",
+name: "",
+area: "",
+
+spotType: "",
+
+accessType: [],
+
+suitableFor: [],
+
+targetSpecies: [],
+
+fishingStyle: [],
+
+tideImportance: "",
+
+conditionNotes: "",
+
+bestConditions: "",
+
+familySuitability: "",
+
+difficulty: "",
+
+walkingRequired: "",
+
+vehicleAccess: "",
+
+fourByFourRequired: false,
+
+parkingNote: "",
+
+safetyNote: "",
+
+permitNote: "",
+
+baitTackleNote: "",
+
+localKnowledge: "",
+
+anglerReviewSummary: "",
+
+sourceType: "",
+
+sourceName: "",
+
+sourceUrl: "",
+
+sourceDate: "",
+
+confidence: "DEMO"
+}
+
+==================================================
+19. COASTAL BAYS AND SPECIFIC FISHING SPOTS
+===========================================
+
+The dataset MUST contain specific coastal fishing areas.
+
+Do not restrict the dataset to towns and formal accommodation destinations.
+
+Examples of the type of information required:
+
+HERMANUS / OVERBERG
+
+Potential spot-level entries include:
+
+* Gearing's Point
+* Die Neus
+* Langbaai
+* Voelklip
+* Rowweklip
+* Kwaaiwater
+* Onrus
+* Sandbaai
+
+ARNISTON / WAENHUISKRANS
+
+Include appropriate recognised:
+
+* beach areas
+* rocky areas
+* bay areas
+* harbour areas
+* points
+* local shore-fishing areas
+
+STRUISBAAI / AGULHAS
+
+Include appropriate:
+
+* Struisbaai beach areas
+* harbour areas
+* Agulhas shoreline
+* Pebble Beach
+* rocky points
+* local shore-fishing areas
+
+LANGEBAAN
+
+Include appropriate:
+
+* lagoon areas
+* lagoon shoreline
+* beaches
+* points
+* recognised fishing areas
+
+PATERNOSTER
+
+Include appropriate:
+
+* bays
+* beaches
+* rocky shoreline
+* local fishing areas
+
+WEST COAST
+
+Where reliable information exists, include suitable areas around:
+
+* Yzerfontein
+* Melkbosstrand
+* Langebaan
+* Paternoster
+* Velddrif
+* Dwarskersbos
+
+FALSE BAY / SOUTHERN PENINSULA
+
+Where suitable information exists, include:
+
+* bays
+* beaches
+* points
+* rocky shore areas
+* harbour areas
+
+OVERBERG
+
+Include appropriate areas around:
+
+* Kleinmond
+* Betty's Bay
+* Pringle Bay
+* Rooi Els
+* Hermanus
+* De Kelders
+
+SOUTHERN CAPE
+
+Include appropriate areas around:
+
+* Witsand
+* Mossel Bay
+* Wilderness
+* Knysna
+* Plettenberg Bay
+
+Do not invent specific spots.
+
+Only include a named fishing spot when there is a reasonable basis for it.
+
+==================================================
+20. SPOT TYPES
+==============
+
+Recognise:
+
+BEACH
+
+ROCKS
+
+POINT
+
+REEF
+
+BAY
+
+LAGOON
+
+ESTUARY
+
+RIVER MOUTH
+
+HARBOUR
+
+HARBOUR WALL
+
+SURF
+
+ROCK & SURF
+
+BOAT LAUNCH
+
+FRESHWATER
+
+OTHER
+
+==================================================
+21. ANGLER / FISHERMAN INFORMATION
+==================================
+
+This is another CRITICAL requirement.
+
+Not all useful fishing information comes from formal tourism websites.
+
+The dataset must be able to represent information from:
+
+* fishing forums
+* fishing communities
+* fishing websites
+* fishing apps
+* angler reports
+* local fishing discussions
+* recognised fishing publications
+* government/conservation sources
+
+Examples of source types:
+
+OFFICIAL
+
+ANGLER COMMUNITY
+
+FISHING FORUM
+
+FISHING APP
+
+LOCAL KNOWLEDGE
+
+FISHING WEBSITE
+
+The application should distinguish these.
+
+==================================================
+22. ANGLER KNOWLEDGE
+====================
+
+Each fishing spot can have:
+
+ANGLER KNOWLEDGE
+
+This is a concise summary of relevant information from fishing-community sources.
+
+Possible information:
+
+* target species
+* fishing style
+* tide
+* wind
+* swell
+* water conditions
+* bait
+* tackle
+* access
+* parking
+* walking
+* seasonality
+* practical observations
+
+Use language such as:
+
+"Angler reports suggest..."
+
+"Fishing-community reports mention..."
+
+"Historically discussed by anglers as..."
+
+"Local fishing information identifies..."
+
+Do NOT state community information as guaranteed fact.
+
+==================================================
+23. SOURCE HANDLING
+===================
+
+Potential source categories include:
+
+SEALINE
+
+Ultimate Angling
+
+FishAngler
+
+other South African angling communities
+
+recognised fishing websites
+
+Western Cape Government
+
+South African conservation authorities
+
+other credible official sources
+
+For the MVP:
+
+DO NOT build scraping.
+
+DO NOT build live data collection.
+
+Use manually curated demonstration summaries.
+
+Store:
+
+sourceType
+
+sourceName
+
+sourceUrl
+
+sourceDate
+
+confidence
+
+Do not reproduce large copyrighted passages.
+
+Summarize information.
+
+==================================================
+24. FORMAL VS INFORMAL INFORMATION
+==================================
+
+The Fishing Detail page must have:
+
+OFFICIAL / PRACTICAL INFORMATION
+
+and
+
+ANGLER KNOWLEDGE
+
+Official information is preferred for:
+
+* permits
+* regulations
+* restrictions
+* conservation
+* official access
+* safety requirements
+
+Angler information is useful for:
+
+* fishing style
+* spot character
+* target species
+* practical fishing observations
+* tide considerations
+* local knowledge
+
+Do not imply that an angler forum is an official authority.
+
+==================================================
+25. LOCAL / INFORMAL FISHING OPTION
+===================================
+
+The user must be able to choose:
+
+LOCAL / INFORMAL SPOT
+
+This means a fishing location known primarily through anglers/local fishing communities rather than a formal tourism attraction.
+
+It does NOT mean:
+
+* trespassing
+* illegal access
+* restricted areas
+* secret/private property
+* ignoring regulations
+
+Display:
+
+"These locations are based on fishing-community or local angler information rather than formal tourism listings. Always verify current access, regulations and conditions."
+
+==================================================
+26. NO FAKE REVIEWS
+===================
+
+DO NOT create:
+
+fake star ratings
+
+fake review counts
+
+fake fisherman quotes
+
+fake catch reports
+
+fake percentages
+
+fake "90% of anglers recommend this"
+
+fake current conditions
+
+fake current fish activity
+
+If information is unavailable, say:
+
+"Limited angler information available."
+
+==================================================
+27. NO FAKE LIVE CONDITIONS
+===========================
+
+The MVP uses static demonstration information.
+
+DO NOT claim:
+
+"Fishing is good today."
+
+"Fish are biting now."
+
+"Current tide is..."
+
+"Current wind is..."
+
+"Current swell is..."
+
+"Anglers caught fish this morning."
+
+Unless a future live API genuinely supplies the information.
+
+Instead display:
+
+"Condition dependent"
+
+"Historical / community information"
+
+"Check current conditions before travelling"
+
+==================================================
+28. FISHING MATCHING ENGINE
+===========================
+
+When Fishing Away is selected:
+
+STEP 1
+
+Filter for fishing-suitable destinations.
+
+STEP 2
+
+Apply budget.
+
+STEP 3
+
+Apply maximum distance.
+
+STEP 4
+
+Match fishing style.
+
+STEP 5
+
+Match target species.
+
+STEP 6
+
+Match preferred spot type.
+
+STEP 7
+
+Match priority.
+
+STEP 8
+
+Evaluate availability of specific fishing spots.
+
+STEP 9
+
+Evaluate angler/community information.
+
+STEP 10
+
+Combine specialist relevance with:
+
+* affordability
+* distance
+* group size
+* practical suitability
+
+Do NOT expose a fake numerical fishing score.
+
+==================================================
+29. FISHING RESULT HEADING
+==========================
+
+Use:
+
+YOUR FISHING WEEKEND OPTIONS
+
+Example:
+
+HERMANUS
+
+120 km
+
+Approx. 1h 45m
+
+Trip cost:
+R2,000
+
+Money remaining:
+R1,000
+
+BEST MATCHING FISHING AREA:
+
+ROWWEKLIP
+
+ROCK & SURF
+
+Target species:
+Relevant reported species
+
+Access:
+Shore / rock
+
+Conditions:
+Condition dependent
+
+ANGLER KNOWLEDGE:
+
+Short curated summary.
+
+WHY THIS MATCHED:
+
+* within budget
+* within distance
+* matches fishing style
+* matches target species
+* specific fishing area available
+* angler/community information available
+
+==================================================
+30. FISHING DETAIL PAGE
+=======================
+
+The Fishing Detail page must show:
+
+DESTINATION
+
+SPECIFIC FISHING SPOT
+
+TRIP COST
+
+MONEY REMAINING
+
+DISTANCE
+
+DRIVE TIME
+
+FISHING STYLE
+
+TARGET SPECIES
+
+SPOT TYPE
+
+ACCESS
+
+BEST FOR
+
+TIDE INFORMATION
+
+WIND SENSITIVITY
+
+SWELL SENSITIVITY
+
+DEMO CONDITIONS
+
+ANGLER KNOWLEDGE
+
+OFFICIAL / PRACTICAL INFORMATION
+
+SOURCE
+
+==================================================
+31. FISHING PREPARATION CHECKLIST
+=================================
+
+Display:
+
+BEFORE YOU GO
+
+☐ Check fishing licence / permit requirements
+
+☐ Check current access
+
+☐ Check weather
+
+☐ Check swell
+
+☐ Check tide
+
+☐ Check wind
+
+☐ Prepare bait
+
+☐ Prepare tackle
+
+☐ Water
+
+☐ Food
+
+☐ Fuel
+
+☐ Phone / communication
+
+☐ Safety equipment
+
+☐ Appropriate clothing
+
+==================================================
+32. SAFETY
+==========
+
+Especially for:
+
+* rocks
+* points
+* reefs
+* exposed coastline
+* strong surf
+* estuaries
+* tidal areas
+
+Display:
+
+"CHECK CONDITIONS BEFORE FISHING."
+
+and:
+
+"Community fishing information is not a live safety report."
+
+Also:
+
+"Verify current fishing regulations and permit requirements before travelling."
+
+==================================================
+33. FISHING ITINERARY
+=====================
+
+Fishing itineraries must be different from generic tourism itineraries.
+
+Example:
+
+FRIDAY
+
+16:00
+Leave home
+
+18:00
+Arrive
+
+18:30
+Check accommodation
+
+19:00
+Check access and next-day conditions
+
+SATURDAY
+
+05:30
+Prepare tackle
+
+06:00
+Travel to selected fishing area
+
+06:15
+Assess conditions
+
+06:30
+Begin fishing
+
+09:30
+Break
+
+10:00
+Second fishing session if appropriate
+
+SUNDAY
+
+Morning fishing opportunity
+
+Pack up
+
+Return home
+
+Clearly label this as an illustrative itinerary.
+
+==================================================
+34. OTHER CATEGORIES
+====================
+
+The other categories must continue functioning through the Common Weekend Engine.
+
+Do NOT falsely pretend they already have specialist intelligence.
+
+However, structure the code so future specialist modules can be added.
+
+Use:
+
+getCategoryIntelligence(category, destination, tripSettings)
+
+Fishing:
+
+getFishingIntelligence(destination, tripSettings)
+
+Fishing spots:
+
+getFishingSpots(destinationId, tripSettings)
+
+Fishing spot matching:
+
+getFishingSpotMatch(spot, tripSettings)
+
+Angler information:
+
+getAnglerKnowledge(spot)
+
+Recommendation:
+
+getFishingRecommendationReason(destination, spot, tripSettings)
+
+==================================================
+35. DESTINATION COMPARISON
+==========================
+
+Allow users to compare results.
+
+Comparison should show:
+
+Destination
+
+Distance
+
+Drive time
+
+Accommodation
+
+Food
+
+Activities
+
+Fuel
+
+Total trip cost
+
+Money remaining
+
+Cost per person
+
+Category match
+
+Specialist match
+
+Specific fishing spot where relevant
+
+==================================================
+36. SPECIFIC DESTINATION SEARCH
+===============================
+
+The user must be able to enter or select a specific destination.
+
+Example:
+
+"Take me to Hermanus."
+
+The application must then calculate:
+
+* distance
+* fuel
+* accommodation
+* food
+* activities
+* total cost
+* money remaining
+* cost per person
+
+If Fishing Away is selected:
+
+also show:
+
+* relevant fishing areas
+* fishing spots
+* fishing style
+* target species
+* angler knowledge
+* practical considerations
+
+==================================================
+37. NO-RESULT STATE
+===================
+
+If nothing fits:
+
+Display:
+
+"WE COULDN'T FIND A WEEKEND THAT FITS ALL YOUR REQUIREMENTS."
+
+Then explain why.
+
+For example:
+
+"Your current budget limits the available options."
+
+Provide useful adjustments:
+
+Try:
+
+* increasing budget
+* reducing distance
+* changing accommodation level
+* reducing group size
+* changing category
+* changing fishing style
+
+Do not simply show a blank page.
+
+==================================================
+38. DEMO MODE
+=============
+
+Clearly identify that the current application is an MVP demonstration.
+
+Use:
+
+DEMO DATA
+
+where appropriate.
+
+Do not make the interface look broken.
+
+The application should still feel like a real product prototype.
+
+==================================================
+39. DESIGN
+==========
+
+Maintain a professional mobile-first design.
+
+The experience should feel:
+
+* clean
+* practical
+* modern
+* outdoors-oriented
+* decision-focused
+
+Do not make it look like a generic tourism directory.
+
+The primary action should always be:
+
+BUILD MY WEEKEND
+
+The user should quickly understand:
+
+"I enter my budget and preferences, and the app works out what I can realistically do."
+
+==================================================
+40. RESULT PRIORITY
+===================
+
+The application should prioritize:
+
+1. Can I afford it?
+
+2. Can I realistically get there?
+
+3. Does it match what I want to do?
+
+4. Is it practical for my group?
+
+5. What will I actually have left?
+
+6. What should I know before going?
+
+For Fishing Away add:
+
+7. What specific fishing areas/spots are available?
+
+8. What does fishing-community information say?
+
+9. What conditions and access issues should I check?
+
+==================================================
+41. TEST SCENARIOS
+==================
+
+TEST 1:
+
+Budget:
+R3,000
+
+People:
+4
+
+Category:
+Fishing Away
+
+Style:
+Shore
+
+Species:
+Any
+
+Maximum distance:
+200 km
+
+Expected:
+
+Multiple possible fishing destinations.
+
+Specific fishing spots displayed.
+
+Different results based on the user's preferences.
+
+==================================================
+
+TEST 2:
+
+Budget:
+R5,000
+
+People:
+2
+
+Category:
+Fishing Away
+
+Style:
+Rock
+
+Species:
+Galjoen
+
+Expected:
+
+Results favour destinations and specific spots relevant to rock fishing and the selected species.
+
+==================================================
+
+TEST 3:
+
+Budget:
+R2,000
+
+People:
+4
+
+Category:
+Fishing Away
+
+Style:
+Any
+
+Species:
+Any
+
+Maximum distance:
+100 km
+
+Expected:
+
+Nearby affordable fishing options.
+
+Specific fishing areas where available.
+
+==================================================
+
+TEST 4:
+
+Budget:
+R5,000
+
+People:
+2
+
+Category:
+Fishing Away
+
+Spot preference:
+Local / Informal Spot
+
+Expected:
+
+The engine identifies suitable community/local-knowledge fishing areas where available.
+
+The result clearly labels the information as community-derived.
+
+==================================================
+
+TEST 5:
+
+Category:
+Beach Away
+
+Expected:
+
+Normal common weekend engine continues working.
+
+==================================================
+
+TEST 6:
+
+Specific destination:
+
+Hermanus
+
+Expected:
+
+The application calculates the actual Hermanus trip and does not force the user into the three generic recommendation cards.
+
+==================================================
+42. REQUIRED HERMANUS CALCULATION TEST
+======================================
+
+Preserve the known calculation test:
+
+Budget:
+R3,000
+
+People:
+4
+
+Consumption:
+8.0 L/100km
+
+Fuel already in tank:
+R650
+
+Fuel price:
+R24.50/L
+
+Distance:
+120 km one way
+
+Accommodation:
+R1,050
+
+Food:
+R650
+
+Activities:
+R300
+
+Expected:
+
+Return distance:
+240 km
+
+Fuel consumed:
+9.6 litres
+
+True fuel cost:
+R235.20
+
+IMPORTANT:
+
+The previous prototype may have used R470.40 as the expected fuel figure.
+
+Recalculate the fuel mathematically.
+
+For 240 km at 8.0 L/100km:
+
+240 × 8 / 100 = 19.2 litres
+
+19.2 × R24.50 = R470.40
+
+Therefore:
+
+Fuel consumed:
+19.2 litres
+
+True fuel cost:
+R470.40
+
+Fuel already owned:
+R650
+
+Additional fuel purchase:
+R0
+
+Total trip spend:
+
+R1,050
++
+R650
++
+R300
++
+R0
+
+= R2,000
+
+Money remaining:
+R1,000
+
+Cost per person:
+R500
+
+Preserve this corrected calculation.
+
+==================================================
+43. LOCAL STORAGE
+=================
+
+If already implemented, preserve localStorage.
+
+It may store:
+
+* last budget
+* last group size
+* last category
+* vehicle information
+* fuel information
+* preferences
+
+Do not add login or accounts.
+
+==================================================
+44. SHARE / COPY
+================
+
+Preserve the ability to copy/share a trip summary.
+
+For Fishing Away, include:
+
+Destination
+
+Fishing area
+
+Budget
+
+Trip cost
+
+Money remaining
+
+Distance
+
+Fishing style
+
+Target species
+
+Key practical notes
+
+"Check current conditions before travelling."
+
+==================================================
+45. FUTURE API ARCHITECTURE
+===========================
+
+DO NOT ADD APIs NOW.
+
+But structure the application so future versions can connect:
+
+MAP API
+
+→ live distance/time
+
+WEATHER API
+
+→ current weather
+
+TIDE API
+
+→ tide
+
+WIND API
+
+→ wind
+
+SWELL API
+
+→ swell
+
+FISHING REPORT API
+
+→ fishing reports
+
+CATCH REPORT API
+
+→ community catches
+
+ACCOMMODATION API
+
+→ live availability/pricing
+
+ROUTE API
+
+→ traffic/road conditions
+
+The current static dataset should act as the foundation.
+
+==================================================
+46. FUTURE SPECIALIST ENGINE STRUCTURE
+======================================
+
+The architecture should allow:
+
+Fishing Away
+→ fishing intelligence
+
+Hiking Away
+→ hiking intelligence
+
+Camping Away
+→ campsite intelligence
+
+Family Away
+→ family suitability intelligence
+
+Beach Away
+→ beach/conditions intelligence
+
+Cycling Away
+→ route/cycling intelligence
+
+Wildlife Away
+→ wildlife intelligence
+
+Couples Away
+→ couples suitability
+
+Road Trip Away
+→ route/stop intelligence
+
+This means BUILD MY WEEKEND is not simply a destination database.
+
+It is intended to become:
+
+A PERSONALIZED DECISION ENGINE FOR GETTING AWAY.
+
+==================================================
+47. CODE QUALITY
+================
+
+Keep the code understandable.
+
+Prefer:
+
+index.html
+
+styles.css
+
+js/app.js
+
+or the current project structure if already working.
+
+Do not introduce unnecessary frameworks.
+
+Do not introduce unnecessary dependencies.
+
+Keep the application runnable in Replit.
+
+Fix any existing errors introduced during modification.
+
+==================================================
+48. IMPORTANT PRESERVATION RULE
+===============================
+
+DO NOT DELETE WORKING FEATURES.
+
+DO NOT BREAK:
+
+* budget calculator
+* fuel calculator
+* results
+* destination cards
+* recommendation logic
+* detail view
+* itinerary
+* copy/share
+* demo functionality
+
+Extend the existing system.
+
+==================================================
+49. FINAL PRODUCT BEHAVIOUR
+===========================
+
+When a normal user enters:
+
+"I have R3,000.
+There are four of us.
+We want to fish.
+We don't want to drive more than 200 km."
+
+The application should not simply respond:
+
+"Hermanus / Paternoster / Mossel Bay."
+
+It should reason:
+
+"You can realistically reach these areas."
+
+Then:
+
+"These options fit your budget."
+
+Then:
+
+"These are the best matches for your fishing preference."
+
+Then:
+
+"Within this destination, these specific fishing areas may be relevant."
+
+Then:
+
+"This is what fishing-community information says about those areas."
+
+Then:
+
+"This is what the trip will actually cost."
+
+Then:
+
+"This is what you'll have left."
+
+Then:
+
+"These are the things you should verify before leaving."
+
+That is the BUILD MY WEEKEND experience.
+
+==================================================
+50. FINAL INSTRUCTION TO REPLIT
+===============================
+
+MODIFY THE EXISTING PROJECT NOW.
+
+DO NOT ASK ME TO REPEAT THE REQUIREMENTS.
+
+DO NOT REBUILD FROM SCRATCH.
+
+DO NOT ADD PAID SERVICES.
+
+DO NOT ADD LIVE APIs.
+
+DO NOT ADD LOGIN.
+
+DO NOT ADD PAYMENTS.
+
+DO NOT INVENT REVIEWS.
+
+DO NOT INVENT FISHING CONDITIONS.
+
+DO NOT INVENT FISHING SPOTS.
+
+USE CURATED DEMONSTRATION DATA WHERE NECESSARY.
+
+CLEARLY DISTINGUISH:
+
+OFFICIAL INFORMATION
+
+FROM
+
+ANGLER / COMMUNITY INFORMATION
+
+FROM
+
+DEMONSTRATION DATA.
+
+PRESERVE ALL CURRENT WORKING FEATURES.
+
+BUILD THE SPECIALIST FISHING ENGINE AND FISHING SPOT / ANGLER KNOWLEDGE LAYER AS THE NEXT MAJOR FUNCTIONAL STEP.
+
+WHEN COMPLETE:
+
+1. Run the application.
+2. Test all six scenarios above.
+3. Verify the fuel calculation.
+4. Verify that Fishing Away produces fishing-specific results.
+5. Verify that specific fishing spots appear.
+6. Verify that Local / Informal Spot works.
+7. Verify that Beach Away still works.
+8. Verify that a specific destination can be selected.
+9. Fix any errors.
+10. Leave the application in a runnable state.
+
+THE MVP MUST REMAIN FREE.
