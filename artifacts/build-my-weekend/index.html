@@ -48,7 +48,7 @@
         <div class="planner-intro">
           <span class="step-badge">01 <i>—</i> YOUR PLAN</span>
           <h2 id="planner-title">What feels like a good getaway?</h2>
-          <p>Start with your total trip budget. We’ll do the fuel maths, too.</p>
+          <p>Set the total budget for everyone going. Typical demo costs scale with your group size; fuel maths is included.</p>
         </div>
         <form id="trip-form" novalidate>
           <div class="form-grid">
@@ -65,7 +65,7 @@
             <fieldset class="field field-wide experience-field">
               <legend>What are you in the mood for?</legend>
               <div class="select-wrap"><select id="experience" name="experience" aria-describedby="experience-error" data-testid="experience-select">
-                <option>Any</option><option>Fishing Away</option><option>Hiking Away</option><option>Camping Away</option><option>Family Away</option><option>Couples Away</option><option>Beach Away</option><option>Wildlife Away</option><option>Road Trip Away</option><option>Surprise Me</option>
+                <option>Any</option><option>Fishing Away</option><option>Hiking Away</option><option>Nature</option><option>Camping Away</option><option>Family Away</option><option>Couples Away</option><option>Beach Away</option><option>Wildlife Away</option><option>Road Trip Away</option><option>Surprise Me</option>
               </select><span class="select-chevron" aria-hidden="true">⌄</span></div>
               <small class="field-error" id="experience-error"></small>
             </fieldset>
@@ -116,13 +116,14 @@
 
       <section class="results-section" id="results" aria-labelledby="results-heading" aria-live="polite">
         <div class="results-heading">
-          <div><span class="step-badge">02 <i>—</i> THE SHORTLIST</span><h2 id="results-heading">YOUR WEEKEND OPTIONS</h2><p id="results-summary">A few good ways to spend your weekend.</p></div>
+          <div><span class="step-badge">02 <i>—</i> THE SHORTLIST</span><h2 id="results-heading">YOUR WEEKEND OPTIONS</h2><p id="results-summary">Enter your trip details and we’ll compare every destination using typical demonstration estimates.</p><p class="results-context">Typical costs are per person for the weekend. Distances and drive times are illustrative estimates from Cape Town.</p></div>
           <div class="result-count" id="result-count" data-testid="result-count"></div>
         </div>
         <div class="recommendations" id="recommendations" data-testid="recommendations"></div>
         <div class="no-results" id="no-results" hidden data-testid="no-results">
-          <span class="no-result-mark">↗</span><h3>Not quite in range. Yet.</h3>
-          <p>Nothing matches all those numbers right now. Try a little more distance, a different kind of escape, or a bigger budget.</p>
+          <span class="no-result-mark">↗</span><h3>No options within those limits.</h3>
+          <p id="no-results-copy">No destination fits the selected distance and typical-cost budget estimate.</p>
+          <p class="no-results-guidance">Try a nearer destination to reduce fuel costs; if none are within your current limit, widen the search. You can also increase your budget, change your experience, choose fewer paid activities, or consider a day trip.</p>
           <button class="button button-secondary" type="button" id="reset-filters" data-testid="reset-filters">WIDEN THE SEARCH</button>
         </div>
       </section>
@@ -130,13 +131,14 @@
       <section class="how-section" aria-label="How planning works">
         <div class="how-number">A<br><span>+</span><br>B</div>
         <div><p class="eyebrow">THE MATH, WITHOUT THE SPREADSHEET</p><h2>Fuel first. Then the fun.</h2></div>
-        <p class="how-copy">Your trip estimate includes accommodation, food, activities and the fuel you still need to buy. Fuel already in your tank is never charged to your trip budget a second time.</p>
+        <p class="how-copy">Typical accommodation, food and activity estimates are multiplied by the number of people. Fuel is calculated for the vehicle, and only fuel you still need to buy counts against the group budget. Low and high demo ranges are shown in each trip detail.</p>
         <div class="math-stamp">STRAIGHT<br>UP NUMBERS</div>
       </section>
     </main>
     <footer class="site-footer">
       <div class="footer-brand">BUILD MY <strong>WEEKEND</strong></div>
-      <p class="disclaimer">DEMONSTRATION MVP — INFORMATION IS NOT LIVE AND MUST NOT BE USED FOR ACTUAL TRAVEL, BOOKING OR EMERGENCY DECISIONS.</p>
+      <p class="disclaimer">DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED.</p>
+      <p class="disclaimer disclaimer-safety">DEMONSTRATION MVP — INFORMATION IS NOT LIVE AND MUST NOT BE USED FOR ACTUAL TRAVEL, BOOKING OR EMERGENCY DECISIONS.</p>
       <span class="footer-caption">Made for getting out there.</span>
     </footer>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

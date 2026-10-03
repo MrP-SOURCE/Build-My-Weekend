@@ -1,0 +1,311 @@
+We should continue by upgrading the **data layer first**, not adding APIs yet.
+
+### Step 1 — Give Replit this instruction
+
+Paste this into the existing Replit project:
+
+Upgrade the existing BUILD MY WEEKEND MVP.
+
+Do NOT rebuild the application from scratch.
+
+Do NOT add APIs, databases, payments, accounts or external services yet.
+
+The current version only produces three scenarios because the destination dataset is too small. Replace the limited demonstration dataset with a richer Western Cape demonstration dataset so the recommendation engine can actually make different recommendations based on the user's inputs.
+
+## OBJECTIVE
+
+The app must move from:
+
+**small fixed destination list → three displayed scenarios**
+
+to:
+
+**larger destination dataset → dynamically selected recommendations based on budget, distance, people and experience.**
+
+## DESTINATION DATASET
+
+Create approximately 30 Western Cape demonstration destinations covering:
+
+### BEACH
+
+* Hermanus
+* Gordon's Bay
+* Betty's Bay
+* Kleinmond
+* Strand
+* Yzerfontein
+* Paternoster
+* Langebaan
+* St Helena Bay
+
+### NATURE / HIKING
+
+* Greyton
+* Franschhoek
+* Stellenbosch
+* Ceres
+* Tulbagh
+* Montagu
+* Grabouw
+* Worcester
+
+### CAMPING / OUTDOORS
+
+* Beaverlac
+* Algeria
+* Kogel Bay
+* Matjiesrivier
+* De Pakhuys
+* Witsand
+
+### FISHING
+
+* Hermanus
+* Arniston
+* Struisbaai
+* Breede River
+* Langebaan
+* Paternoster
+* Witsand
+
+### FAMILY / GENERAL
+
+* Hermanus
+* Stellenbosch
+* Paarl
+* Worcester
+* Langebaan
+* Oudtshoorn
+* Mossel Bay
+* Wilderness
+
+Where a destination fits multiple categories, give it multiple category tags rather than duplicating the destination unnecessarily.
+
+## DATA FIELDS
+
+Each destination should contain:
+
+```javascript
+{
+  id,
+  name,
+  province,
+  categories: [],
+  distance,
+  driveTime,
+  accommodationLow,
+  accommodationTypical,
+  accommodationHigh,
+  foodLow,
+  foodTypical,
+  activitiesLow,
+  activitiesTypical,
+  description,
+  suitableFor: [],
+  practicalInfo,
+  hospitalAccess,
+  pharmacyAccess,
+  fuelAccess,
+  itinerary
+}
+```
+
+Use realistic-looking but clearly labelled DEMONSTRATION values.
+
+Do not claim any value is live or currently verified.
+
+## BUDGET VARIATION
+
+The recommendation engine must calculate affordability using the user's actual budget.
+
+Do not simply select three fixed destinations.
+
+For every destination:
+
+1. Calculate fuel.
+2. Calculate accommodation.
+3. Calculate food.
+4. Calculate activities.
+5. Calculate total trip cost.
+6. Calculate money remaining.
+7. Determine whether it is affordable.
+
+## EXPERIENCE MATCHING
+
+A destination may match several experiences.
+
+Examples:
+
+Fishing user → prioritise destinations tagged Fishing.
+
+Beach user → prioritise Beach.
+
+Hiking user → prioritise Hiking/Nature.
+
+Camping user → prioritise Camping/Outdoors.
+
+Family user → prioritise Family.
+
+Couples user → prioritise Couples/Nature/Beach where appropriate.
+
+Road Trip → consider all suitable destinations.
+
+Any → consider all destinations.
+
+Do not eliminate reasonable destinations unnecessarily. Use category matching as a relevance factor.
+
+## DYNAMIC RESULTS
+
+Generate up to five results from the qualifying dataset.
+
+Show:
+
+### CLOSEST AFFORDABLE
+
+Shortest suitable destination.
+
+### BEST VALUE
+
+Strong combination of:
+
+* affordability
+* money remaining
+* experience match
+* reasonable distance
+
+### FURTHEST AFFORDABLE
+
+Furthest destination that remains affordable.
+
+### BEST EXPERIENCE MATCH
+
+Highest category relevance while remaining affordable.
+
+### LOWEST COST
+
+Cheapest qualifying option.
+
+Do not show duplicate destinations.
+
+If fewer than five qualify, show the available results.
+
+If none qualify, explain why and suggest what the user could change:
+
+* increase budget
+* reduce distance
+* change experience
+* reduce activities
+* consider a day trip
+
+## IMPORTANT
+
+The recommendation engine must actually calculate and compare ALL qualifying destinations before selecting the results.
+
+Do NOT hard-code Hermanus, Greyton or any other destination into a recommendation position.
+
+For example, Hermanus must not always be "closest".
+
+The result must change when the user changes:
+
+* budget
+* people
+* distance
+* experience
+* vehicle consumption
+* fuel available
+
+## ADD DESTINATION FILTERING
+
+Add a small indication above the results:
+
+**“We found X possible destinations. Here are the strongest matches for you.”**
+
+This is important because the user should understand that the engine searched a larger pool.
+
+## DESTINATION DETAIL
+
+Keep the existing VIEW WEEKEND functionality.
+
+Enhance it to show:
+
+* destination
+* why it matched the user's request
+* estimated total cost
+* money remaining
+* fuel
+* accommodation
+* food
+* activities
+* practical information
+* illustrative itinerary
+
+Add:
+
+**WHY THIS MATCHED**
+
+For example:
+
+> Fits your R3,000 budget
+> Matches your Beach preference
+> Within your 200 km driving limit
+> Leaves approximately R850 available
+
+Use calculated values, not hard-coded text.
+
+## IMPORTANT DATA DISCLAIMER
+
+Display:
+
+**DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED.**
+
+## TESTING
+
+After implementation, test at least these scenarios:
+
+### Test 1
+
+R3,000
+4 people
+Beach
+Under 200 km
+
+### Test 2
+
+R5,000
+2 people
+Fishing
+Anywhere
+
+### Test 3
+
+R2,000
+4 people
+Family
+Under 100 km
+
+### Test 4
+
+R10,000
+2 people
+Nature
+Anywhere
+
+The results should change between these tests.
+
+## DO NOT ADD
+
+Do not add:
+
+* APIs
+* live weather
+* live maps
+* booking systems
+* login
+* payment
+* AI
+* database
+* external services
+
+This milestone is specifically about proving that a sufficiently rich destination dataset plus the calculation/recommendation engine can produce genuinely different weekend options.
+
+Modify the existing project and preserve the working calculation logic already implemented.
