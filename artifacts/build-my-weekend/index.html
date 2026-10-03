@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Build My Weekend — Find your next good weekend</title>
+    <meta name="description" content="Plan a South African weekend away around your real budget, group size and vehicle fuel costs.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Build My Weekend">
+    <meta property="og:description" content="A practical South African weekend-trip planner built around your real rand budget.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Build My Weekend">
+    <meta name="twitter:description" content="Find a weekend away that fits your real budget.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23e9764c'/%3E%3Ctext x='50' y='68' text-anchor='middle' font-size='58' font-family='sans-serif' fill='white'%3Eb%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./js/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Build My Weekend home" data-testid="brand-home">
+        <span class="brand-mark" aria-hidden="true">b.</span>
+        <span>BUILD MY<br><strong>WEEKEND</strong></span>
+      </a>
+      <div class="header-note"><span class="live-dot"></span> DEMONSTRATION DATA — NOT LIVE</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">A little farther. A lot more weekend.</p>
+          <h1>Good weekends<br>start <em>within reach.</em></h1>
+          <p class="hero-sub">Tell us what you have. Tell us what you want. We’ll work out where you can go.</p>
+          <div class="hero-foot"><span class="route-line"></span><span>Real-rand planning, made simple</span></div>
+        </div>
+        <div class="hero-art" aria-label="Illustration of a coastal road trip">
+          <div class="sun-disc"></div><div class="hill hill-back"></div><div class="hill hill-front"></div>
+          <div class="road"></div><div class="road-dash"></div>
+          <div class="art-label"><span>WEEKEND,</span><strong>HERE WE COME</strong></div>
+          <span class="art-coordinate">34°25' S · 19°14' E</span>
+        </div>
+      </section>
+
+      <section class="planner-wrap" aria-labelledby="planner-title">
+        <div class="planner-intro">
+          <span class="step-badge">01 <i>—</i> YOUR PLAN</span>
+          <h2 id="planner-title">What feels like a good getaway?</h2>
+          <p>Start with your total trip budget. We’ll do the fuel maths, too.</p>
+        </div>
+        <form id="trip-form" novalidate>
+          <div class="form-grid">
+            <div class="field field-budget">
+              <label for="budget">Total trip budget <span class="unit">ZAR</span></label>
+              <div class="input-wrap money-input"><span aria-hidden="true">R</span><input id="budget" name="budget" type="number" min="1" step="1" value="3000" inputmode="decimal" required data-testid="budget-input"></div>
+              <small class="field-error" id="budget-error"></small>
+            </div>
+            <div class="field">
+              <label for="people">People going</label>
+              <div class="input-wrap"><input id="people" name="people" type="number" min="1" max="10" step="1" value="4" inputmode="numeric" required data-testid="people-input"><span class="input-suffix">people</span></div>
+              <small class="field-error" id="people-error"></small>
+            </div>
+            <fieldset class="field field-wide experience-field">
+              <legend>What are you in the mood for?</legend>
+              <div class="select-wrap"><select id="experience" name="experience" aria-describedby="experience-error" data-testid="experience-select">
+                <option>Any</option><option>Fishing Away</option><option>Hiking Away</option><option>Camping Away</option><option>Family Away</option><option>Couples Away</option><option>Beach Away</option><option>Wildlife Away</option><option>Road Trip Away</option><option>Surprise Me</option>
+              </select><span class="select-chevron" aria-hidden="true">⌄</span></div>
+              <small class="field-error" id="experience-error"></small>
+            </fieldset>
+            <fieldset class="field field-wide distance-field">
+              <legend>How far feels right?</legend>
+              <div class="distance-options" role="radiogroup" aria-label="Maximum one-way distance">
+                <label><input type="radio" name="distance" value="100" data-testid="distance-100"><span>Under 100 km</span></label>
+                <label><input type="radio" name="distance" value="200" checked data-testid="distance-200"><span>Under 200 km</span></label>
+                <label><input type="radio" name="distance" value="300" data-testid="distance-300"><span>Under 300 km</span></label>
+                <label><input type="radio" name="distance" value="any" data-testid="distance-any"><span>Anywhere</span></label>
+              </div>
+              <small class="field-error" id="distance-error"></small>
+            </fieldset>
+            <div class="field">
+              <label for="depart">Leaving on</label>
+              <div class="input-wrap"><input id="depart" name="depart" type="date" required data-testid="depart-date"></div>
+              <small class="field-error" id="depart-error"></small>
+            </div>
+            <div class="field">
+              <label for="return">Back by</label>
+              <div class="input-wrap"><input id="return" name="return" type="date" required data-testid="return-date"></div>
+              <small class="field-error" id="return-error"></small>
+            </div>
+            <div class="field field-wide vehicle-heading"><span class="mini-rule"></span><span>YOUR VEHICLE & FUEL</span><span class="mini-rule"></span></div>
+            <div class="field">
+              <label for="consumption">Fuel consumption <span class="unit">L / 100 km</span></label>
+              <div class="input-wrap"><input id="consumption" name="consumption" type="number" min="0.1" step="0.1" value="8" inputmode="decimal" required data-testid="consumption-input"><span class="input-suffix">L / 100 km</span></div>
+              <small class="field-error" id="consumption-error"></small>
+            </div>
+            <div class="field">
+              <label for="fuel-price">Fuel price per litre</label>
+              <div class="input-wrap money-input"><span aria-hidden="true">R</span><input id="fuel-price" name="fuelPrice" type="number" min="0.01" step="0.01" value="24.50" inputmode="decimal" required data-testid="fuel-price-input"><span class="input-suffix">/ litre</span></div>
+              <small class="field-error" id="fuel-price-error"></small>
+            </div>
+            <div class="field field-wide">
+              <label for="fuel-existing">Fuel already in the tank <span class="unit">RAND VALUE</span></label>
+              <div class="input-wrap money-input"><span aria-hidden="true">R</span><input id="fuel-existing" name="fuelExisting" type="number" min="0" step="1" value="650" inputmode="decimal" required data-testid="existing-fuel-input"><span class="input-suffix">already paid for</span></div>
+              <small class="field-hint">We count only fuel you still need to buy against your budget.</small>
+              <small class="field-error" id="fuel-existing-error"></small>
+            </div>
+          </div>
+          <div class="form-bottom">
+            <p class="form-trust"><span class="check-mark">✓</span> No sign-up. Just a sensible plan.</p>
+            <button class="button button-primary" type="submit" data-testid="find-trips-button">BUILD MY WEEKEND</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="results-section" id="results" aria-labelledby="results-heading" aria-live="polite">
+        <div class="results-heading">
+          <div><span class="step-badge">02 <i>—</i> THE SHORTLIST</span><h2 id="results-heading">YOUR WEEKEND OPTIONS</h2><p id="results-summary">A few good ways to spend your weekend.</p></div>
+          <div class="result-count" id="result-count" data-testid="result-count"></div>
+        </div>
+        <div class="recommendations" id="recommendations" data-testid="recommendations"></div>
+        <div class="no-results" id="no-results" hidden data-testid="no-results">
+          <span class="no-result-mark">↗</span><h3>Not quite in range. Yet.</h3>
+          <p>Nothing matches all those numbers right now. Try a little more distance, a different kind of escape, or a bigger budget.</p>
+          <button class="button button-secondary" type="button" id="reset-filters" data-testid="reset-filters">WIDEN THE SEARCH</button>
+        </div>
+      </section>
+
+      <section class="how-section" aria-label="How planning works">
+        <div class="how-number">A<br><span>+</span><br>B</div>
+        <div><p class="eyebrow">THE MATH, WITHOUT THE SPREADSHEET</p><h2>Fuel first. Then the fun.</h2></div>
+        <p class="how-copy">Your trip estimate includes accommodation, food, activities and the fuel you still need to buy. Fuel already in your tank is never charged to your trip budget a second time.</p>
+        <div class="math-stamp">STRAIGHT<br>UP NUMBERS</div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-brand">BUILD MY <strong>WEEKEND</strong></div>
+      <p class="disclaimer">DEMONSTRATION MVP — INFORMATION IS NOT LIVE AND MUST NOT BE USED FOR ACTUAL TRAVEL, BOOKING OR EMERGENCY DECISIONS.</p>
+      <span class="footer-caption">Made for getting out there.</span>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog id="trip-dialog" class="trip-dialog" aria-labelledby="detail-title">
+      <div class="dialog-inner" id="dialog-content"></div>
+      <button class="dialog-close" type="button" aria-label="Close trip details" data-testid="close-detail">×</button>
+    </dialog>
+  </body>
+</html>

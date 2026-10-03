@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Build My Weekend"
+description = "A mobile-first evaluation app that helps people in South Africa estimate weekend trip options from their budget, group size, preferences, travel distance, dates and vehicle fuel details. All destination figures are clearly marked demonstration data."
+version = "1.0.0"
+id = "artifacts/build-my-weekend"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25156
+
+[services.development]
+run = "pnpm --filter @workspace/build-my-weekend run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/build-my-weekend", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/build-my-weekend/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25156"
+BASE_PATH = "/"

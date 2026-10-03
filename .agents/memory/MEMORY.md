@@ -1,0 +1,1 @@
+- [Build My Weekend MVP scope](build-my-weekend-mvp-scope.md) — keep this an evaluation MVP with only demonstration data and the brief's core trip-planning flow.

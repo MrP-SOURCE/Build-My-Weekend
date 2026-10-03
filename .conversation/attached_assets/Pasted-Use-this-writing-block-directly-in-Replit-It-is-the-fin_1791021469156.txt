@@ -1,0 +1,386 @@
+Use this writing block directly in Replit. It is the final condensed build instruction.
+
+# BUILD MY WEEKEND — FREE MVP
+
+Build a working mobile-first web application called **BUILD MY WEEKEND**.
+
+## PURPOSE
+
+Prove this core idea:
+
+> **“I have R3,000. Where can I realistically go for the weekend?”**
+
+The user enters their budget, group size, desired experience, driving limit and vehicle information. The app calculates realistic weekend options and shows what the trip will cost and how much money remains.
+
+This is an **evaluation MVP**, not a production tourism platform.
+
+## IMPORTANT SCOPE RULE
+
+Build ONLY the MVP.
+
+Do NOT add:
+
+* paid APIs
+* external APIs
+* databases
+* login/accounts
+* payments
+* booking integrations
+* subscriptions
+* AI services
+* complex backend
+* unnecessary features
+
+Use demonstration data stored directly in JavaScript.
+
+Clearly label all destination, accommodation, food, activity, fuel and practical information as:
+
+**DEMONSTRATION DATA — NOT LIVE**
+
+## FILES
+
+Create only:
+
+```text
+index.html
+styles.css
+js/app.js
+```
+
+The application must run correctly from these files.
+
+## HOME SCREEN
+
+Display:
+
+**BUILD MY WEEKEND**
+
+> Tell us what you have. Tell us what you want. We’ll work out where you can go.
+
+Inputs:
+
+### Budget
+
+R ______
+
+### People
+
+1–10 people
+
+### Experience
+
+* Any
+* Fishing Away
+* Hiking Away
+* Camping Away
+* Family Away
+* Couples Away
+* Beach Away
+* Wildlife Away
+* Road Trip Away
+* Surprise Me
+
+### Maximum driving distance
+
+* Under 100 km
+* Under 200 km
+* Under 300 km
+* Anywhere
+
+### Dates
+
+Departure date
+Return date
+
+### Vehicle
+
+Fuel consumption: L/100km
+Fuel already in vehicle: R
+Fuel price: R/L
+
+Primary button:
+
+**BUILD MY WEEKEND**
+
+## VEHICLE CALCULATION
+
+Keep these two concepts separate:
+
+**FUEL CONSUMED**
+
+and
+
+**ADDITIONAL FUEL PURCHASE REQUIRED**
+
+Formula:
+
+```text
+return distance = one-way distance × 2
+
+litres consumed =
+return distance × consumption / 100
+
+fuel consumed =
+litres consumed × fuel price
+
+additional fuel purchase =
+max(0, fuel consumed - fuel already in vehicle)
+
+total trip spend =
+additional fuel purchase
++ accommodation
++ food
++ activities
+
+money remaining =
+budget - total trip spend
+
+cost per person =
+total trip spend / people
+```
+
+Fuel already in the vehicle must NOT be deducted from the budget.
+
+It is fuel the user already owns.
+
+## DEMONSTRATION DESTINATIONS
+
+Create a static dataset containing enough destinations to test:
+
+* affordable trips
+* unaffordable trips
+* distance filtering
+* category filtering
+* recommendation ordering
+* no-result situations
+
+Include:
+
+### Hermanus
+
+Distance: 120 km
+Accommodation: R1,050
+Food: R650
+Activities: R300
+Category: Beach/Nature
+
+Also include destinations such as:
+
+* Greyton
+* Paternoster
+* Mossel Bay
+* Wilderness
+
+Use clearly labelled demonstration figures.
+
+## HERMANUS TEST
+
+Use:
+
+```text
+Budget: R3,000
+People: 4
+Consumption: 8.0 L/100km
+Fuel already in vehicle: R650
+Fuel price: R24.50/L
+Distance: 120 km
+Accommodation: R1,050
+Food: R650
+Activities: R300
+```
+
+Expected:
+
+```text
+Return distance: 240 km
+Fuel consumed: R470.40
+Additional fuel purchase: R0
+Total spend: R2,000
+Money remaining: R1,000
+Cost per person: R500
+```
+
+Include a developer/test function such as:
+
+`testHermanusCalculation()`
+
+Use console assertions or another non-disruptive test.
+
+## RESULTS
+
+After calculation show:
+
+# YOUR WEEKEND OPTIONS
+
+Display up to three different recommendation cards:
+
+### CLOSEST AFFORDABLE
+
+### BEST VALUE
+
+### FURTHEST AFFORDABLE
+
+Each card shows:
+
+* destination
+* distance
+* drive time
+* estimated additional fuel purchase
+* total estimated spend
+* money remaining
+* activities
+* practical information
+* `VIEW WEEKEND`
+
+Recommendation logic:
+
+**Closest:** shortest distance.
+
+**Best value:** greatest money remaining, then shortest distance.
+
+**Furthest:** greatest distance.
+
+Never show an unaffordable destination as affordable.
+
+If fewer than three destinations qualify, show the available ones.
+
+If none qualify, explain clearly why.
+
+## DETAIL VIEW
+
+When the user selects `VIEW WEEKEND`, display:
+
+* destination
+* dates
+* people
+* experience
+* one-way distance
+* return distance
+* drive time
+* accommodation
+* food
+* activities
+* fuel consumed
+* fuel already in vehicle
+* additional fuel purchase
+* total spend
+* money remaining
+* cost per person
+* simple illustrative itinerary
+* practical information
+
+Include:
+
+**CHECK AVAILABILITY — DEMO**
+
+**NAVIGATE — DEMO**
+
+These must clearly state that live services are not connected.
+
+## SHARE
+
+Add:
+
+**SHARE TRIP**
+
+Generate a plain-text summary containing:
+
+* destination
+* dates
+* people
+* total estimated spend
+* money remaining
+* accommodation
+* food
+* activities
+* fuel consumed
+* additional fuel purchase
+
+Use the browser Web Share API where available.
+
+Otherwise copy the summary to the clipboard.
+
+Provide a fallback if copying fails.
+
+## VALIDATION
+
+Validate:
+
+* budget
+* people
+* experience
+* distance
+* dates
+* return date not before departure
+* consumption
+* fuel already in vehicle
+* fuel price
+
+Display clear inline errors.
+
+Do not lose the user's entered information when validation fails.
+
+## DESIGN
+
+Create a professional, clean, modern consumer interface.
+
+Mobile-first.
+
+Use:
+
+* clear typography
+* large touch-friendly buttons
+* rounded cards
+* strong financial figures
+* clear spacing
+* responsive desktop layout
+* visible focus states
+* clear error states
+* clear empty-result state
+
+Do NOT make it look like a spreadsheet.
+
+The main workflow should visually emphasise:
+
+**BUDGET → PEOPLE → EXPERIENCE → DISTANCE → BUILD**
+
+## DEMONSTRATION DISCLAIMER
+
+Clearly display:
+
+**DEMONSTRATION MVP — INFORMATION IS NOT LIVE AND MUST NOT BE USED FOR ACTUAL TRAVEL, BOOKING OR EMERGENCY DECISIONS.**
+
+## OPTIONAL LOCAL STORAGE
+
+You may save the last temporary trip settings using:
+
+```text
+buildMyWeekendTrip
+```
+
+Do not create a permanent account or profile.
+
+## TEST BEFORE FINISHING
+
+Test:
+
+1. Affordable trip.
+2. No affordable trip.
+3. Distance restriction.
+4. Fuel purchase required.
+5. Fuel already exceeds trip requirement.
+6. Invalid dates.
+7. Recommendation ordering.
+8. Hermanus calculation.
+
+## FINAL REQUIREMENT
+
+Do not merely describe the application.
+
+**BUILD THE WORKING APPLICATION.**
+
+Create the three files, connect them correctly, test the calculations and make the application runnable.
+
+Do not expand the scope beyond this specification.
+
+If you think of additional features, **do not add them**. The purpose of this first version is to test the core idea with real people before development expands.
