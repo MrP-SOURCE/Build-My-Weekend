@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
     <script src="./js/fishing.js"></script>
+    <script src="./js/accommodation.js"></script>
     <script type="module" src="./js/app.js"></script>
   </head>
   <body>
@@ -69,6 +70,15 @@
                 <option>Any</option><option>Fishing Away</option><option>Hiking Away</option><option>Nature</option><option>Camping Away</option><option>Family Away</option><option>Couples Away</option><option>Beach Away</option><option>Wildlife Away</option><option>Road Trip Away</option><option>Surprise Me</option>
               </select><span class="select-chevron" aria-hidden="true">⌄</span></div>
               <small class="field-error" id="experience-error"></small>
+            </fieldset>
+            <fieldset class="field field-wide fishing-controls" id="fishing-controls" hidden aria-labelledby="fishing-heading">
+              <div class="fishing-heading" id="fishing-heading"><span>FISHING AWAY · SPECIALIST SETTINGS</span><span class="mini-rule"></span></div>
+              <div class="fishing-grid">
+                <div class="field"><label for="fishing-style">Fishing style</label><div class="select-wrap"><select id="fishing-style" name="fishingStyle"><option>Any</option><option>Shore</option><option>Rock</option><option>Estuary</option><option>Freshwater</option><option>Boat</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="target-species">Target species</label><div class="select-wrap"><select id="target-species" name="targetSpecies"><option>Any</option><option>Galjoen</option><option>Steenbras</option><option>Other</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="spot-preference">Preferred fishing area</label><div class="select-wrap"><select id="spot-preference" name="spotPreference"><option>Let the app choose</option><option>Bay</option><option>Beach</option><option>Rocks</option><option>Point</option><option>Reef</option><option>Estuary</option><option>Lagoon</option><option>Harbour</option><option>River Mouth</option><option>Local / Informal Spot</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="fishing-priority">Fishing priority</label><div class="select-wrap"><select id="fishing-priority" name="fishingPriority"><option>Best Overall Weekend</option><option>Best Fishing Opportunity</option><option>Lowest Cost</option><option>Shortest Drive</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+              </div>
             </fieldset>
             <fieldset class="field field-wide distance-field">
               <legend>How far feels right?</legend>
