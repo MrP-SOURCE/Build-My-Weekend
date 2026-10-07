@@ -483,7 +483,8 @@ function buildShortlist(candidates) {
       selected.set(destination.id, { destination, badges: ["GOOD MATCH"] });
     }
   }
-  return [...selected.values()];
+  const selectedItems = [...selected.values()];
+  return selectedItems.sort((a, b) => primary(a.destination, b.destination));
 }
 
 function settingsForShortlist(candidates) {
@@ -578,9 +579,27 @@ function testRecommendationScenarios() {
   return scenarios;
 }
 
+function testFishingPriorities() {
+  const base = {
+    budget: 5000, people: 2, experience: "Fishing Away", distance: "any",
+    fishingStyle: "Shore", targetSpecies: "Any", spotPreference: "Let the app choose",
+    consumption: 8, fuelExisting: 650, fuelPrice: 24.5,
+    depart: "2026-10-09", returnDate: "2026-10-11"
+  };
+  const priorities = ["Best Overall Weekend", "Best Fishing Opportunity", "Lowest Cost", "Shortest Drive"];
+  return priorities.map(fishingPriority => {
+    const candidates = findCandidates({ ...base, fishingPriority });
+    if (!candidates.length) throw new Error("Fishing priority test has no candidates: " + fishingPriority);
+    const shortlist = buildShortlist(candidates);
+    const expectedFirst = sortBy(candidates, settingsForShortlist(candidates))[0].id;
+    if (shortlist[0]?.destination.id !== expectedFirst) throw new Error("Fishing priority order failed: " + fishingPriority);
+    return { priority: fishingPriority, first: shortlist[0].destination.name };
+  });
+}
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testWeekendScenarios = testRecommendationScenarios;
+  window.testFishingPriorities = testFishingPriorities;
 }
 
 const form = document.querySelector("#trip-form");
@@ -1001,6 +1020,7 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
 
 initDates();
 settingsFromStorage();
+setupFishingControls();
 if (form.elements.return.value < form.elements.depart.value) {
   form.elements.return.value = form.elements.depart.value;
 }
