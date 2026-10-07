@@ -523,7 +523,8 @@ function testHermanusCalculation() {
 function testRecommendationScenarios() {
   const scenarios = [
     { name: "Beach · R3,000 · 4 people · under 200 km", budget: 3000, people: 4, experience: "Beach Away", distance: "200" },
-    { name: "Fishing · R5,000 · 2 people · anywhere", budget: 5000, people: 2, experience: "Fishing Away", distance: "any" },\n    { name: "Fishing · Shore · Galjoen · under 200 km", budget: 5000, people: 2, experience: "Fishing Away", distance: "200", fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" },
+    { name: "Fishing · R5,000 · 2 people · anywhere", budget: 5000, people: 2, experience: "Fishing Away", distance: "any" },
+    { name: "Fishing · Shore · Galjoen · under 200 km", budget: 5000, people: 2, experience: "Fishing Away", distance: "200", fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" },
     { name: "Family · R2,000 · 4 people · under 100 km", budget: 2000, people: 4, experience: "Family Away", distance: "100" },
     { name: "Nature · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Nature", distance: "any" }
   ].map(scenario => {
