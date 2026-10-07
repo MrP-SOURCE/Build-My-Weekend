@@ -426,7 +426,7 @@ function findCandidates(settings) {
       const fishingScore = settings.experience === "Fishing Away" && window.BMWFishing
         ? window.BMWFishing.destinationMatch(destination.id, settings)
         : 0;
-      const candidate = { ...destination, cost, experienceScore, fishingScore };
+      const candidate = { ...destination, cost, experienceScore, fishingScore, fishingPriority: settings.fishingPriority };
       candidate.valueScore = valueScore(candidate, settings) + (settings.experience === "Fishing Away" ? fishingScore * 0.08 : 0);
       return candidate;
     })
