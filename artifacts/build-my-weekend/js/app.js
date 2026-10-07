@@ -609,7 +609,8 @@ function getSettings() {
     returnDate: values.get("return"),
     consumption: Number(values.get("consumption")),
     fuelExisting: Number(values.get("fuelExisting")),
-    fuelPrice: Number(values.get("fuelPrice"))
+    fuelPrice: Number(values.get("fuelPrice")),
+    ...fishingSettings()
   };
 }
 
