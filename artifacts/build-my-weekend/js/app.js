@@ -443,10 +443,15 @@ function sortBy(candidates, compare) {
 
 function buildShortlist(candidates) {
   if (!candidates.length) return [];
-  const byValue = (a, b) =>
-    b.valueScore - a.valueScore ||
-    a.cost.spend - b.cost.spend ||
-    a.distance - b.distance;
+  const byValue = (a, b) => {
+    if (candidates[0]?.fishingScore) {
+      const priority = candidates[0].fishingPriority || "Best Overall Weekend";
+      if (priority === "Best Fishing Opportunity" && b.fishingScore !== a.fishingScore) return b.fishingScore - a.fishingScore;
+      if (priority === "Lowest Cost" && b.cost.spend !== a.cost.spend) return a.cost.spend - b.cost.spend;
+      if (priority === "Shortest Drive" && b.distance !== a.distance) return a.distance - b.distance;
+    }
+    return b.valueScore - a.valueScore || a.cost.spend - b.cost.spend || a.distance - b.distance;
+  };
   const byDistanceNear = (a, b) =>
     a.distance - b.distance || b.valueScore - a.valueScore;
   const byDistanceFar = (a, b) =>
