@@ -17,3 +17,6 @@
 .fishing-detail p{margin:.6rem 0}
 @media (max-width:800px){.fishing-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:520px){.fishing-grid{grid-template-columns:1fr}}
+
+/* Core accommodation discovery */
+.accommodation-box{margin:0 0 14px;padding:12px 13px;background:#f0f2e9;border-left:3px solid #829477;font-size:9px;line-height:1.45;color:#68796d}.accommodation-box>strong{display:block;font-size:8px;letter-spacing:.1em;color:#40594a;margin-bottom:7px}.accommodation-types{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px}.accommodation-types span{padding:4px 6px;background:#fff;border:1px solid #dce2d9;color:#607267}.accommodation-box small{display:block;margin-bottom:8px}.accommodation-links{display:flex;flex-wrap:wrap;gap:6px}.accommodation-links a{color:#3f6250;font-weight:700;text-decoration:none;border-bottom:1px solid #b9c8bc;padding-bottom:1px}.accommodation-links a:hover{color:#233831}
