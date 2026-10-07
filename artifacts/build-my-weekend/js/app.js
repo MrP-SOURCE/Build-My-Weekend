@@ -850,7 +850,7 @@ function detail(destination, settings) {
     </section>
     ${settings.experience === "Fishing Away" && window.BMWFishing && window.BMWFishing.bestSpot(destination.id, settings) ? (() => {
       const m = window.BMWFishing.bestSpot(destination.id, settings).spot;
-      return \`<section class="fishing-detail">
+      return `<section class="fishing-detail">
         <h3>FISHING AWAY · SPECIALIST MATCH</h3>
         <strong>Best matching area: ${esc(m.name)}</strong>
         <div>${esc(m.area)} · ${esc(m.spotType)} · ${esc(m.styles.join(", "))}</div>
@@ -860,7 +860,7 @@ function detail(destination, settings) {
         <p><strong>ANGLER / COMMUNITY INFORMATION:</strong> ${esc(m.community)}</p>
         <p><strong>CHECK BEFORE LEAVING:</strong> ${esc(m.accessNote)} Current weather, swell, tide, access and regulations must be checked separately.</p>
         <p class="detail-demo-note">FISHING DATA IS DEMONSTRATION INFORMATION — NOT A LIVE CATCH REPORT OR SAFETY REPORT.</p>
-      </section>\`;
+      </section>`;
     })() : ""}
     ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
