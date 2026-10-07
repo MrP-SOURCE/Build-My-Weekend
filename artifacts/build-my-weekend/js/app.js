@@ -472,13 +472,37 @@ function buildShortlist(candidates) {
     if (!selected.has(destination.id)) selected.set(destination.id, { destination, badges: [] });
     selected.get(destination.id).badges.push(role);
   }
-  for (const destination of sortBy(candidates, byValue)) {
+
+  // Fishing priority controls the primary shortlist order. Role badges still
+  // expose useful alternatives, but they must not override the user's chosen
+  // fishing decision criterion.
+  const primary = settingsForShortlist(candidates);
+  for (const destination of sortBy(candidates, primary)) {
     if (selected.size >= Math.min(5, candidates.length)) break;
     if (!selected.has(destination.id)) {
       selected.set(destination.id, { destination, badges: ["GOOD MATCH"] });
     }
   }
   return [...selected.values()];
+}
+
+function settingsForShortlist(candidates) {
+  const first = candidates[0];
+  if (!first?.fishingScore) {
+    return (a, b) => b.valueScore - a.valueScore || a.cost.spend - b.cost.spend || a.distance - b.distance;
+  }
+  const priority = first.fishingPriority || "Best Overall Weekend";
+  if (priority === "Best Fishing Opportunity") {
+    return (a, b) => b.fishingScore - a.fishingScore || b.valueScore - a.valueScore || a.distance - b.distance;
+  }
+  if (priority === "Lowest Cost") {
+    return (a, b) => a.cost.spend - b.cost.spend || b.fishingScore - a.fishingScore || a.distance - b.distance;
+  }
+  if (priority === "Shortest Drive") {
+    return (a, b) => a.distance - b.distance || b.fishingScore - a.fishingScore || b.valueScore - a.valueScore;
+  }
+  return (a, b) => b.valueScore - a.valueScore || b.fishingScore - a.fishingScore || a.cost.spend - b.cost.spend;
+}
 }
 
 function weekdayDate(value) {
