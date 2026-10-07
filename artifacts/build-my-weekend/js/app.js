@@ -657,6 +657,19 @@ function valid(settings) {
   return good && experienceValid && distanceValid;
 }
 
+function accommodationSummary(destination, settings) {
+  if (!window.BMWAccommodation) return "";
+  const ranked = window.BMWAccommodation.rank(destination, settings);
+  return `<div class="accommodation-box">
+    <strong>ACCOMMODATION TO CHECK IN ${esc(destination.name.toUpperCase())}</strong>
+    <div class="accommodation-types">${ranked.types.map(type => `<span>${esc(type)}</span>`).join("")}</div>
+    <small>${esc(ranked.note)}</small>
+    <div class="accommodation-links">${window.BMWAccommodation.links(destination, settings).map(link =>
+      `<a href="${link.url}" target="_blank" rel="noopener noreferrer">${esc(link.name)} ↗</a>`
+    ).join("")}</div>
+  </div>`;
+}
+
 function card(destination, settings, badges) {
   const element = document.createElement("article");
   const cost = destination.cost;
@@ -806,6 +819,7 @@ function detail(destination, settings) {
         <p class="detail-demo-note">FISHING DATA IS DEMONSTRATION INFORMATION — NOT A LIVE CATCH REPORT OR SAFETY REPORT.</p>
       </section>\`;
     })() : ""}
+    ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
       <section class="detail-section">
         <h3>THE COST BREAKDOWN · TYPICAL DEMO ESTIMATE</h3>
