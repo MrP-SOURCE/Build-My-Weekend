@@ -503,7 +503,6 @@ function settingsForShortlist(candidates) {
   }
   return (a, b) => b.valueScore - a.valueScore || b.fishingScore - a.fishingScore || a.cost.spend - b.cost.spend;
 }
-}
 
 function weekdayDate(value) {
   return new Intl.DateTimeFormat("en-ZA", {
