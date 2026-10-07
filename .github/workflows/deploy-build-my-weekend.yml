@@ -3,7 +3,7 @@ name: Deploy BUILD MY WEEKEND to GitHub Pages
 on:
   push:
     branches:
-      - fishing-away-integration
+      - main
   workflow_dispatch:
 
 permissions:
