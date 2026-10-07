@@ -423,12 +423,17 @@ function findCandidates(settings) {
     .map(destination => {
       const cost = calc(destination, settings);
       const experienceScore = experienceRelevance(destination, settings.experience);
-      const candidate = { ...destination, cost, experienceScore };
-      candidate.valueScore = valueScore(candidate, settings);
+      const fishingScore = settings.experience === "Fishing Away" && window.BMWFishing
+        ? window.BMWFishing.destinationMatch(destination.id, settings)
+        : 0;
+      const candidate = { ...destination, cost, experienceScore, fishingScore, fishingPriority: settings.fishingPriority };
+      candidate.valueScore = valueScore(candidate, settings) + (settings.experience === "Fishing Away" ? fishingScore * 0.08 : 0);
       return candidate;
     })
     .filter(destination =>
-      destination.cost.remaining >= 0 && destination.distance <= distanceLimit
+      destination.cost.remaining >= 0 &&
+      destination.distance <= distanceLimit &&
+      (settings.experience !== "Fishing Away" || destination.fishingScore > 0)
     );
 }
 
@@ -438,10 +443,15 @@ function sortBy(candidates, compare) {
 
 function buildShortlist(candidates) {
   if (!candidates.length) return [];
-  const byValue = (a, b) =>
-    b.valueScore - a.valueScore ||
-    a.cost.spend - b.cost.spend ||
-    a.distance - b.distance;
+  const byValue = (a, b) => {
+    if (candidates[0]?.fishingScore) {
+      const priority = candidates[0].fishingPriority || "Best Overall Weekend";
+      if (priority === "Best Fishing Opportunity" && b.fishingScore !== a.fishingScore) return b.fishingScore - a.fishingScore;
+      if (priority === "Lowest Cost" && b.cost.spend !== a.cost.spend) return a.cost.spend - b.cost.spend;
+      if (priority === "Shortest Drive" && b.distance !== a.distance) return a.distance - b.distance;
+    }
+    return b.valueScore - a.valueScore || a.cost.spend - b.cost.spend || a.distance - b.distance;
+  };
   const byDistanceNear = (a, b) =>
     a.distance - b.distance || b.valueScore - a.valueScore;
   const byDistanceFar = (a, b) =>
@@ -462,13 +472,37 @@ function buildShortlist(candidates) {
     if (!selected.has(destination.id)) selected.set(destination.id, { destination, badges: [] });
     selected.get(destination.id).badges.push(role);
   }
-  for (const destination of sortBy(candidates, byValue)) {
+
+  // Fishing priority controls the primary shortlist order. Role badges still
+  // expose useful alternatives, but they must not override the user's chosen
+  // fishing decision criterion.
+  const primary = settingsForShortlist(candidates);
+  for (const destination of sortBy(candidates, primary)) {
     if (selected.size >= Math.min(5, candidates.length)) break;
     if (!selected.has(destination.id)) {
       selected.set(destination.id, { destination, badges: ["GOOD MATCH"] });
     }
   }
-  return [...selected.values()];
+  const selectedItems = [...selected.values()];
+  return selectedItems.sort((a, b) => primary(a.destination, b.destination));
+}
+
+function settingsForShortlist(candidates) {
+  const first = candidates[0];
+  if (!first?.fishingScore) {
+    return (a, b) => b.valueScore - a.valueScore || a.cost.spend - b.cost.spend || a.distance - b.distance;
+  }
+  const priority = first.fishingPriority || "Best Overall Weekend";
+  if (priority === "Best Fishing Opportunity") {
+    return (a, b) => b.fishingScore - a.fishingScore || b.valueScore - a.valueScore || a.distance - b.distance;
+  }
+  if (priority === "Lowest Cost") {
+    return (a, b) => a.cost.spend - b.cost.spend || b.fishingScore - a.fishingScore || a.distance - b.distance;
+  }
+  if (priority === "Shortest Drive") {
+    return (a, b) => a.distance - b.distance || b.fishingScore - a.fishingScore || b.valueScore - a.valueScore;
+  }
+  return (a, b) => b.valueScore - a.valueScore || b.fishingScore - a.fishingScore || a.cost.spend - b.cost.spend;
 }
 
 function weekdayDate(value) {
@@ -514,6 +548,7 @@ function testRecommendationScenarios() {
   const scenarios = [
     { name: "Beach · R3,000 · 4 people · under 200 km", budget: 3000, people: 4, experience: "Beach Away", distance: "200" },
     { name: "Fishing · R5,000 · 2 people · anywhere", budget: 5000, people: 2, experience: "Fishing Away", distance: "any" },
+    { name: "Fishing · Shore · Galjoen · under 200 km", budget: 5000, people: 2, experience: "Fishing Away", distance: "200", fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" },
     { name: "Family · R2,000 · 4 people · under 100 km", budget: 2000, people: 4, experience: "Family Away", distance: "100" },
     { name: "Nature · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Nature", distance: "any" }
   ].map(scenario => {
@@ -544,9 +579,27 @@ function testRecommendationScenarios() {
   return scenarios;
 }
 
+function testFishingPriorities() {
+  const base = {
+    budget: 5000, people: 2, experience: "Fishing Away", distance: "any",
+    fishingStyle: "Shore", targetSpecies: "Any", spotPreference: "Let the app choose",
+    consumption: 8, fuelExisting: 650, fuelPrice: 24.5,
+    depart: "2026-10-09", returnDate: "2026-10-11"
+  };
+  const priorities = ["Best Overall Weekend", "Best Fishing Opportunity", "Lowest Cost", "Shortest Drive"];
+  return priorities.map(fishingPriority => {
+    const candidates = findCandidates({ ...base, fishingPriority });
+    if (!candidates.length) throw new Error("Fishing priority test has no candidates: " + fishingPriority);
+    const shortlist = buildShortlist(candidates);
+    const expectedFirst = sortBy(candidates, settingsForShortlist(candidates))[0].id;
+    if (shortlist[0]?.destination.id !== expectedFirst) throw new Error("Fishing priority order failed: " + fishingPriority);
+    return { priority: fishingPriority, first: shortlist[0].destination.name };
+  });
+}
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testWeekendScenarios = testRecommendationScenarios;
+  window.testFishingPriorities = testFishingPriorities;
 }
 
 const form = document.querySelector("#trip-form");
@@ -554,6 +607,44 @@ const results = document.querySelector("#recommendations");
 const dialog = document.querySelector("#trip-dialog");
 const dialogContent = document.querySelector("#dialog-content");
 const toast = document.querySelector("#toast");
+
+function fishingSettings() {
+  return {
+    fishingStyle: document.querySelector("#fishing-style")?.value || "Any",
+    targetSpecies: document.querySelector("#target-species")?.value || "Any",
+    spotPreference: document.querySelector("#spot-preference")?.value || "Let the app choose",
+    fishingPriority: document.querySelector("#fishing-priority")?.value || "Best Overall Weekend"
+  };
+}
+
+function setupFishingControls() {
+  const experience = document.querySelector("#experience");
+  const panel = document.querySelector("#fishing-controls");
+  if (!experience || !panel) return;
+  const sync = () => {
+    const active = experience.value === "Fishing Away";
+    panel.hidden = !active;
+    document.querySelector("#planner-title").textContent = active
+      ? "Build your fishing weekend"
+      : "What feels like a good getaway?";
+  };
+  experience.addEventListener("change", sync);
+  sync();
+}
+
+function fishingSpotSummary(destination, settings) {
+  if (settings.experience !== "Fishing Away" || !window.BMWFishing) return "";
+  const match = window.BMWFishing.bestSpot(destination.id, settings);
+  if (!match) return "";
+  const s = match.spot;
+  return `<div class="fishing-result-box">
+    <strong>BEST MATCHING FISHING AREA</strong>
+    <span>${esc(s.name)} · ${esc(s.spotType)}</span>
+    <small>Target: ${esc(s.species.join(", "))} · Style: ${esc(s.styles.join(", "))}</small>
+    <small>Community note: ${esc(s.community)}</small>
+    <small>DEMO ONLY — verify tide, swell, wind, access, permits and current regulations.</small>
+  </div>`;
+}
 
 function getSettings() {
   const values = new FormData(form);
@@ -566,7 +657,8 @@ function getSettings() {
     returnDate: values.get("return"),
     consumption: Number(values.get("consumption")),
     fuelExisting: Number(values.get("fuelExisting")),
-    fuelPrice: Number(values.get("fuelPrice"))
+    fuelPrice: Number(values.get("fuelPrice")),
+    ...fishingSettings()
   };
 }
 
@@ -608,6 +700,19 @@ function valid(settings) {
   return good && experienceValid && distanceValid;
 }
 
+function accommodationSummary(destination, settings) {
+  if (!window.BMWAccommodation) return "";
+  const ranked = window.BMWAccommodation.rank(destination, settings);
+  return `<div class="accommodation-box">
+    <strong>ACCOMMODATION TO CHECK IN ${esc(destination.name.toUpperCase())}</strong>
+    <div class="accommodation-types">${ranked.types.map(type => `<span>${esc(type)}</span>`).join("")}</div>
+    <small>${esc(ranked.note)}</small>
+    <div class="accommodation-links">${window.BMWAccommodation.links(destination, settings).map(link =>
+      `<a href="${link.url}" target="_blank" rel="noopener noreferrer">${esc(link.name)} ↗</a>`
+    ).join("")}</div>
+  </div>`;
+}
+
 function card(destination, settings, badges) {
   const element = document.createElement("article");
   const cost = destination.cost;
@@ -627,7 +732,7 @@ function card(destination, settings, badges) {
         ).join("")}</div>
       </div>
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
-      <p class="destination-description">${esc(destination.description)}</p>
+      <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
         <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">TYPICAL TOTAL · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range</div></div>
         <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
@@ -743,6 +848,21 @@ function detail(destination, settings) {
       <h3 id="why-matched-title">WHY THIS MATCHED</h3>
       <ul>${whyMatched(destination, settings).map(reason => `<li>${esc(reason)}</li>`).join("")}</ul>
     </section>
+    ${settings.experience === "Fishing Away" && window.BMWFishing && window.BMWFishing.bestSpot(destination.id, settings) ? (() => {
+      const m = window.BMWFishing.bestSpot(destination.id, settings).spot;
+      return `<section class="fishing-detail">
+        <h3>FISHING AWAY · SPECIALIST MATCH</h3>
+        <strong>Best matching area: ${esc(m.name)}</strong>
+        <div>${esc(m.area)} · ${esc(m.spotType)} · ${esc(m.styles.join(", "))}</div>
+        <div>Target species: ${esc(m.species.join(", "))}</div>
+        <div>Tide: ${esc(m.tide)}</div>
+        <p>${esc(m.conditions)}</p>
+        <p><strong>ANGLER / COMMUNITY INFORMATION:</strong> ${esc(m.community)}</p>
+        <p><strong>CHECK BEFORE LEAVING:</strong> ${esc(m.accessNote)} Current weather, swell, tide, access and regulations must be checked separately.</p>
+        <p class="detail-demo-note">FISHING DATA IS DEMONSTRATION INFORMATION — NOT A LIVE CATCH REPORT OR SAFETY REPORT.</p>
+      </section>`;
+    })() : ""}
+    ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
       <section class="detail-section">
         <h3>THE COST BREAKDOWN · TYPICAL DEMO ESTIMATE</h3>
@@ -900,6 +1020,7 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
 
 initDates();
 settingsFromStorage();
+setupFishingControls();
 if (form.elements.return.value < form.elements.depart.value) {
   form.elements.return.value = form.elements.depart.value;
 }
