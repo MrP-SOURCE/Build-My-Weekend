@@ -531,6 +531,26 @@ function driveLabel(minutes) {
     : `${remainingMinutes} min`;
 }
 
+function dateRangeValid(depart, returnDate, today = localDate(new Date())) {
+  return Boolean(depart && returnDate) && depart >= today && returnDate >= depart;
+}
+
+function testDateRangeValidation() {
+  const cases = [
+    { depart: "2026-10-10", returnDate: "2026-10-11", today: "2026-10-09", expected: true, label: "future trip" },
+    { depart: "2026-10-09", returnDate: "2026-10-09", today: "2026-10-09", expected: true, label: "same-day trip" },
+    { depart: "2026-10-08", returnDate: "2026-10-11", today: "2026-10-09", expected: false, label: "past departure" },
+    { depart: "2026-10-11", returnDate: "2026-10-10", today: "2026-10-09", expected: false, label: "return before departure" },
+    { depart: "", returnDate: "2026-10-11", today: "2026-10-09", expected: false, label: "missing departure" },
+    { depart: "2026-10-10", returnDate: "", today: "2026-10-09", expected: false, label: "missing return" }
+  ];
+  for (const item of cases) {
+    const actual = dateRangeValid(item.depart, item.returnDate, item.today);
+    if (actual !== item.expected) throw new Error("Date validation failed for " + item.label + ".");
+  }
+  return cases.length;
+}
+
 function testHermanusCalculation() {
   const hermanus = destinations.find(destination => destination.id === "hermanus");
   const settings = {
@@ -629,6 +649,7 @@ function testFishingPriorities() {
 }
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
+  window.testDateRangeValidation = testDateRangeValidation;
   window.testWeekendScenarios = testRecommendationScenarios;
   window.testFishingPriorities = testFishingPriorities;
 }
@@ -905,8 +926,8 @@ function valid(settings) {
   const checks = [
     ["budget", Number.isFinite(settings.budget) && settings.budget > 0, "Enter a budget greater than R0."],
     ["people", Number.isInteger(settings.people) && settings.people >= 1 && settings.people <= 10, "Choose between 1 and 10 people."],
-    ["depart", Boolean(settings.depart), "Choose a departure date."],
-    ["return", Boolean(settings.returnDate) && (!settings.depart || settings.returnDate >= settings.depart), "Choose a return date on or after departure."],
+    ["depart", Boolean(settings.depart) && settings.depart >= localDate(new Date()), "Choose today or a future departure date."],
+    ["return", Boolean(settings.returnDate) && Boolean(settings.depart) && settings.returnDate >= settings.depart, "Choose a return date on or after departure."],
     ["consumption", Number.isFinite(settings.consumption) && settings.consumption > 0, "Enter fuel consumption greater than 0."],
     ["fuel-price", Number.isFinite(settings.fuelPrice) && settings.fuelPrice > 0, "Enter a fuel price greater than R0."],
     ["fuel-existing", Number.isFinite(settings.fuelExisting) && settings.fuelExisting >= 0, "Fuel already in the tank cannot be negative."]
@@ -1357,8 +1378,11 @@ form.addEventListener("input", event => {
 });
 
 form.addEventListener("change", event => {
-  if (event.target.name === "depart" && form.elements.return.value < form.elements.depart.value) {
-    form.elements.return.value = form.elements.depart.value;
+  if (event.target.name === "depart") {
+    form.elements.return.min = form.elements.depart.value || localDate(new Date());
+    if (form.elements.return.value < form.elements.depart.value) {
+      form.elements.return.value = form.elements.depart.value;
+    }
   }
   if (form.querySelector('[aria-invalid="true"]')) valid(getSettings());
 });
@@ -1420,6 +1444,7 @@ initDates();
 settingsFromStorage();
 setupFishingControls();
 if (window.BMWCamping) window.BMWCamping.setupCampingControls();
+form.elements.return.min = form.elements.depart.value || localDate(new Date());
 if (form.elements.return.value < form.elements.depart.value) {
   form.elements.return.value = form.elements.depart.value;
 }
