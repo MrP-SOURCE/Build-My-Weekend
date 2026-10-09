@@ -177,8 +177,11 @@
       siteSearch("Camp SA Directory", "campsa.co.za"),
       siteSearch("Caravan & Outdoor Life", "caravanoutdoor.co.za"),
       siteSearch("LekkeSlaap", "lekkeslaap.co.za"),
-      { name: "CapeNature", url: "https://www.capenature.co.za/" },
-      { name: "SANParks", url: "https://www.sanparks.org/" },
+      siteSearch("Search Booking.com campsites near this destination", "booking.com"),
+      siteSearch("Search SANParks campsites near this destination", "sanparks.org"),
+      siteSearch("Search CapeNature campsites near this destination", "capenature.co.za"),
+      { name: "CapeNature official site", url: "https://www.capenature.co.za/" },
+      { name: "SANParks official site", url: "https://www.sanparks.org/" },
       { name: "Search wider web", url: "https://www.google.com/search?q=" + q }
     ];
   }
