@@ -1419,26 +1419,73 @@ function findDestination(id) {
   return destinations.find(destination => destination.id === id);
 }
 
+function applySavedSettings(saved, targetForm, getElementById) {
+  if (!saved) return false;
+  const plan = savedSettingsRestorePlan(saved);
+  for (const key of plan.fields) {
+    if (saved[key] !== undefined && targetForm.elements[key]) targetForm.elements[key].value = saved[key];
+  }
+  if (plan.returnDate && targetForm.elements.return) targetForm.elements.return.value = plan.returnDate;
+  if (plan.distance) {
+    const radio = targetForm.querySelector(`input[name="distance"][value="${plan.distance}"]`);
+    if (radio) radio.checked = true;
+  }
+  for (const [key, id] of plan.selects) {
+    const field = getElementById(id);
+    if (field && typeof saved[key] === "string" &&
+        [...field.options].some(option => option.value === saved[key])) {
+      field.value = saved[key];
+    }
+  }
+  return true;
+}
+
+function testSavedSettingsApplication() {
+  const saved = {
+    budget: "3200", people: "3", experience: "Camping Away", distance: "200",
+    depart: "2026-10-10", returnDate: "2026-10-12", consumption: "7.5",
+    fuelExisting: "100", fuelPrice: "24.5", fishingStyle: "Shore",
+    targetSpecies: "Galjoen", spotPreference: "Rocks", fishingPriority: "Lowest Cost",
+    hikingDifficulty: "Easy", hikingSetting: "Forest", climbingType: "Bouldering",
+    climbingLevel: "Beginner", campingSetup: "Glamping", campingPower: "Required",
+    campingAblutions: "Full", campingShade: "Shaded", campingTerrain: "Firm level"
+  };
+  const elements = {};
+  for (const key of ["budget", "people", "experience", "depart", "return", "consumption", "fuelExisting", "fuelPrice"]) {
+    elements[key] = { value: "" };
+  }
+  const distanceRadio = { checked: false };
+  const controls = {};
+  const plan = savedSettingsRestorePlan(saved);
+  for (const [key, id] of plan.selects) {
+    controls[id] = { value: "", options: [{ value: saved[key] }, { value: "Any" }] };
+  }
+  const mockForm = {
+    elements,
+    querySelector(selector) {
+      return selector === 'input[name="distance"][value="200"]' ? distanceRadio : null;
+    }
+  };
+  if (!applySavedSettings(saved, mockForm, id => controls[id])) throw new Error("Saved settings were not applied.");
+  for (const key of ["budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
+    if (elements[key].value !== saved[key]) throw new Error("Saved field not restored: " + key);
+  }
+  if (elements.return.value !== saved.returnDate) throw new Error("Return date not restored.");
+  if (!distanceRadio.checked) throw new Error("Distance option not restored.");
+  for (const [key, id] of plan.selects) {
+    if (controls[id].value !== saved[key]) throw new Error("Saved select not restored: " + key);
+  }
+  const invalidSaved = { ...saved, campingSetup: "Invalid option" };
+  controls["camping-setup"].value = "";
+  applySavedSettings(invalidSaved, mockForm, id => controls[id]);
+  if (controls["camping-setup"].value !== "") throw new Error("Invalid select value should not overwrite the UI.");
+  return 22;
+}
+
 function settingsFromStorage() {
   try {
     const saved = JSON.parse(localStorage.getItem("buildMyWeekendTrip") || "null");
-    if (!saved) return;
-    const plan = savedSettingsRestorePlan(saved);
-    for (const key of plan.fields) {
-      if (saved[key] !== undefined && form.elements[key]) form.elements[key].value = saved[key];
-    }
-    if (plan.returnDate) form.elements.return.value = plan.returnDate;
-    if (plan.distance) {
-      const radio = form.querySelector(`input[name="distance"][value="${plan.distance}"]`);
-      if (radio) radio.checked = true;
-    }
-    for (const [key, id] of plan.selects) {
-      const field = document.getElementById(id);
-      if (field && typeof saved[key] === "string" &&
-          [...field.options].some(option => option.value === saved[key])) {
-        field.value = saved[key];
-      }
-    }
+    applySavedSettings(saved, form, id => document.getElementById(id));
   } catch {}
 }
 
