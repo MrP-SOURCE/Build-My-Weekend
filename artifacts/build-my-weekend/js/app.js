@@ -933,7 +933,9 @@ function fishingSpotSummary(destination, settings) {
   const researchLinks = [
     ["Check tide times", search("tide times")],
     ["Check wind and swell", search("wind swell forecast")],
-    ["Find recent fishing reports", search("recent fishing reports")]
+    ["Find recent fishing reports", search("recent fishing reports")],
+    ["Check permits and catch limits", "https://www.google.com/search?q=" + encodeURIComponent("site:dffe.gov.za recreational fishing permit bag limits size limits South Africa " + s.area + speciesContext)],
+    ["Find official fishing rules", "https://www.google.com/search?q=" + encodeURIComponent("site:gov.za recreational fishing regulations South Africa " + speciesContext)]
   ].map(([label, url]) => '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(label) + ' ↗</a>').join(" · ");
   return `<div class="fishing-result-box">
     <strong>BEST MATCHING FISHING AREA</strong>
