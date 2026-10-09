@@ -741,7 +741,7 @@ function testFuelAndGroupScaling() {
   if (fourPeople.consumed !== noFuelInTank.consumed || fourPeople.additional !== noFuelInTank.additional) throw new Error("Group size must not multiply vehicle fuel cost.");
   if (fourPeople.accommodation !== noFuelInTank.accommodation * 2 || fourPeople.food !== noFuelInTank.food * 2 || fourPeople.activities !== noFuelInTank.activities * 2) throw new Error("Non-fuel costs must scale with group size.");
   if (fourPeople.spend !== round2(noFuelInTank.additional + (noFuelInTank.spend - noFuelInTank.additional) * 2)) throw new Error("Total spend must scale group costs without duplicating vehicle fuel.");
-  if (noFuelInTank.perPerson >= fourPeople.perPerson) throw new Error("Per-person cost should fall when shared vehicle fuel is split across more people, with other costs unchanged per person.");
+  if (noFuelInTank.perPerson <= fourPeople.perPerson) throw new Error("Per-person cost should fall when shared vehicle fuel is split across more people, with other costs unchanged per person.");
   return true;
 }
 
