@@ -782,8 +782,8 @@ function testCostEstimateIntegrity() {
       if (result.lowSpend > result.spend || result.spend > result.highSpend) {
         throw new Error("Low / typical / high estimate order invalid for " + destination.id + ".");
       }
-      if (Math.abs(result.perPerson * scenario.people - result.spend) > 0.02) {
-        throw new Error("Per-person total does not reconcile for " + destination.id + ".");
+      if (result.perPerson !== round2(result.spend / scenario.people)) {
+        throw new Error("Per-person figure must equal the rounded total divided by group size for " + destination.id + ".");
       }
       checked++;
     }
