@@ -69,7 +69,7 @@
       { name: "Glamping Hub", url: "https://glampinghub.com/" },
       siteSearch("Glamping South Africa directory", "glampingsouthafrica.co.za"),
       siteSearch("LekkeSlaap glamping search", "lekkeslaap.co.za"),
-      siteSearch("SafariNow glamping search", "safar now.com".replace(" ", "")),
+      siteSearch("SafariNow glamping search", "safarinow.com"),
       { name: "Search wider web", url: "https://www.google.com/search?q=" + term }
     ];
   }
