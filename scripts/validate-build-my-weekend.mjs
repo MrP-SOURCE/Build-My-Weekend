@@ -51,7 +51,11 @@ for (const marker of [
   "accommodationSummary(destination, settings)",
   'fishingStyle: settings.fishingStyle',
   '["fishingStyle", "fishing-style"]',
-  'form.elements.experience.dispatchEvent(new Event("change"'
+  'form.elements.experience.dispatchEvent(new Event("change"',
+  "Check tide times",
+  "wind swell forecast",
+  "recent fishing reports",
+  "not live forecasts or verified fishing reports"
 ]) {
   assert(app.includes(marker), "Missing app integration marker: " + marker);
 }
