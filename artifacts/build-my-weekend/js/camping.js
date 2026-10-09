@@ -68,6 +68,158 @@
     ];
   }
 
+  // Curated profiles are based on published official campsite pages/info sheets.
+  // Location aliases are deliberately narrow; broader-area options are labelled as such.
+  const SITE_PROFILES = [
+    {
+      id: "algeria",
+      names: ["Algeria"],
+      name: "Algeria Campsite",
+      area: "At the selected destination",
+      source: "CapeNature",
+      url: "https://www.capenature.co.za/reserves/cederberg-wilderness-area/?accommodations=algeria",
+      evidence: "Published campsite information",
+      setup: ["Tent", "Caravan"],
+      power: "Published site info sheet lists power points; confirm connection and current operation with the reserve.",
+      ablutions: "Communal ablutions with toilets and hot showers; bring toilet paper and refuse bags.",
+      shade: "Some sites have more shade than others.",
+      ground: "Grassy riverside campsite; grass and shade vary by stand.",
+      details: "48 sites, maximum 6 people and 2 cars per site; each site has a water point and braai place. The Rondegat River has natural pools.",
+      bestFor: "Tent or caravan campers wanting a river setting and shared facilities.",
+      caution: "Do not assume every pitch has the same shade or grass cover; request a specific stand."
+    },
+    {
+      id: "kliphuis",
+      names: ["De Pakhuys"],
+      name: "Kliphuis Campsite",
+      area: "Nearby Cederberg / Pakhuis Pass option — confirm drive distance",
+      source: "CapeNature",
+      url: "https://www.capenature.co.za/accommodation/kliphuis-camping",
+      evidence: "Published campsite page",
+      setup: ["Tent", "Caravan"],
+      power: "No electricity or power points.",
+      ablutions: "Hot-water showers heated by gas.",
+      shade: "Shady campsite.",
+      ground: "Riverside setting; exact pitch surface and levelness are not specified.",
+      details: "14 sites, maximum 6 people and 2 cars per site; braai facilities and firewood for sale; no on-site shop.",
+      bestFor: "Campers comfortable without mains electricity who value shade, river scenery and access to the Cederberg/Rocklands area.",
+      caution: "Pets are not allowed. Confirm vehicle access, river conditions and the specific pitch before travelling."
+    },
+    {
+      id: "anysberg",
+      names: ["Montagu"],
+      name: "Anysberg Nature Reserve Campsites",
+      area: "Broader Klein Karoo regional option — check route and driving time",
+      source: "CapeNature",
+      url: "https://www.capenature.co.za/accommodation/anysberg-campsites",
+      evidence: "Published campsite page",
+      setup: ["Tent"],
+      power: "No power points.",
+      ablutions: "Communal ablutions with showers using gas/solar hot water; bring toilet paper.",
+      shade: "Pitch-specific shade is not confirmed on the campsite page.",
+      ground: "Pitch surface not specified; ask the reserve about the stand you would be allocated.",
+      details: "Five sites, maximum 6 people each; communal kitchen with gas stove, fridge and freezer; wheelchair-friendly campsite listing.",
+      bestFor: "Self-sufficient campers who do not need mains electricity and want a more remote nature-reserve setting.",
+      caution: "This is a regional alternative, not a claim that the reserve is in Montagu. Confirm the route, access and accessibility details directly."
+    },
+    {
+      id: "wilderness-ebb-flow",
+      names: ["Wilderness"],
+      name: "Wilderness Ebb-and-Flow Rest Camp",
+      area: "At the selected destination",
+      source: "SANParks",
+      url: "https://www.sanparks.org/parks/garden-route/accommodation",
+      evidence: "Published SANParks accommodation page",
+      setup: ["Tent", "Caravan"],
+      power: "Power availability for the specific camping stand is not confirmed here; check the selected unit in SANParks booking details.",
+      ablutions: "Confirm the current ablution block and facilities for the selected camping area.",
+      shade: "Forest, river and lakeside setting; shade at the individual pitch is not confirmed.",
+      ground: "Campsite beside the river; pitch surface and levelness are not specified on the overview page.",
+      details: "SANParks describes camping beside the river, with forest paths, bird hides and canoeing available in the area.",
+      bestFor: "Campers looking for a river-and-forest setting with nature activities.",
+      caution: "Use SANParks to check the exact camp section, unit type, current availability and facilities before booking."
+    },
+    {
+      id: "tweede-tol",
+      names: ["Paarl"],
+      name: "Tweede Tol Campsite",
+      area: "Bainskloof Pass regional option — confirm route and driving time",
+      source: "CapeNature",
+      url: "https://www.capenature.co.za/accommodation/tweede-tol-2",
+      evidence: "Published campsite page",
+      setup: ["Tent", "Caravan"],
+      power: "No power points; private sites have solar-powered USB charging.",
+      ablutions: "Ablution block with hot-water showers.",
+      shade: "Some sites have shade; some have grass.",
+      ground: "Grass and shade vary by site; exact pitch levelness is not specified.",
+      details: "Standard and private sites, braai area at each site, river swimming holes, maximum 6 people per site. No on-site shop and no pets.",
+      bestFor: "Tent and caravan campers happy without mains electricity who want river swimming and braai facilities.",
+      caution: "Bookings are required in advance; conservation fees may be additional. Confirm the private-stand rules and current price."
+    }
+  ];
+
+  function relevantSiteProfiles(destination) {
+    const name = String(destination?.name || "").toLowerCase();
+    return SITE_PROFILES.filter(profile => profile.names.some(alias => alias.toLowerCase() === name));
+  }
+
+  function profileFit(profile, settings) {
+    const issues = [];
+    if (settings.campingSetup && settings.campingSetup !== "Any" && !profile.setup.includes(settings.campingSetup)) {
+      if (settings.campingSetup === "Motorhome" || settings.campingSetup === "Rooftop tent" || settings.campingSetup === "Off-grid") {
+        issues.push("Your selected setup is not explicitly confirmed for this site.");
+      }
+    }
+    if (settings.campingPower === "Required" && /no power points|no electricity/i.test(profile.power)) {
+      issues.push("Does not meet the mains-electricity requirement.");
+    }
+    if (settings.campingPower === "Required" && /not confirmed|confirm/i.test(profile.power)) {
+      issues.push("Mains electricity is not confirmed; do not treat this as a match until checked.");
+    }
+    if (settings.campingAblutions === "Full" && /confirm the current|not confirmed/i.test(profile.ablutions)) {
+      issues.push("Full ablutions are not sufficiently confirmed in the source.");
+    }
+    if (settings.campingShade === "Shaded" && /not confirmed/i.test(profile.shade)) {
+      issues.push("Pitch-level shade is not confirmed.");
+    }
+    if (settings.campingTerrain && settings.campingTerrain !== "Any") {
+      const terrain = profile.ground.toLowerCase();
+      const matches = (settings.campingTerrain === "Grass" && /grass|grassy/i.test(terrain)) ||
+        (settings.campingTerrain === "Sand" && /sand/i.test(terrain)) ||
+        (settings.campingTerrain === "Gravel" && /gravel|hardstand/i.test(terrain)) ||
+        (settings.campingTerrain === "Firm level" && /firm and level|level pitch/i.test(terrain));
+      if (!matches) issues.push("The preferred ground type is not confirmed for the individual pitch.");
+    }
+    return issues;
+  }
+
+  function publishedSiteOptions(destination, settings) {
+    const profiles = relevantSiteProfiles(destination);
+    if (!profiles.length) {
+      return '<p>No destination-specific campsite profile is available in the current curated set yet. Use the targeted directory and official-source searches below; unconfirmed details should stay unconfirmed rather than be guessed.</p>';
+    }
+    return profiles.map(profile => {
+      const issues = profileFit(profile, settings);
+      const status = issues.length ? "CHECK BEFORE CHOOSING" : "POTENTIAL OPTION — VERIFY PITCH";
+      const setup = profile.setup.join(" / ");
+      return '<article class="camping-site-profile">' +
+        '<div class="camping-site-top"><strong>' + esc(profile.name) + '</strong><span>' + esc(status) + '</span></div>' +
+        '<p class="camping-site-area">' + esc(profile.area) + '</p>' +
+        '<p><b>Published setup:</b> ' + esc(setup) + '</p>' +
+        '<ul><li><b>Electricity:</b> ' + esc(profile.power) + '</li>' +
+        '<li><b>Ablutions:</b> ' + esc(profile.ablutions) + '</li>' +
+        '<li><b>Shade:</b> ' + esc(profile.shade) + '</li>' +
+        '<li><b>Ground:</b> ' + esc(profile.ground) + '</li></ul>' +
+        '<p>' + esc(profile.details) + '</p>' +
+        '<p><b>Best suited to:</b> ' + esc(profile.bestFor) + '</p>' +
+        (issues.length ? '<p class="camping-profile-warning"><b>Preference check:</b> ' + esc(issues.join(" ")) + '</p>' : '') +
+        '<p class="camping-profile-warning">' + esc(profile.caution) + '</p>' +
+        '<p><a href="' + esc(profile.url) + '" target="_blank" rel="noopener noreferrer">Check official ' + esc(profile.source) + ' details ↗</a></p>' +
+        '<p class="camping-source-note">Evidence: ' + esc(profile.evidence) + '. Current availability and the exact pitch are not verified by this app.</p>' +
+      '</article>';
+    }).join("");
+  }
+
   function cardSummary(destination, settings) {
     const selected = preferences(settings).filter(([, value]) => value !== "Any");
     const summary = selected.length
@@ -88,10 +240,12 @@
       '<strong>CAMPING AWAY · SITE-FIT CHECK</strong>' +
       '<p>These preferences refine what to look for around ' + esc(destination.name) + '. They are not proof that a matching pitch is available.</p>' +
       '<ul>' + rows + '</ul>' +
+      '<strong>PUBLISHED CAMPSITE OPTIONS</strong>' +
+      '<div class="camping-site-profiles">' + publishedSiteOptions(destination, settings) + '</div>' +
       '<strong>WHAT TO CONFIRM</strong><ul>' + advice(settings).map(item => '<li>' + esc(item) + '</li>').join("") + '</ul>' +
-      '<strong>CAMPSITE RESEARCH SOURCES</strong>' +
+      '<strong>MORE CAMPSITE RESEARCH SOURCES</strong>' +
       '<div class="camping-source-links">' + links + '</div>' +
-      '<p class="camping-source-note">These links are research starting points, not a connected booking API. Terrain, electricity, shade and ablutions can vary by individual pitch. Verify directly with the campsite before booking.</p>' +
+      '<p class="camping-source-note">Profiles summarize published official information, not a live campsite database. Confirm current tariffs, dates, access and stand-level facilities with the operator. Third-party directory links help broaden discovery but are not booking integrations.</p>' +
       '</section>';
   }
 
@@ -104,5 +258,5 @@
     sync();
   }
 
-  window.BMWCamping = { preferences, advice, sourceLinks, cardSummary, detailSummary, setupCampingControls };
+  window.BMWCamping = { preferences, advice, sourceLinks, cardSummary, detailSummary, setupCampingControls, relevantSiteProfiles, profileFit };
 })();
