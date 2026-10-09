@@ -92,3 +92,16 @@
 .camping-source-note{font-size:9px!important;color:#8b6b50!important;margin-top:10px!important}
 @media(max-width:760px){.camping-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.camping-grid{grid-template-columns:1fr}}
+
+/* Sourced campsite options reuse the existing Camping Away result panel. */
+.camping-site-profiles{display:grid;gap:10px;margin:9px 0 15px}
+.camping-site-profile{border:1px solid #dce3d5;background:#fff;padding:11px 12px;border-radius:5px}
+.camping-site-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.camping-site-top strong{font-size:11px!important;letter-spacing:0!important;color:#40594a!important;margin:0!important}
+.camping-site-top span{font-size:8px;color:#68785d;font-weight:700;letter-spacing:.05em;text-align:right}
+.camping-site-area{font-size:9px!important;color:#7c725c!important;margin:4px 0 7px!important}
+.camping-site-profile p{margin:6px 0}
+.camping-site-profile ul{margin:7px 0;padding-left:17px;display:grid;gap:5px}
+.camping-profile-warning{color:#806246!important}
+.camping-site-profile a{color:#2e5143;font-weight:700;text-decoration:underline;text-underline-offset:2px}
+@media(max-width:520px){.camping-site-top{flex-direction:column;gap:4px}.camping-site-top span{text-align:left}}
