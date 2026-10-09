@@ -16,6 +16,8 @@ function idsFromHtml(source) {
   return [...source.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 }
 
+assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
+
 const ids = idsFromHtml(html);
 const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
 assert(!duplicates.length, "Duplicate HTML ids: " + [...new Set(duplicates)].join(", "));
