@@ -464,8 +464,11 @@ function sortBy(candidates, compare) {
   return [...candidates].sort(compare);
 }
 
-function buildShortlist(candidates) {
+function buildShortlist(candidates, settings = {}) {
   if (!candidates.length) return [];
+  const stayFeeExcluded = settings.experience === "Camping Away";
+  const nearRole = stayFeeExcluded ? "CLOSEST BASE-ESTIMATE FIT" : "CLOSEST AFFORDABLE";
+  const farRole = stayFeeExcluded ? "FURTHEST BASE-ESTIMATE FIT" : "FURTHEST AFFORDABLE";
   const byValue = (a, b) => {
     if (candidates[0]?.fishingScore) {
       const priority = candidates[0].fishingPriority || "Best Overall Weekend";
@@ -480,9 +483,9 @@ function buildShortlist(candidates) {
   const byDistanceFar = (a, b) =>
     b.distance - a.distance || b.valueScore - a.valueScore;
   const roles = [
-    ["CLOSEST AFFORDABLE", sortBy(candidates, byDistanceNear)[0]],
+    [nearRole, sortBy(candidates, byDistanceNear)[0]],
     ["BEST VALUE", sortBy(candidates, byValue)[0]],
-    ["FURTHEST AFFORDABLE", sortBy(candidates, byDistanceFar)[0]],
+    [farRole, sortBy(candidates, byDistanceFar)[0]],
     ["BEST EXPERIENCE MATCH", sortBy(candidates, (a, b) =>
       b.experienceScore - a.experienceScore || byValue(a, b)
     )[0]],
@@ -766,7 +769,7 @@ function testRecommendationScenarios() {
       returnDate: "2026-10-11"
     };
     const candidates = findCandidates(settings);
-    const shortlist = buildShortlist(candidates);
+    const shortlist = buildShortlist(candidates, settings);
     const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
     if (candidates.some(item => item.cost.remaining < 0)) {
       throw new Error(`${scenario.name}: a destination exceeding the group budget was returned.`);
@@ -825,7 +828,7 @@ function testFishingPriorities() {
   return priorities.map(fishingPriority => {
     const candidates = findCandidates({ ...base, fishingPriority });
     if (!candidates.length) throw new Error("Fishing priority test has no candidates: " + fishingPriority);
-    const shortlist = buildShortlist(candidates);
+    const shortlist = buildShortlist(candidates, { ...base, fishingPriority });
     const expectedFirst = sortBy(candidates, settingsForShortlist(candidates))[0].id;
     if (shortlist[0]?.destination.id !== expectedFirst) throw new Error("Fishing priority order failed: " + fishingPriority);
     return { priority: fishingPriority, first: shortlist[0].destination.name };
@@ -1404,7 +1407,7 @@ function render() {
   } catch {}
 
   const candidates = findCandidates(settings);
-  const shortlist = buildShortlist(candidates);
+  const shortlist = buildShortlist(candidates, settings);
   const noResults = document.querySelector("#no-results");
   document.querySelector("#results-summary").textContent =
     `We found ${candidates.length} possible destination${candidates.length === 1 ? "" : "s"}. Here are the strongest matches for you.`;
