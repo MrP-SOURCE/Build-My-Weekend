@@ -1915,7 +1915,7 @@ function detail(destination, settings) {
 function shareText(destination, settings) {
   const cost = calc(destination, settings);
   const stayLinks = window.BMWAccommodation
-    ? window.BMWAccommodation.links(destination, settings).map(link => `${link.name}: ${link.url}`).join("\\n")
+    ? window.BMWAccommodation.links(destination, settings).map(link => `${link.name}: ${link.url}`).join("\n")
     : "";
   const campingSelected = settings.experience === "Camping Away";
   const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
@@ -1925,7 +1925,7 @@ function shareText(destination, settings) {
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
     `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.` +
-    (stayLinks ? `\\n\\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\\n${stayLinks}` : "");
+    (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "");
 }
 
 function toastMessage(message) {
