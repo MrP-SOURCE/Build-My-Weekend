@@ -1929,7 +1929,13 @@ function shareText(destination, settings) {
   const stayLinks = sharedStayLinks(destination, settings);
   const campingSelected = settings.experience === "Camping Away";
   const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
+  const budgetConfidence = cost.highSpend <= settings.budget
+    ? "BUDGET CONFIDENCE: The high estimate is within your group budget."
+    : cost.lowSpend <= settings.budget
+      ? "BUDGET CONFIDENCE: This may fit only toward the low end of the estimate; the high estimate exceeds your group budget."
+      : "BUDGET CONFIDENCE: The low estimate already exceeds your group budget.";
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
+    `${budgetConfidence}\n` +
     (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — budget remainder is before the stay price; check the full property price.\n" : campingSelected ? "CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED — budget remainder is before this fee; confirm full cost for the group and dates.\n" : "") +
     (cost.highSpend > settings.budget ? `${glampingSelected || campingSelected ? "UPPER BASE ESTIMATE" : "UPPER DEMONSTRATION ESTIMATE"} EXCEEDS GROUP BUDGET BY ${money(round2(cost.highSpend - settings.budget))}${glampingSelected ? " BEFORE GLAMPING STAY PRICE" : campingSelected ? " BEFORE CAMPSITE/SITE FEE" : ""}.\n` : "") +
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
