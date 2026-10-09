@@ -375,21 +375,22 @@ function calc(destination, settings) {
   const parsedDepart = settings.depart ? Date.parse(settings.depart + "T12:00:00Z") : NaN;
   const parsedReturn = settings.returnDate ? Date.parse(settings.returnDate + "T12:00:00Z") : NaN;
   const validDateSpan = Number.isFinite(parsedDepart) && Number.isFinite(parsedReturn) && parsedReturn >= parsedDepart;
-  const nights = validDateSpan ? Math.max(1, Math.round((parsedReturn - parsedDepart) / 86400000)) : 2;
-  const durationMultiplier = nights / 2;
-  const accommodation = round2(destination.accommodationTypical * settings.people * durationMultiplier);
+  const nights = validDateSpan ? Math.round((parsedReturn - parsedDepart) / 86400000) : 2;
+  const durationMultiplier = Math.max(0.5, nights / 2);
+  const accommodationMultiplier = nights / 2;
+  const accommodation = round2(destination.accommodationTypical * settings.people * accommodationMultiplier);
   const food = round2(destination.foodTypical * settings.people * durationMultiplier);
   const activities = round2(destination.activitiesTypical * settings.people * durationMultiplier);
   const lowSpend = round2(
     additional +
-    destination.accommodationLow * settings.people * durationMultiplier +
+    destination.accommodationLow * settings.people * accommodationMultiplier +
     destination.foodLow * settings.people * durationMultiplier +
     destination.activitiesLow * settings.people * durationMultiplier
   );
   const spend = round2(additional + accommodation + food + activities);
   const highSpend = round2(
     additional +
-    destination.accommodationHigh * settings.people * durationMultiplier +
+    destination.accommodationHigh * settings.people * accommodationMultiplier +
     destination.foodHigh * settings.people * durationMultiplier +
     destination.activitiesHigh * settings.people * durationMultiplier
   );
@@ -397,6 +398,7 @@ function calc(destination, settings) {
     returnDistance,
     nights,
     durationMultiplier,
+    accommodationMultiplier,
     litres: round2(litres),
     consumed,
     additional,
@@ -717,7 +719,8 @@ function testTripDurationCostScaling() {
   if (oneNight.accommodation * 2 !== weekend.accommodation || fourNights.accommodation !== weekend.accommodation * 2) throw new Error("Accommodation cost scaling failed.");
   if (round2((oneNight.spend - oneNight.additional) * 2) !== round2(weekend.spend - weekend.additional) || round2(fourNights.spend - fourNights.additional) !== round2((weekend.spend - weekend.additional) * 2)) throw new Error("Non-fuel total estimate scaling failed.");
   const sameDay = calc(destination, { ...base, returnDate: "2026-10-09" });
-  if (sameDay.nights !== 1) throw new Error("Same-day trips must use the minimum one-night estimate rather than zero lodging cost.");
+  if (sameDay.nights !== 0 || sameDay.accommodation !== 0 || sameDay.accommodationMultiplier !== 0) throw new Error("Same-day trips must not include overnight accommodation costs.");
+  if (sameDay.durationMultiplier !== 0.5 || sameDay.food <= 0 || sameDay.activities <= 0) throw new Error("Same-day trips should retain a half-day food/activity estimate without lodging.");
   return true;
 }
 
@@ -1294,7 +1297,7 @@ function card(destination, settings, badges) {
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
-        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights} night${cost.nights === 1 ? "" : "s"}</div></div>
+        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div></div>
         <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "LEFT BEFORE GLAMPING STAY" : "LEFT IN BUDGET"}</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
