@@ -771,6 +771,7 @@ function testRecommendationScenarios() {
     const candidates = findCandidates(settings);
     const shortlist = buildShortlist(candidates, settings);
     const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
+    if (!candidates.length) throw new Error(`${scenario.name}: no matching destination returned for this regression scenario.`);
     if (candidates.some(item => item.cost.remaining < 0)) {
       throw new Error(`${scenario.name}: a destination exceeding the group budget was returned.`);
     }
