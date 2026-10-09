@@ -122,6 +122,21 @@ vm.runInContext(appLogic, context);
 assert(context.window.testHermanusCalculation(), "Hermanus budget and fuel calculation failed.");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
 assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
+const restoreControlIds = [
+  "fishing-style", "target-species", "spot-preference", "fishing-priority",
+  "hiking-difficulty", "hiking-setting", "climbing-type", "climbing-level",
+  "camping-setup", "camping-power", "camping-ablutions", "camping-shade",
+  "camping-terrain"
+];
+for (const id of restoreControlIds) {
+  assert(ids.includes(id), "Saved preference restore target is missing from HTML: " + id);
+}
+for (const name of ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting", "return", "distance"]) {
+  assert(html.includes('name="' + name + '"'), "Saved preference form field is missing from HTML: " + name);
+}
+assert(html.includes('name="distance"') && html.includes('value="200"'),
+  "Saved preference distance restore option 200 km is missing.");
+
 assert(context.window.testActivityPanelState() === 12, "Activity panel switching regression checks failed.");
 const plannerScenarios = context.window.testWeekendScenarios();
 assert(plannerScenarios.length >= 8, "Planner scenario coverage is unexpectedly small.");
