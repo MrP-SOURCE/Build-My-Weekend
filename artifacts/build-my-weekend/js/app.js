@@ -788,6 +788,7 @@ if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
+  window.testSavedSettingsApplication = testSavedSettingsApplication;
   window.testActivityPanelState = testActivityPanelState;
   window.testWeekendScenarios = testRecommendationScenarios;
   window.testFishingPriorities = testFishingPriorities;
