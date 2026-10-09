@@ -1313,6 +1313,14 @@ function budgetTradeoffPanel(candidates, settings) {
         <div style="font-size:1.15rem;font-weight:800">${money(item.cost.spend)} <span style="font-size:.75rem;font-weight:500">estimated new spend</span></div>
         <div style="font-size:.85rem;margin:.35rem 0">${item.distance} km one way · ${money(item.cost.perPerson)} per person</div>
         <div style="font-size:.85rem;margin:.35rem 0">${money(item.cost.remaining)} of group budget left</div>
+        <div style="margin:.65rem 0;padding:.6rem;background:#f6f7f2;border-radius:8px;font-size:.8rem;line-height:1.65">
+          <strong>ESTIMATED COST BREAKDOWN</strong><br>
+          Stay: ${money(item.cost.accommodation)}<br>
+          Food: ${money(item.cost.food)}<br>
+          Activities: ${money(item.cost.activities)}<br>
+          Additional fuel: ${money(item.cost.additional)}
+        </div>
+        <div style="font-size:.8rem;line-height:1.45"><strong>Possible budget lever:</strong> spending half as much on paid activities would save about ${money(item.cost.activities / 2)} for the group, if suitable free alternatives are available.</div>
         <p style="font-size:.8rem;line-height:1.45;margin:.45rem 0 0">${note}</p>
       </div>`).join("")}
     </div>
