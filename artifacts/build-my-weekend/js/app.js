@@ -876,6 +876,12 @@ function testShareSummaryBudgetNextSteps() {
   if (within !== "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.") throw new Error("Shared summary must tell affordable trips to confirm the full accommodation price.");
   if (lowEnd !== "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.") throw new Error("Shared summary must give a lower-cost next step when only the low estimate fits.");
   if (over !== "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.") throw new Error("Shared summary must give a cost-reduction next step when the low estimate exceeds budget.");
+  const withinSettings = { ...base, budget: cost.highSpend + 1 };
+  const shared = shareText(destination, withinSettings);
+  if (!shared.includes(`BUDGET CONFIDENCE: High estimate ${money(cost.highSpend)} is within your ${money(withinSettings.budget)} group budget`) ||
+      !shared.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
+    throw new Error("Shared trip summary must show the estimated group cost range and exact group budget in its confidence statement.");
+  }
   const campingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Tent" });
   const glampingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Glamping" });
   const expectedCamping = "Before booking, confirm the full accommodation fee for your dates and group; it may not be included in this estimate.";
@@ -1973,11 +1979,13 @@ function shareText(destination, settings) {
   const stayLinks = sharedStayLinks(destination, settings);
   const campingSelected = settings.experience === "Camping Away";
   const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
+  const budgetRange = `${money(cost.lowSpend)}–${money(cost.highSpend)}`;
+  const groupBudget = money(settings.budget);
   const budgetConfidence = cost.highSpend <= settings.budget
-    ? "BUDGET CONFIDENCE: The high estimate is within your group budget."
+    ? `BUDGET CONFIDENCE: High estimate ${money(cost.highSpend)} is within your ${groupBudget} group budget (range ${budgetRange}).`
     : cost.lowSpend <= settings.budget
-      ? "BUDGET CONFIDENCE: This may fit only toward the low end of the estimate; the high estimate exceeds your group budget."
-      : "BUDGET CONFIDENCE: The low estimate already exceeds your group budget.";
+      ? `BUDGET CONFIDENCE: Low estimate ${money(cost.lowSpend)} fits your ${groupBudget} group budget, but high estimate ${money(cost.highSpend)} exceeds it (range ${budgetRange}).`
+      : `BUDGET CONFIDENCE: Low estimate ${money(cost.lowSpend)} already exceeds your ${groupBudget} group budget (range ${budgetRange}).`;
   const budgetNextStep = shareBudgetNextStep(cost, settings);
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
     `${budgetConfidence}\n${budgetNextStep}\n` +
