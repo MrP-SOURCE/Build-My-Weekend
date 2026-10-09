@@ -228,6 +228,8 @@ assert(context.window.testTripDurationCostScaling(), "Trip duration cost scaling
 assert(context.window.testFuelAndGroupScaling(), "Fuel and group-size cost regression checks failed.");
 assert(context.window.testCostEstimateIntegrity() > 0, "Cost estimate integrity checks failed.");
 assert(context.window.testDestinationDataIntegrity() > 0, "Destination data integrity checks failed.");
+assert(context.window.testDestinationSafetyNoteCoverage() > 0, "Destination safety note coverage checks failed.");
+console.log("Destination safety note coverage:", context.window.testDestinationSafetyNoteCoverage());
 console.log("Destination data integrity records:", context.window.testDestinationDataIntegrity());
 console.log("Cost estimate integrity scenarios:", context.window.testCostEstimateIntegrity());
 assert(context.window.testBudgetRangeDisclosure(), "Budget range disclosure regression checks failed.");
