@@ -791,6 +791,34 @@ function testCostEstimateIntegrity() {
   return checked;
 }
 
+function testDestinationDataIntegrity() {
+  const seen = new Set();
+  const ranges = [
+    ["accommodationLow", "accommodationTypical", "accommodationHigh"],
+    ["foodLow", "foodTypical", "foodHigh"],
+    ["activitiesLow", "activitiesTypical", "activitiesHigh"]
+  ];
+  for (const destination of destinations) {
+    if (!destination.id || seen.has(destination.id)) throw new Error("Destination IDs must be present and unique.");
+    seen.add(destination.id);
+    if (!destination.name || !destination.region || !Array.isArray(destination.categories) || destination.categories.length === 0) {
+      throw new Error("Destination needs a name, region and category: " + destination.id);
+    }
+    if (!Number.isFinite(destination.distance) || destination.distance <= 0 ||
+        !Number.isFinite(destination.driveTime) || destination.driveTime <= 0) {
+      throw new Error("Destination distance and drive time must be positive estimates: " + destination.id);
+    }
+    for (const [low, typical, high] of ranges) {
+      const values = [destination[low], destination[typical], destination[high]];
+      if (values.some(value => !Number.isFinite(value) || value < 0) ||
+          values[0] > values[1] || values[1] > values[2]) {
+        throw new Error("Destination cost range must be non-negative and ordered: " + destination.id + " (" + low + ").");
+      }
+    }
+  }
+  return seen.size;
+}
+
 function testHermanusCalculation() {
   const hermanus = destinations.find(destination => destination.id === "hermanus");
   const settings = {
@@ -904,6 +932,7 @@ if (typeof window !== "undefined") {
   window.testTripDurationCostScaling = testTripDurationCostScaling;
   window.testFuelAndGroupScaling = testFuelAndGroupScaling;
   window.testCostEstimateIntegrity = testCostEstimateIntegrity;
+  window.testDestinationDataIntegrity = testDestinationDataIntegrity;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
