@@ -109,7 +109,13 @@ const campingSettings = { campingSetup: "Glamping", campingPower: "Required", ca
 assert(campingApi.preferences(campingSettings).length === 5, "Camping preference coverage changed.");
 assert(campingApi.advice(campingSettings).length >= 5, "Camping preferences should produce specific confirmation advice.");
 const campsiteLinks = campingApi.sourceLinks({ name: "Hermanus" }, campingSettings);
-assert(campsiteLinks.length === 6, "Camping source coverage changed.");
+assert(campsiteLinks.length === 9, "Camping source coverage changed.");
+assert(campsiteLinks.some(link => link.name.includes("Booking.com campsites near this destination") && link.url.includes("site%3Abooking.com")),
+  "Destination-targeted Booking.com campsite search is missing.");
+assert(campsiteLinks.some(link => link.name.includes("SANParks campsites near this destination") && link.url.includes("site%3Asanparks.org")),
+  "Destination-targeted SANParks campsite search is missing.");
+assert(campsiteLinks.some(link => link.name.includes("CapeNature campsites near this destination") && link.url.includes("site%3Acapenature.co.za")),
+  "Destination-targeted CapeNature campsite search is missing.");
 assert(campsiteLinks.every(link => /^https:\/\//.test(link.url)), "Camping source link is not HTTPS.");
 const glampingLinks = campingApi.glampingLinks({ name: "Hermanus" }, campingSettings);
 assert(glampingLinks.length === 10, "Glamping source coverage changed.");
