@@ -34,3 +34,15 @@
 .weather-day b{font-size:11px}
 .weather-day span{font-size:11px}
 .weather-day small{margin:0;font-size:10px}
+
+/* Source-informed fishing refinement guidance */
+.fishing-reference-panel{margin-top:16px;padding:15px;border:1px solid rgba(20,35,30,.14);background:#fffdf7}
+.fishing-reference-panel h4,.fishing-finetune h3{margin:0 0 9px;font-size:10px;letter-spacing:.12em;color:#40594a}
+.fishing-reference-panel p,.fishing-reference-panel small,.fishing-finetune>p{font-size:10px;line-height:1.55;color:#68796d}
+.fishing-reference-panel ul{padding-left:18px;display:grid;gap:7px;font-size:11px;line-height:1.45}
+.fishing-reference-panel a,.fishing-finetune a{color:#2e6550;text-decoration:underline;text-underline-offset:2px}
+.fishing-tuning-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.fishing-tuning-list article{padding:12px;background:#fffdf7;border:1px solid rgba(20,35,30,.12)}
+.fishing-tuning-list article strong{font-size:10px;color:#40594a}
+.fishing-tuning-list article p{font-size:10px;line-height:1.55;color:#68796d;margin:6px 0 0}
+@media(max-width:560px){.fishing-tuning-list{grid-template-columns:1fr}}
