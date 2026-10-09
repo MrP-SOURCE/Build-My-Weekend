@@ -1705,6 +1705,7 @@ function detail(destination, settings) {
       <small>${money(cost.remaining)} ${glampingSelected ? "left before glamping stay price" : campingSelected ? "left before campsite/site fee" : "left from your group budget"} · Group budget: ${money(settings.budget)} · Dates: ${dateSpan(settings)}</small>
       ${glampingSelected ? '<p class="detail-demo-note">Glamping budget warning: the property-specific stay price is not included in this demonstration total. Confirm the full price for your dates and group before deciding affordability.</p>' : ""}
       <div class="detail-range">Typical-cost demonstration range for the group: ${money(cost.lowSpend)}–${money(cost.highSpend)}. No value is a quote.</div>
+      ${budgetRangeWarning(cost, settings, campingSelected, glampingSelected)}
     </div>
     ${activitySuitabilityEvidence(destination, settings)}
     <section class="why-matched" aria-labelledby="why-matched-title">
