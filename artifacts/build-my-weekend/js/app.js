@@ -1530,7 +1530,14 @@ function rankingReason(destination, badges, settings) {
     reasons.push("it passed your activity, distance and budget filters and ranked in the shortlist");
   }
   const budget = Number(settings.budget) || 0;
-  const planningFactors = `Planning factors: ${Math.round(destination.experienceScore || 0)}/3 activity fit; ${destination.distance} km one way; estimated new spend ${money(destination.cost.spend)} against a ${money(budget)} group budget.`;
+  const lowSpend = Number(destination.cost.lowSpend) || 0;
+  const highSpend = Number(destination.cost.highSpend) || 0;
+  const budgetConfidence = highSpend <= budget
+    ? "within budget even at the high estimate"
+    : lowSpend <= budget
+      ? "may fit only toward the low end of the estimate"
+      : "above budget even at the low estimate";
+  const planningFactors = `Planning factors: ${Math.round(destination.experienceScore || 0)}/3 activity fit; ${destination.distance} km one way; estimated new spend ${money(destination.cost.spend)} against a ${money(budget)} group budget; estimate range ${money(lowSpend)}–${money(highSpend)} (${budgetConfidence}).`;
   return `${reasons.slice(0, 2).join("; ")}. ${planningFactors} Rankings use demonstration data and scoring rules, not verified live demand, prices or availability.`;
 }
 
