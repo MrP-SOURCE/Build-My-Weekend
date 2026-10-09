@@ -1213,45 +1213,50 @@ function card(destination, settings, badges) {
   const cost = destination.cost;
   const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
   element.className = "trip-card";
-  element.dataset.testid = `destination-${destination.id}`;
-  element.innerHTML = `
-    <div class="card-landscape" style="--card-bg:${destination.colors[0]};--card-hill:${destination.colors[1]};--card-hill2:${destination.colors[2]}">
+  element.dataset.testid = \`destination-\${destination.id}\`;
+  element.innerHTML = \`
+    <div class="card-landscape" style="--card-bg:\${destination.colors[0]};--card-hill:\${destination.colors[1]};--card-hill2:\${destination.colors[2]}">
       <span class="landscape-sun"></span><span class="landscape-hill"></span><span class="landscape-hill second"></span>
-      <span class="card-tag">${esc(destination.categories.slice(0, 2).join(" · ").toUpperCase())}</span>
-      <span class="card-km">${destination.distance} KM ONE WAY</span>
+      <span class="card-tag">\${esc(destination.categories.slice(0, 2).join(" · ").toUpperCase())}</span>
+      <span class="card-km">\${destination.distance} KM ONE WAY</span>
     </div>
     <div class="card-content">
       <div class="card-topline">
-        <div><h3>${esc(destination.name)}</h3><div class="destination-region">${esc(destination.region)} · ${esc(destination.province)}</div></div>
-        <div class="card-badges" aria-label="Recommendation roles">${badges.map(badge =>
-          `<span class="recommendation-label">${esc(badge)}</span>`
+        <div><h3>\${esc(destination.name)}</h3><div class="destination-region">\${esc(destination.region)} · \${esc(destination.province)}</div></div>
+        <div class="card-badges" aria-label="Recommendation roles">\${badges.map(badge =>
+          \`<span class="recommendation-label">\${esc(badge)}</span>\`
         ).join("")}</div>
       </div>
-      <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
-      <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
+      <div class="trip-facts"><span>\${settings.people} \${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ \${driveLabel(destination.driveTime)} drive</span><span>·</span><span>\${dateSpan(settings)}</span></div>
+      <p class="destination-description">\${esc(destination.description)}</p>\${fishingSpotSummary(destination, settings)}\${campingCardSummary(destination, settings)}\${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
-        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range</div></div>
-        <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
+        <div><div class="spend-number">\${money(cost.spend)}</div><div class="spend-caption">\${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : \`ESTIMATED NEW SPEND · \${settings.people} \${settings.people === 1 ? "PERSON" : "PEOPLE"}\`}</div>\${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">\${money(cost.perPerson)} per person</div><div class="card-demo-range">\${money(cost.lowSpend)}–\${money(cost.highSpend)} demonstration range</div></div>
+        <div class="leftover"><b>\${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
       </div>
-      <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
-      <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> ${esc(rankingReason(destination, badges, settings))}</p>
+      <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>\${destination.activityIdeas.map(esc).join(" · ")}</div>
+      <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> \${esc(rankingReason(destination, badges, settings))}</p>
     </div>
     <div class="card-actions">
-      <button type="button" data-action="view" data-destination="${destination.id}" data-testid="view-${destination.id}">VIEW WEEKEND <span aria-hidden="true">↗</span></button>
-      <button type="button" data-action="share" datafunction rankingReason(destination, badges, settings) {
+      <button type="button" data-action="view" data-destination="\${destination.id}" data-testid="view-\${destination.id}">VIEW WEEKEND <span aria-hidden="true">↗</span></button>
+      <button type="button" data-action="share" data-destination="\${destination.id}" data-testid="share-\${destination.id}">SHARE TRIP</button>
+    </div>\`;
+  return element;
+}
+
+function rankingReason(destination, badges, settings) {
   const reasons = [];
   const roles = new Set(badges);
-  if (roles.has("BEST FISHING OPPORTUNITY") || (settings.experience === "Fishing Away" && settings.fishingPriority === "Best Fishing Opportunity")) {
-    reasons.push(`it ranks strongly for the selected fishing-priority score (${Math.round(destination.fishingScore || 0)}/100)`);
+  if (settings.experience === "Fishing Away" && settings.fishingPriority === "Best Fishing Opportunity") {
+    reasons.push(\`it ranks by the selected fishing-priority score (\${Math.round(destination.fishingScore || 0)}/100)\`);
   }
   if (roles.has("LOWEST COST") || (settings.experience === "Fishing Away" && settings.fishingPriority === "Lowest Cost")) {
-    reasons.push(`its estimated new spend is the lowest among the shortlisted options (${money(destination.cost.spend)})`);
+    reasons.push(\`its estimated new spend is low among shortlisted options (\${money(destination.cost.spend)})\`);
   }
   if (roles.has("CLOSEST AFFORDABLE") || (settings.experience === "Fishing Away" && settings.fishingPriority === "Shortest Drive")) {
-    reasons.push(`it is one of the closest affordable choices at ${destination.distance} km one way`);
+    reasons.push(\`it is among the closest affordable choices at \${destination.distance} km one way\`);
   }
   if (roles.has("FURTHEST AFFORDABLE")) {
-    reasons.push(`it is the furthest affordable choice at ${destination.distance} km one way`);
+    reasons.push(\`it is the furthest affordable choice at \${destination.distance} km one way\`);
   }
   if (roles.has("BEST EXPERIENCE MATCH")) {
     reasons.push("its categories score well against your selected weekend type");
@@ -1262,12 +1267,7 @@ function card(destination, settings, badges) {
   if (!reasons.length) {
     reasons.push("it passed your activity, distance and budget filters and ranked in the shortlist");
   }
-  return `${reasons.slice(0, 2).join("; ")}. Rankings use demonstration data and scoring rules, not verified live demand, prices or availability.`;
-}
-
--destination="${destination.id}" data-testid="share-${destination.id}">SHARE TRIP</button>
-    </div>`;
-  return element;
+  return \`\${reasons.slice(0, 2).join("; ")}. Rankings use demonstration data and scoring rules, not verified live demand, prices or availability.\`;
 }
 
 function noResultsMessage(settings) {
