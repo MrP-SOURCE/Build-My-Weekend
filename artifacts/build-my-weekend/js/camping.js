@@ -91,7 +91,7 @@
     return '<section class="camping-result-box" aria-label="Glamping discovery">' +
       '<strong>GLAMPING · BOUTIQUE OUTDOOR STAYS</strong>' +
       '<p>Search luxury safari tents, furnished bell tents, domes, cabins, pods and treehouses around ' + esc(destination.name) + '. Current trip settings: ' + esc(context) + (settings.depart && settings.returnDate ? ' · dates ' + esc(settings.depart) + ' to ' + esc(settings.returnDate) : '') + '.</p>' +
-      '<p><b>Budget and distance:</b> the planner filters destination recommendations using your trip budget and distance limit. Provider links help you search for a suitable property but do not enforce those filters; check the property address against your route and its full stay price against your remaining budget. Search results may fall outside the selected radius.</p>' +
+      '<p><b>Budget and distance:</b> the planner filters destinations using the demonstration trip estimate and distance limit, but the property-specific glamping stay price is excluded. The displayed remainder is not confirmed money left after accommodation. Provider links do not enforce the distance or budget filters; check the exact route and full stay total before deciding whether the trip is affordable. Search results may fall outside the selected radius.</p>' +
       '<p><b>Compare before choosing:</b> private versus shared bathroom, real beds and linen, heating or cooling, kitchen access, electricity, child/pet rules, accessibility, cancellation terms and the full price for your dates.</p>' +
       renderGlampingProfiles(destination, settings) +
       '<div class="camping-source-links">' + links + '</div>' +
