@@ -1278,7 +1278,8 @@ function accommodationSummary(destination, settings) {
 function card(destination, settings, badges) {
   const element = document.createElement("article");
   const cost = destination.cost;
-  const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
+  const campingSelected = settings.experience === "Camping Away";
+  const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
   element.className = "trip-card";
   element.dataset.testid = `destination-${destination.id}`;
   element.innerHTML = `
@@ -1297,8 +1298,8 @@ function card(destination, settings, badges) {
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
-        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div></div>
-        <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "LEFT BEFORE GLAMPING STAY" : "LEFT IN BUDGET"}</span></div>
+        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : campingSelected ? `BASE TRIP ESTIMATE · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"} · CAMPSITE FEE NOT VERIFIED` : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : campingSelected ? '<p class="detail-demo-note">The accommodation figure is a generic demonstration allowance, not a campsite tariff. The actual pitch/site fee is not mapped or included as a verified price. Confirm the total for your dates and group before deciding affordability.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div></div>
+        <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "LEFT BEFORE GLAMPING STAY" : campingSelected ? "LEFT BEFORE CAMPSITE FEE" : "LEFT IN BUDGET"}</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
       <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> ${esc(rankingReason(destination, badges, settings))}</p>
