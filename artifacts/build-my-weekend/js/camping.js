@@ -91,9 +91,69 @@
       '<p>Search luxury safari tents, furnished bell tents, domes, cabins, pods and treehouses around ' + esc(destination.name) + '. Current trip settings: ' + esc(context) + (settings.depart && settings.returnDate ? ' · dates ' + esc(settings.depart) + ' to ' + esc(settings.returnDate) : '') + '.</p>' +
       '<p><b>Budget and distance:</b> the planner filters destination recommendations using your trip budget and distance limit. Provider links help you search for a suitable property but do not enforce those filters; check the property address against your route and its full stay price against your remaining budget. Search results may fall outside the selected radius.</p>' +
       '<p><b>Compare before choosing:</b> private versus shared bathroom, real beds and linen, heating or cooling, kitchen access, electricity, child/pet rules, accessibility, cancellation terms and the full price for your dates.</p>' +
+      renderGlampingProfiles(destination) +
       '<div class="camping-source-links">' + links + '</div>' +
       '<p class="camping-source-note">No API connection or live price/availability verification is claimed. Confirm the exact property location, dates, total charges and included facilities on the provider booking page.</p>' +
       '</section>';
+  }
+
+  const GLAMPING_PROFILES = [
+    {
+      destinations: ["Hermanus"],
+      name: "AfriCamps at Stanford Hills",
+      area: "Stanford Hills Wine Estate, near Stanford; check the exact drive from Hermanus",
+      source: "AfriCamps official property page",
+      url: "https://africamps.com/farm/stanford-africamps-stanford-hills/",
+      details: "Furnished glamping tents for up to five guests, an en-suite bathroom, fully equipped kitchen, private wood-fired hot tub and built-in braai. One dog is allowed only by prior arrangement."
+    },
+    {
+      destinations: ["De Pakhuys"],
+      name: "AfriCamps at de Pakhuys",
+      area: "Agter-Pakhuis Valley, Cederberg; official page places it 26 km from Clanwilliam",
+      source: "AfriCamps official property page",
+      url: "https://africamps.com/farm/africamps-at-de-pakhuys-cederberg/",
+      details: "Furnished glamping tents sleep up to five, with a fully equipped kitchen, en-suite bathroom, indoor wood-burning fireplace and private outdoor wood-fired hot tub. Dog-friendly rules and the selected tent type should be confirmed on the property page."
+    },
+    {
+      destinations: ["Oudtshoorn"],
+      name: "AfriCamps Klein Karoo",
+      area: "About 10 minutes from central Oudtshoorn, according to AfriCamps",
+      source: "AfriCamps official property page",
+      url: "https://africamps.com/farm/oudtshoorn-klein-karoo/",
+      details: "Classic furnished tents sleep up to five; premium tents are designed for couples. En-suite facilities and self-catering equipment are listed. One dog is allowed in classic tents only by prior arrangement; premium tents are excluded."
+    },
+    {
+      destinations: ["Wilderness"],
+      name: "AfriCamps at Oakhurst",
+      area: "Oakhurst working dairy farm in the Wilderness / Garden Route area",
+      source: "AfriCamps official property page",
+      url: "https://africamps.com/farm/wilderness-africamps-oakhurst/",
+      details: "Furnished tents sleep up to five, with an en-suite bathroom, equipped kitchen, indoor fireplace, air-conditioning and private outdoor wood-fired hot tub. A cot and high chair can be requested in advance."
+    }
+  ];
+
+  function glampingProfiles(destination) {
+    const name = String(destination?.name || "").toLowerCase();
+    return GLAMPING_PROFILES.filter(profile =>
+      profile.destinations.some(alias => alias.toLowerCase() === name)
+    );
+  }
+
+  function renderGlampingProfiles(destination) {
+    const profiles = glampingProfiles(destination);
+    if (!profiles.length) {
+      return '<p>No individually curated glamping property is currently mapped to this destination. Use the targeted searches below and verify the actual drive.</p>';
+    }
+    return '<strong>CURATED GLAMPING OPTIONS · OFFICIAL PROPERTY INFORMATION</strong>' +
+      '<div class="camping-site-profiles">' + profiles.map(profile =>
+        '<article class="camping-site-profile">' +
+          '<div class="camping-site-top"><strong>' + esc(profile.name) + '</strong><span>CHECK PRICE & ROUTE</span></div>' +
+          '<p class="camping-site-area">' + esc(profile.area) + '</p>' +
+          '<p>' + esc(profile.details) + '</p>' +
+          '<p><a href="' + esc(profile.url) + '" target="_blank" rel="noopener noreferrer">Check official property details and dates ↗</a></p>' +
+          '<p class="camping-source-note">Source: ' + esc(profile.source) + '. Price, availability, and fit to the selected distance limit are not verified by the app.</p>' +
+        '</article>'
+      ).join("") + '</div>';
   }
 
   function sourceLinks(destination, settings) {
@@ -421,5 +481,5 @@
     sync();
   }
 
-  window.BMWCamping = { preferences, advice, sourceLinks, glampingLinks, glampingSummary, cardSummary, detailSummary, setupCampingControls, relevantSiteProfiles, profileFit };
+  window.BMWCamping = { preferences, advice, sourceLinks, glampingLinks, glampingSummary, glampingProfiles, cardSummary, detailSummary, setupCampingControls, relevantSiteProfiles, profileFit };
 })();
