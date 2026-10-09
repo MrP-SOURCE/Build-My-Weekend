@@ -866,6 +866,19 @@ function testShareSummaryIncludesStayLinks() {
   return true;
 }
 
+function testShareSummaryBudgetNextSteps() {
+  const destination = destinations.find(item => item.id === "hermanus");
+  const base = { people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11", experience: "Beach Away" };
+  const cost = calc(destination, { ...base, budget: 5000 });
+  const within = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1 });
+  const lowEnd = shareBudgetNextStep(cost, { ...base, budget: (cost.lowSpend + cost.highSpend) / 2 });
+  const over = shareBudgetNextStep(cost, { ...base, budget: cost.lowSpend - 1 });
+  if (within !== "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.") throw new Error("Shared summary must tell affordable trips to confirm the full accommodation price.");
+  if (lowEnd !== "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.") throw new Error("Shared summary must give a lower-cost next step when only the low estimate fits.");
+  if (over !== "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.") throw new Error("Shared summary must give a cost-reduction next step when the low estimate exceeds budget.");
+  return 3;
+}
+
 function testDirectionsUrl() {
   const destination = destinations.find(item => item.name === "Gordon's Bay");
   if (!destination) throw new Error("Gordon's Bay destination required for directions regression.");
@@ -1014,6 +1027,7 @@ if (typeof window !== "undefined") {
   window.testLocalSafetySearchLinks = testLocalSafetySearchLinks;
   window.testDirectionsUrl = testDirectionsUrl;
   window.testShareSummaryIncludesStayLinks = testShareSummaryIncludesStayLinks;
+  window.testShareSummaryBudgetNextSteps = testShareSummaryBudgetNextSteps;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
@@ -1116,6 +1130,17 @@ function budgetRangeWarning(cost, settings, campingSelected = false, glampingSel
       ? " before the unverified campsite fee."
       : ".";
   return `<p class="card-range-warning">${label} is ${excess} over your group budget${caveat}</p>`;
+}
+
+
+function shareBudgetNextStep(cost, settings) {
+  if (cost.highSpend <= settings.budget) {
+    return "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.";
+  }
+  if (cost.lowSpend <= settings.budget) {
+    return "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.";
+  }
+  return "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.";
 }
 
 
@@ -1954,8 +1979,9 @@ function shareText(destination, settings) {
     : cost.lowSpend <= settings.budget
       ? "BUDGET CONFIDENCE: This may fit only toward the low end of the estimate; the high estimate exceeds your group budget."
       : "BUDGET CONFIDENCE: The low estimate already exceeds your group budget.";
+  const budgetNextStep = shareBudgetNextStep(cost, settings);
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
-    `${budgetConfidence}\n` +
+    `${budgetConfidence}\n${budgetNextStep}\n` +
     (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — budget remainder is before the stay price; check the full property price.\n" : campingSelected ? "CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED — budget remainder is before this fee; confirm full cost for the group and dates.\n" : "") +
     (cost.highSpend > settings.budget ? `${glampingSelected || campingSelected ? "UPPER BASE ESTIMATE" : "UPPER DEMONSTRATION ESTIMATE"} EXCEEDS GROUP BUDGET BY ${money(round2(cost.highSpend - settings.budget))}${glampingSelected ? " BEFORE GLAMPING STAY PRICE" : campingSelected ? " BEFORE CAMPSITE/SITE FEE" : ""}.\n` : "") +
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
