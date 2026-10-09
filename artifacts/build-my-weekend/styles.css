@@ -79,3 +79,16 @@
 .outdoor-finetune-grid article p{font-size:10px;line-height:1.55;color:#68796d;margin:6px 0 0}
 .outdoor-source-links{display:flex;flex-wrap:wrap;gap:9px 14px;font-size:10px;margin-top:14px}
 @media(max-width:560px){.outdoor-finetune-grid{grid-template-columns:1fr}.outdoor-map-panel iframe{height:230px}.outdoor-map-footer{align-items:flex-start;flex-direction:column}}
+
+/* Camping Away: compact, preference-led fine-tuning */
+.camping-controls{border-top:1px solid #e6e9e0;padding-top:15px;margin-top:2px}
+.camping-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.camping-result-box{background:#f0f3eb;border-left:3px solid #829477;padding:13px 15px;margin:12px 0 16px;color:#53675a;font-size:11px;line-height:1.55}
+.camping-result-box strong{display:block;color:#40594a;font-size:9px;letter-spacing:.1em;margin-bottom:7px}
+.camping-result-box p{margin:6px 0}
+.camping-result-box ul{margin:7px 0;padding-left:17px;display:grid;gap:5px}
+.camping-source-links{display:flex;flex-wrap:wrap;gap:7px 12px;margin-top:10px}
+.camping-source-links a{color:#2e5143;font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.camping-source-note{font-size:9px!important;color:#8b6b50!important;margin-top:10px!important}
+@media(max-width:760px){.camping-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.camping-grid{grid-template-columns:1fr}}
