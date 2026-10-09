@@ -39,6 +39,7 @@ assert(app.includes("Planning factors:") && app.includes("activity fit;") && app
 assert(app.includes("estimate range") && app.includes("within budget even at the high estimate") && app.includes("may fit only toward the low end of the estimate"), "Recommendation explanations must distinguish robust affordability from estimates that only fit at the low end.");
 assert(app.includes("BUDGET CONFIDENCE: The high estimate is within your group budget.") && app.includes("The low estimate already exceeds your group budget."), "Shareable trip summaries must clearly state budget confidence.");
 assert(app.includes("card-budget-confidence") && app.includes("WITHIN BUDGET RANGE") && app.includes("MAY FIT AT LOW END") && app.includes("OVER BUDGET"), "Recommendation cards must show clear budget-confidence categories.");
+assert(app.includes("Budget confidence is based on the demonstration low-to-high cost range") && app.includes("It is a planning guide, not a verified quote.") && app.includes("aria-describedby"), "Budget confidence must explain its estimate basis and accessible description.");
 assert(app.includes("Typical budget remaining before campsite/site fee"), "Camping detail breakdown must label budget remaining before campsite fees.");
 assert(app.includes("Typical budget remaining before glamping stay price"), "Glamping detail breakdown must label budget remaining before the stay price.");
 assert(app.includes("CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED"), "Shared camping trip must disclose unverified campsite/site fees.");
