@@ -649,6 +649,26 @@ function testSavedSettingsCoverage() {
   if (restoredKeys.length !== Object.keys(sample).length || new Set(restoredKeys).size !== restoredKeys.length) {
     throw new Error("Saved preference restore mapping contains duplicates or unexpected fields.");
   }
+
+  const expectedFields = ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
+  if (JSON.stringify(plan.fields) !== JSON.stringify(expectedFields)) {
+    throw new Error("Saved preference field restore targets changed unexpectedly.");
+  }
+  const expectedSelects = [
+    ["fishingStyle", "fishing-style"], ["targetSpecies", "target-species"],
+    ["spotPreference", "spot-preference"], ["fishingPriority", "fishing-priority"],
+    ["hikingDifficulty", "hiking-difficulty"], ["hikingSetting", "hiking-setting"],
+    ["climbingType", "climbing-type"], ["climbingLevel", "climbing-level"],
+    ["campingSetup", "camping-setup"], ["campingPower", "camping-power"],
+    ["campingAblutions", "camping-ablutions"], ["campingShade", "camping-shade"],
+    ["campingTerrain", "camping-terrain"]
+  ];
+  if (JSON.stringify(plan.selects) !== JSON.stringify(expectedSelects)) {
+    throw new Error("Saved preference select-to-control restore targets changed unexpectedly.");
+  }
+  if (plan.returnDate !== sample.returnDate || plan.distance !== sample.distance) {
+    throw new Error("Saved preference return-date or distance restore value changed.");
+  }
   return restoredKeys.length;
 }
 
