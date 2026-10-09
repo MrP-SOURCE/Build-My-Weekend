@@ -1529,7 +1529,9 @@ function rankingReason(destination, badges, settings) {
   if (!reasons.length) {
     reasons.push("it passed your activity, distance and budget filters and ranked in the shortlist");
   }
-  return `${reasons.slice(0, 2).join("; ")}. Rankings use demonstration data and scoring rules, not verified live demand, prices or availability.`;
+  const budget = Number(settings.budget) || 0;
+  const planningFactors = `Planning factors: ${Math.round(destination.experienceScore || 0)}/3 activity fit; ${destination.distance} km one way; estimated new spend ${money(destination.cost.spend)} against a ${money(budget)} group budget.`;
+  return `${reasons.slice(0, 2).join("; ")}. ${planningFactors} Rankings use demonstration data and scoring rules, not verified live demand, prices or availability.`;
 }
 
 function noResultsMessage(settings) {
