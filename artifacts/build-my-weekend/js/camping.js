@@ -96,7 +96,8 @@
       source: "CapeNature",
       url: "https://www.capenature.co.za/accommodation/kliphuis-camping",
       evidence: "Published campsite page",
-      setup: ["Tent", "Caravan"],
+      setup: [],
+      setupLabel: "Campsite; confirm tent/caravan suitability",
       power: "No electricity or power points.",
       ablutions: "Hot-water showers heated by gas.",
       shade: "Shady campsite.",
@@ -130,7 +131,8 @@
       source: "SANParks",
       url: "https://www.sanparks.org/parks/garden-route/accommodation",
       evidence: "Published SANParks accommodation page",
-      setup: ["Tent", "Caravan"],
+      setup: [],
+      setupLabel: "Camping; confirm the exact stand type with SANParks",
       power: "Power availability for the specific camping stand is not confirmed here; check the selected unit in SANParks booking details.",
       ablutions: "Confirm the current ablution block and facilities for the selected camping area.",
       shade: "Forest, river and lakeside setting; shade at the individual pitch is not confirmed.",
@@ -166,9 +168,7 @@
   function profileFit(profile, settings) {
     const issues = [];
     if (settings.campingSetup && settings.campingSetup !== "Any" && !profile.setup.includes(settings.campingSetup)) {
-      if (settings.campingSetup === "Motorhome" || settings.campingSetup === "Rooftop tent" || settings.campingSetup === "Off-grid") {
-        issues.push("Your selected setup is not explicitly confirmed for this site.");
-      }
+      issues.push("Your selected setup is not explicitly confirmed for this site.");
     }
     if (settings.campingPower === "Required" && /no power points|no electricity/i.test(profile.power)) {
       issues.push("Does not meet the mains-electricity requirement.");
@@ -205,7 +205,7 @@
       return '<article class="camping-site-profile">' +
         '<div class="camping-site-top"><strong>' + esc(profile.name) + '</strong><span>' + esc(status) + '</span></div>' +
         '<p class="camping-site-area">' + esc(profile.area) + '</p>' +
-        '<p><b>Published setup:</b> ' + esc(setup) + '</p>' +
+        '<p><b>Published setup:</b> ' + esc(profile.setupLabel || setup) + '</p>' +
         '<ul><li><b>Electricity:</b> ' + esc(profile.power) + '</li>' +
         '<li><b>Ablutions:</b> ' + esc(profile.ablutions) + '</li>' +
         '<li><b>Shade:</b> ' + esc(profile.shade) + '</li>' +
