@@ -1254,7 +1254,7 @@ function noResultsMessage(settings) {
   if (!affordableAnywhere) {
     return `Typical demonstration costs for ${settings.people} ${settings.people === 1 ? "person" : "people"} are above your ${money(settings.budget)} group budget at every listed destination.`;
   }
-  return `There are destinations within your distance setting, but their typical group-cost estimates exceed your ${money(settings.budget)} budget.`;
+  return `No destination matches all your current filters (weekend type, distance and budget). Try widening the distance, increasing the group budget, or choosing a broader weekend type. These are demonstration estimates, so confirm real prices before booking.`;
 }
 
 function render() {
