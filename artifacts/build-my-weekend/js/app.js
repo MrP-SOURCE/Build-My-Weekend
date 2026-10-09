@@ -382,6 +382,14 @@ function sharedStayLinks(destination, settings) {
     : "";
 }
 
+function sharedSafetyLinks(destination) {
+  return [
+    ["Hospital / emergency care", "hospital"],
+    ["Pharmacy", "pharmacy"],
+    ["Fuel stations", "fuel stations"]
+  ].map(([label, kind]) => `${label}: ${localSearchUrl(kind, destination)}`).join("\n");
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -929,6 +937,13 @@ function testLocalSafetySearchLinks() {
     if (!query.includes(kind) || !query.includes("Gordon's Bay") || !query.includes("Western Cape, South Africa")) {
       throw new Error("Safety map query must encode the facility type and selected destination.");
     }
+  }
+  const sharedLinks = sharedSafetyLinks(destination);
+  for (const label of ["Hospital / emergency care:", "Pharmacy:", "Fuel stations:"]) {
+    if (!sharedLinks.includes(label)) throw new Error("Shared trip summary must include local-service search: " + label);
+  }
+  if (!sharedLinks.includes("Gordon's%20Bay") || !sharedLinks.includes("Western%20Cape%2C%20South%20Africa")) {
+    throw new Error("Shared local-service links must target the selected destination.");
   }
   return true;
 }
@@ -2014,7 +2029,9 @@ function shareText(destination, settings) {
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
     `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.` +
-    (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "");
+    (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "") +
+    `\n\nDRIVING ROUTE FROM CAPE TOWN — verify route, traffic and access: ${directionsUrl(destination)}` +
+    `\n\nLOCAL SERVICE SEARCHES — map results only; facility availability, opening hours and travel times are not verified:\n${sharedSafetyLinks(destination)}`;
 }
 
 function toastMessage(message) {
