@@ -44,31 +44,52 @@
     return items;
   }
 
-  function glampingLinks(destination) {
+  function glampingLinks(destination, settings = {}) {
     const name = String(destination?.name || "");
-    const term = encodeURIComponent(name + " South Africa glamping");
+    const guests = Number(settings.people) || 0;
+    const budget = Number(settings.budget) || 0;
+    const distance = settings.distance && settings.distance !== "any" ? Number(settings.distance) : null;
+    const dates = settings.depart && settings.returnDate ? settings.depart + " to " + settings.returnDate : "";
+    const terms = [
+      name + " South Africa glamping",
+      guests ? guests + " guests" : "",
+      budget ? "total weekend group budget R" + Math.round(budget) : "",
+      distance ? "within " + distance + " km one way of " + name : "",
+      dates
+    ].filter(Boolean).join(" ");
+    const term = encodeURIComponent(terms);
     const siteSearch = (label, domain) => ({
       name: label,
-      url: "https://www.google.com/search?q=" + encodeURIComponent("site:" + domain + " " + name + " glamping")
+      url: "https://www.google.com/search?q=" + encodeURIComponent("site:" + domain + " " + terms)
     });
     return [
       { name: "AfriCamps", url: "https://africamps.com/" },
+      siteSearch("Search AfriCamps near this destination", "africamps.com"),
       { name: "Booking.com · South Africa glamping", url: "https://www.booking.com/glamping/country/za.html" },
       { name: "Glamping Hub", url: "https://glampinghub.com/" },
       siteSearch("Glamping South Africa directory", "glampingsouthafrica.co.za"),
       siteSearch("LekkeSlaap glamping search", "lekkeslaap.co.za"),
-      siteSearch("SafariNow glamping search", "safarinow.com"),
+      siteSearch("SafariNow glamping search", "safar now.com".replace(" ", "")),
       { name: "Search wider web", url: "https://www.google.com/search?q=" + term }
     ];
   }
 
-  function glampingSummary(destination) {
-    const links = glampingLinks(destination).map(link =>
+  function glampingSummary(destination, settings = {}) {
+    const links = glampingLinks(destination, settings).map(link =>
       '<a href="' + esc(link.url) + '" target="_blank" rel="noopener noreferrer">' + esc(link.name) + ' ↗</a>'
     ).join("");
+    const guests = Number(settings.people) || 0;
+    const budget = Number(settings.budget) || 0;
+    const distance = settings.distance && settings.distance !== "any" ? Number(settings.distance) : null;
+    const context = [
+      guests ? guests + " guest(s)" : "",
+      budget ? "group budget R" + Math.round(budget) : "",
+      distance ? "destination limit " + distance + " km one way" : "no destination distance limit"
+    ].filter(Boolean).join(" · ");
     return '<section class="camping-result-box" aria-label="Glamping discovery">' +
       '<strong>GLAMPING · BOUTIQUE OUTDOOR STAYS</strong>' +
-      '<p>Search luxury safari tents, furnished bell tents, domes, cabins, pods and treehouses around ' + esc(destination.name) + '. These are discovery links, not a live inventory feed; results may include properties outside the selected radius.</p>' +
+      '<p>Search luxury safari tents, furnished bell tents, domes, cabins, pods and treehouses around ' + esc(destination.name) + '. Current trip settings: ' + esc(context) + (settings.depart && settings.returnDate ? ' · dates ' + esc(settings.depart) + ' to ' + esc(settings.returnDate) : '') + '.</p>' +
+      '<p><b>Budget and distance:</b> the planner filters destination recommendations using your trip budget and distance limit. Provider links help you search for a suitable property but do not enforce those filters; check the property address against your route and its full stay price against your remaining budget. Search results may fall outside the selected radius.</p>' +
       '<p><b>Compare before choosing:</b> private versus shared bathroom, real beds and linen, heating or cooling, kitchen access, electricity, child/pet rules, accessibility, cancellation terms and the full price for your dates.</p>' +
       '<div class="camping-source-links">' + links + '</div>' +
       '<p class="camping-source-note">No API connection or live price/availability verification is claimed. Confirm the exact property location, dates, total charges and included facilities on the provider booking page.</p>' +
@@ -381,7 +402,7 @@
       '<strong>CAMPING AWAY · SITE-FIT CHECK</strong>' +
       '<p>These preferences refine what to look for around ' + esc(destination.name) + '. They are not proof that a matching pitch is available.</p>' +
       '<ul>' + rows + '</ul>' +
-      (settings.campingSetup === "Glamping" ? glampingSummary(destination) :
+      (settings.campingSetup === "Glamping" ? glampingSummary(destination, settings) :
         '<strong>PUBLISHED CAMPSITE OPTIONS</strong>' +
         '<div class="camping-site-profiles">' + publishedSiteOptions(destination, settings) + '</div>') +
       '<strong>WHAT TO CONFIRM</strong><ul>' + advice(settings).map(item => '<li>' + esc(item) + '</li>').join("") + '</ul>' +
