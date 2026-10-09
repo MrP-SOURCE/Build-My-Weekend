@@ -1295,8 +1295,8 @@ function budgetTradeoffPanel(candidates, settings) {
     farther = sortBy(candidates.filter(item => item.id !== nearer.id), (a, b) => b.distance - a.distance || a.cost.spend - b.cost.spend)[0];
   }
   if (!farther || nearer.id === farther.id) return "";
-  const saving = round2(farther.cost.spend - nearer.cost.spend);
-  const distanceDifference = farther.distance - nearer.distance;
+  const saving = round2(farther.cost.spend - cheapest.cost.spend);
+  const distanceDifference = farther.distance - cheapest.distance;
   const options = [
     { label: "LOWER-SPEND OPTION", item: cheapest, note: "Lowest estimated new spend among destinations that passed your filters." },
     { label: "FARTHER-AWAY OPTION", item: farther, note: "A longer drive; compare the extra distance against the estimated spend." }
@@ -1316,7 +1316,7 @@ function budgetTradeoffPanel(candidates, settings) {
         <p style="font-size:.8rem;line-height:1.45;margin:.45rem 0 0">${note}</p>
       </div>`).join("")}
     </div>
-    <p style="font-size:.82rem;line-height:1.45;margin:.8rem 0 0"><strong>Trade-off:</strong> ${saving >= 0 ? `${esc(farther.name)} is ${money(saving)} more than the closest option` : `${esc(nearer.name)} costs ${money(Math.abs(saving))} more than the farther option`}; the farther option changes the one-way drive by ${Math.abs(distanceDifference)} km. Estimates are not live quotes; confirm accommodation, activities and other costs before booking.</p>
+    <p style="font-size:.82rem;line-height:1.45;margin:.8rem 0 0"><strong>Trade-off:</strong> ${saving >= 0 ? `${esc(farther.name)} is ${money(saving)} more than the lower-spend option` : `${esc(cheapest.name)} costs ${money(Math.abs(saving))} less than the farther option`}; the farther option changes the one-way drive by ${Math.abs(distanceDifference)} km. Estimates are not live quotes; confirm accommodation, activities and other costs before booking.</p>
   </section>`;
 }
 
