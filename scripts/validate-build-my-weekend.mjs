@@ -182,6 +182,7 @@ assert(context.window.testActivityPanelState() === 12, "Activity panel switching
 const plannerScenarios = context.window.testWeekendScenarios();
 assert(plannerScenarios.length >= 8, "Planner scenario coverage is unexpectedly small.");
 assert(plannerScenarios.some(scenario => scenario.scenario.startsWith("Camping")), "Camping Away scenario is missing.");
+assert(plannerScenarios.some(scenario => scenario.scenario.startsWith("Cycling")), "Cycling Away scenario is missing.");
 const fishingPriorities = context.window.testFishingPriorities();
 assert(fishingPriorities.length === 4, "Fishing priority coverage changed.");
 console.log("Planner calculation tests: PASS");
