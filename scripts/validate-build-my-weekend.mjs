@@ -129,7 +129,7 @@ const fishingPriorities = context.window.testFishingPriorities();
 assert(fishingPriorities.length === 4, "Fishing priority coverage changed.");
 console.log("Planner calculation tests: PASS");
 console.log("Trip date validation cases: 6 PASS");
-console.log("Saved preference fields: 22 PASS");
+console.log("Saved preference save and restore mapping: 22 PASS");
 console.log("Planner scenarios:", plannerScenarios.length);
 console.log("Fishing priorities:", fishingPriorities.length);
 

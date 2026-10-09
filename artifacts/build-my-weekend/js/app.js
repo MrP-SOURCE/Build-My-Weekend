@@ -562,6 +562,26 @@ function settingsForStorage(settings) {
   };
 }
 
+function savedSettingsRestorePlan(saved) {
+  const fields = ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
+  const selects = [
+    ["fishingStyle", "fishing-style"],
+    ["targetSpecies", "target-species"],
+    ["spotPreference", "spot-preference"],
+    ["fishingPriority", "fishing-priority"],
+    ["hikingDifficulty", "hiking-difficulty"],
+    ["hikingSetting", "hiking-setting"],
+    ["climbingType", "climbing-type"],
+    ["climbingLevel", "climbing-level"],
+    ["campingSetup", "camping-setup"],
+    ["campingPower", "camping-power"],
+    ["campingAblutions", "camping-ablutions"],
+    ["campingShade", "camping-shade"],
+    ["campingTerrain", "camping-terrain"]
+  ];
+  return { fields, selects, returnDate: saved.returnDate, distance: saved.distance };
+}
+
 function testSavedSettingsCoverage() {
   const sample = {
     budget: 3200, people: 3, experience: "Camping Away", distance: "200",
@@ -579,7 +599,15 @@ function testSavedSettingsCoverage() {
   if (Object.keys(saved).length !== Object.keys(sample).length) {
     throw new Error("Saved preferences include unexpected or missing fields.");
   }
-  return Object.keys(saved).length;
+  const plan = savedSettingsRestorePlan(saved);
+  const restoredKeys = [...plan.fields, "returnDate", "distance", ...plan.selects.map(([key]) => key)];
+  for (const key of Object.keys(sample)) {
+    if (!restoredKeys.includes(key)) throw new Error("Saved preference has no restore mapping: " + key);
+  }
+  if (restoredKeys.length !== Object.keys(sample).length || new Set(restoredKeys).size !== restoredKeys.length) {
+    throw new Error("Saved preference restore mapping contains duplicates or unexpected fields.");
+  }
+  return restoredKeys.length;
 }
 
 function testDateRangeValidation() {
@@ -1341,29 +1369,16 @@ function settingsFromStorage() {
   try {
     const saved = JSON.parse(localStorage.getItem("buildMyWeekendTrip") || "null");
     if (!saved) return;
-    for (const key of ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"]) {
+    const plan = savedSettingsRestorePlan(saved);
+    for (const key of plan.fields) {
       if (saved[key] !== undefined && form.elements[key]) form.elements[key].value = saved[key];
     }
-    if (saved.returnDate) form.elements.return.value = saved.returnDate;
-    if (saved.distance) {
-      const radio = form.querySelector(`input[name="distance"][value="${saved.distance}"]`);
+    if (plan.returnDate) form.elements.return.value = plan.returnDate;
+    if (plan.distance) {
+      const radio = form.querySelector(`input[name="distance"][value="${plan.distance}"]`);
       if (radio) radio.checked = true;
     }
-    for (const [key, id] of [
-      ["fishingStyle", "fishing-style"],
-      ["targetSpecies", "target-species"],
-      ["spotPreference", "spot-preference"],
-      ["fishingPriority", "fishing-priority"],
-      ["hikingDifficulty", "hiking-difficulty"],
-      ["hikingSetting", "hiking-setting"],
-      ["climbingType", "climbing-type"],
-      ["climbingLevel", "climbing-level"],
-      ["campingSetup", "camping-setup"],
-      ["campingPower", "camping-power"],
-      ["campingAblutions", "camping-ablutions"],
-      ["campingShade", "camping-shade"],
-      ["campingTerrain", "camping-terrain"]
-    ]) {
+    for (const [key, id] of plan.selects) {
       const field = document.getElementById(id);
       if (field && typeof saved[key] === "string" &&
           [...field.options].some(option => option.value === saved[key])) {
