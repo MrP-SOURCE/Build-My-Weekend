@@ -83,7 +83,11 @@ assert(fishingApi.bestSpot("hermanus", { fishingStyle: "Rock", targetSpecies: "G
 
 vm.runInContext(accommodation, context);
 const accommodationApi = context.window.BMWAccommodation;
-assert(accommodationApi && accommodationApi.TYPES.length === 8, "Accommodation type coverage changed.");
+assert(accommodationApi && accommodationApi.TYPES.length === 9, "Accommodation type coverage changed.");
+assert(accommodationApi.TYPES.includes("Glamping / Boutique outdoor stay"), "Glamping must be a first-class accommodation type.");
+const glampingRank = accommodationApi.rank({ name: "Hermanus" }, { experience: "Camping Away", campingSetup: "Glamping" });
+assert(glampingRank.preferred[0] === "Glamping / Boutique outdoor stay", "Glamping must rank first when selected as the camping setup.");
+assert(glampingRank.note.includes("full stay price"), "Glamping ranking must remind users to confirm full stay price.");
 const links = accommodationApi.links(
   { name: "Hermanus" },
   { people: 4, budget: 3000, depart: "2026-10-09", returnDate: "2026-10-11" }
@@ -95,6 +99,7 @@ console.log("BUILD MY WEEKEND structural smoke test: PASS");
 console.log("HTML ids:", ids.length);
 console.log("Fishing demo spots:", fishingApi.spots.length);
 console.log("Accommodation types:", accommodationApi.TYPES.length);
+console.log("Glamping preference ranking: PASS");
 console.log("Accommodation sources:", links.length);
 
 vm.runInContext(camping, context);
