@@ -954,6 +954,17 @@ function detail(destination, settings) {
         <p><strong>ANGLER / COMMUNITY INFORMATION:</strong> ${esc(m.community)}</p>
         <p><strong>CHECK BEFORE LEAVING:</strong> ${esc(m.accessNote)} Current weather, swell, tide, access and regulations must be checked separately.</p>
         <p class="detail-demo-note">FISHING DATA IS DEMONSTRATION INFORMATION — NOT A LIVE CATCH REPORT OR SAFETY REPORT.</p>
+        <div class="fishing-reference-panel">
+          <h4>FISHING RESEARCH & OFFICIAL GUIDANCE</h4>
+          <p>Use these external sources to research charter options, specialist fishing information and official guidance. They do not confirm availability, current conditions or legal access for this specific spot.</p>
+          <ul>
+            <li><a href="https://fishingbooker.com" target="_blank" rel="noopener noreferrer">FishingBooker — South Africa fishing charters</a></li>
+            <li><a href="https://fishingbooker.com" target="_blank" rel="noopener noreferrer">Cape Town / Simon’s Town charter search</a></li>
+            <li><a href="https://fishthefly.co.za" target="_blank" rel="noopener noreferrer">Fish the Fly SA — inland river and fly-fishing</a></li>
+            <li><a href="https://www.westerncape.gov.za/" target="_blank" rel="noopener noreferrer">Western Cape Government — official information starting point</a></li>
+          </ul>
+          <small>Before fishing, confirm the applicable permit, species limits, closed areas and local access rules with the relevant official authority. Charter listings and third-party fishing content are not government approvals.</small>
+        </div>
       </section>`;
     })() : ""}
     ${accommodationSummary(destination, settings)}
