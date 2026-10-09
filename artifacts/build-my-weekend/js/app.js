@@ -1289,12 +1289,28 @@ function experienceReason(destination, experience) {
 }
 
 function whyMatched(destination, settings) {
-  const maxDistance = settings.distance === "any" ? "Anywhere" : `under ${settings.distance} km one way`;
+  const maxDistance = settings.distance === "any" ? null : Number(settings.distance);
+  const budget = Number(settings.budget) || 0;
+  const spend = destination.cost.spend;
+  const usedPercent = budget > 0 ? Math.round((spend / budget) * 100) : 0;
+  const remaining = destination.cost.remaining;
+  const glampingExcluded = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
+  const preferred = experienceProfiles[settings.experience] || [];
+  const matched = preferred.filter(category => destination.categories.includes(category));
+  const distanceReason = maxDistance === null
+    ? `The drive is ${destination.distance} km one way; you selected no maximum distance.`
+    : `${destination.distance} km one way, ${Math.max(0, maxDistance - destination.distance)} km inside your ${maxDistance} km limit.`;
+  const budgetReason = glampingExcluded
+    ? `The estimated base trip spend is ${money(spend)} (${usedPercent}% of your ${money(budget)} group budget), but the glamping stay price is excluded and must be added before judging affordability.`
+    : `Estimated new spend is ${money(spend)} (${usedPercent}% of your ${money(budget)} group budget), leaving approximately ${money(remaining)}.`;
+  const activityReason = matched.length
+    ? `Activity fit: your ${settings.experience} choice matches the listed ${matched.join(", ")} category.`
+    : experienceReason(destination, settings.experience);
   return [
-    `Fits your ${money(settings.budget)} group budget at typical demonstration prices.`,
-    experienceReason(destination, settings.experience),
-    `Within your ${maxDistance} distance setting.`,
-    `Leaves approximately ${money(destination.cost.remaining)} from the group budget.`
+    activityReason,
+    distanceReason,
+    budgetReason,
+    `Planning figures are demonstration estimates, not confirmed provider prices or availability.`
   ];
 }
 
