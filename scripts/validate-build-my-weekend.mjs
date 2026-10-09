@@ -163,6 +163,12 @@ const links = accommodationApi.links(
 );
 assert(links.length === 6, "Accommodation source coverage changed.");
 assert(links.every(link => /^https:\/\//.test(link.url)), "Accommodation link is not HTTPS.");
+assert(links.every(link => decodeURIComponent(link.url).includes("Hermanus")), "Accommodation links must retain the selected destination.");
+const bookingLink = links.find(link => link.name === "Booking.com").url;
+assert(bookingLink.includes("checkin=2026-10-09") && bookingLink.includes("checkout=2026-10-11"), "Booking.com search must retain selected dates.");
+assert(bookingLink.includes("group_adults=4"), "Booking.com search must retain group size.");
+const airbnbLink = links.find(link => link.name === "Airbnb").url;
+assert(airbnbLink.includes("adults=4") && airbnbLink.includes("checkin=2026-10-09") && airbnbLink.includes("checkout=2026-10-11"), "Airbnb search must retain group size and selected dates.");
 
 console.log("BUILD MY WEEKEND structural smoke test: PASS");
 console.log("HTML ids:", ids.length);
