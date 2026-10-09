@@ -65,6 +65,10 @@ for (const id of ["trip-form","experience","fishing-controls","fishing-style","t
 for (const marker of [
   "function setupFishingControls()",
   "window.testHermanusCalculation",
+  "no matching destination returned for this regression scenario",
+  'scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))',
+  'scenario.experience === "Cycling Away" && candidates.some(item => !item.categories.includes("Cycling"))',
+  'scenario.experience === "Climbing Away" && candidates.some(item => !item.categories.includes("Climbing"))',
   "window.testWeekendScenarios",
   "window.testFishingPriorities",
   "window.BMWAccommodation",
