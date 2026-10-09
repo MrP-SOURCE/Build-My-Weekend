@@ -68,13 +68,6 @@ for (const match of formControls) {
 }
 assert(/role=["']radiogroup["'][^>]*aria-label=["'][^"']+["']/.test(html), "Distance radio group must have an accessible group label.");
 
-const requiredScripts = [");
-  const hasLabel = new RegExp("<label\\\\b[^>]*\\\\bfor=[\\\\\"']" + escapedId + "[\\\\\"']", "i").test(html);
-  const hasAriaLabel = /\\baria-label=["'][^"']+["']/i.test(attrs);
-  assert(hasLabel || hasAriaLabel, "Form control needs a programmatic label: " + id);
-}
-assert(/role=["']radiogroup["'][^>]*aria-label=["'][^"']+["']/.test(html), "Distance radio group must have an accessible group label.");
-
 const requiredScripts = [
   '<script src="./js/fishing.js"></script>',
   '<script src="./js/accommodation.js"></script>',
