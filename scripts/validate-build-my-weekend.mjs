@@ -196,3 +196,15 @@ assert(html.includes('data-testid="evidence-legend"'), "Results must show the ev
 for (const marker of ["ESTIMATE", "LIVE FORECAST", "VERIFY BEFORE BOOKING", "not a marine forecast or safety warning", "must be confirmed with the relevant provider or authority"]) {
   assert(html.includes(marker), "Evidence-status legend is missing: " + marker);
 }
+
+const destinationIds = new Set(vm.runInContext("destinations.map(destination => destination.id)", context));
+const unmatchedFishingDestinations = fishingApi.spots
+  .filter(spot => !destinationIds.has(spot.destinationId))
+  .map(spot => spot.destinationId);
+assert(unmatchedFishingDestinations.length === 0,
+  "Fishing spots refer to missing destination IDs: " + [...new Set(unmatchedFishingDestinations)].join(", "));
+assert(fishingApi.bestSpot("gordon-s-bay", { fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" }),
+  "Gordon's Bay fishing match failed.");
+assert(fishingApi.bestSpot("betty-s-bay", { fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" }),
+  "Betty's Bay fishing match failed.");
+console.log("Fishing destination ID integrity: PASS");
