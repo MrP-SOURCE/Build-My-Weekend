@@ -870,12 +870,12 @@ function testShareSummaryBudgetNextSteps() {
   const destination = destinations.find(item => item.id === "hermanus");
   const base = { people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11", experience: "Beach Away" };
   const cost = calc(destination, { ...base, budget: 5000 });
-  const within = shareText(destination, { ...base, budget: cost.highSpend + 1 });
-  const lowEnd = shareText(destination, { ...base, budget: (cost.lowSpend + cost.highSpend) / 2 });
-  const over = shareText(destination, { ...base, budget: cost.lowSpend - 1 });
-  if (!within.includes("NEXT STEP: Confirm the full accommodation price for your dates and group before booking.")) throw new Error("Shared summary must tell affordable trips to confirm the full accommodation price.");
-  if (!lowEnd.includes("NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.")) throw new Error("Shared summary must give a lower-cost next step when only the low estimate fits.");
-  if (!over.includes("NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.")) throw new Error("Shared summary must give a cost-reduction next step when the low estimate exceeds budget.");
+  const within = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1 });
+  const lowEnd = shareBudgetNextStep(cost, { ...base, budget: (cost.lowSpend + cost.highSpend) / 2 });
+  const over = shareBudgetNextStep(cost, { ...base, budget: cost.lowSpend - 1 });
+  if (within !== "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.") throw new Error("Shared summary must tell affordable trips to confirm the full accommodation price.");
+  if (lowEnd !== "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.") throw new Error("Shared summary must give a lower-cost next step when only the low estimate fits.");
+  if (over !== "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.") throw new Error("Shared summary must give a cost-reduction next step when the low estimate exceeds budget.");
   return 3;
 }
 
@@ -1130,6 +1130,17 @@ function budgetRangeWarning(cost, settings, campingSelected = false, glampingSel
       ? " before the unverified campsite fee."
       : ".";
   return `<p class="card-range-warning">${label} is ${excess} over your group budget${caveat}</p>`;
+}
+
+
+function shareBudgetNextStep(cost, settings) {
+  if (cost.highSpend <= settings.budget) {
+    return "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.";
+  }
+  if (cost.lowSpend <= settings.budget) {
+    return "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.";
+  }
+  return "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.";
 }
 
 
@@ -1968,11 +1979,7 @@ function shareText(destination, settings) {
     : cost.lowSpend <= settings.budget
       ? "BUDGET CONFIDENCE: This may fit only toward the low end of the estimate; the high estimate exceeds your group budget."
       : "BUDGET CONFIDENCE: The low estimate already exceeds your group budget.";
-  const budgetNextStep = cost.highSpend <= settings.budget
-    ? "NEXT STEP: Confirm the full accommodation price for your dates and group before booking."
-    : cost.lowSpend <= settings.budget
-      ? "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget."
-      : "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.";
+  const budgetNextStep = shareBudgetNextStep(cost, settings);
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
     `${budgetConfidence}\n${budgetNextStep}\n` +
     (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — budget remainder is before the stay price; check the full property price.\n" : campingSelected ? "CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED — budget remainder is before this fee; confirm full cost for the group and dates.\n" : "") +
