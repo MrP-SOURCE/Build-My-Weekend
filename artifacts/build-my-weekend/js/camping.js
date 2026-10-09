@@ -18,6 +18,7 @@
   function advice(settings) {
     const items = [];
     const setupNotes = {
+      "Glamping": "Compare the accommodation structure, private bathroom or shared ablutions, heating/cooling, bedding, kitchen access, child/pet rules and what is included in the nightly rate. Confirm exact location, total price and availability with the operator.",
       "Tent": "Confirm tent-friendly stands, ground suitable for pegs and wind exposure.",
       "Caravan": "Confirm caravan access, turning space, pitch dimensions and towing-friendly roads.",
       "Motorhome": "Confirm vehicle access, pitch size and whether the site can accommodate your vehicle.",
@@ -41,6 +42,37 @@
     if (!items.length) items.push("Compare site type, pitch-level electricity, ablutions, ground surface and shade before booking.");
     items.push("Ask the campsite to confirm the specific stand, total price for your dates, availability, access requirements and current restrictions before paying.");
     return items;
+  }
+
+  function glampingLinks(destination) {
+    const name = String(destination?.name || "");
+    const term = encodeURIComponent(name + " South Africa glamping");
+    const siteSearch = (label, domain) => ({
+      name: label,
+      url: "https://www.google.com/search?q=" + encodeURIComponent("site:" + domain + " " + name + " glamping")
+    });
+    return [
+      { name: "AfriCamps", url: "https://africamps.com/" },
+      { name: "Booking.com · South Africa glamping", url: "https://www.booking.com/glamping/country/za.html" },
+      { name: "Glamping Hub", url: "https://glampinghub.com/" },
+      siteSearch("Glamping South Africa directory", "glampingsouthafrica.co.za"),
+      siteSearch("LekkeSlaap glamping search", "lekkeslaap.co.za"),
+      siteSearch("SafariNow glamping search", "safarinow.com"),
+      { name: "Search wider web", url: "https://www.google.com/search?q=" + term }
+    ];
+  }
+
+  function glampingSummary(destination) {
+    const links = glampingLinks(destination).map(link =>
+      '<a href="' + esc(link.url) + '" target="_blank" rel="noopener noreferrer">' + esc(link.name) + ' ↗</a>'
+    ).join("");
+    return '<section class="camping-result-box" aria-label="Glamping discovery">' +
+      '<strong>GLAMPING · BOUTIQUE OUTDOOR STAYS</strong>' +
+      '<p>Search luxury safari tents, furnished bell tents, domes, cabins, pods and treehouses around ' + esc(destination.name) + '. These are discovery links, not a live inventory feed; results may include properties outside the selected radius.</p>' +
+      '<p><b>Compare before choosing:</b> private versus shared bathroom, real beds and linen, heating or cooling, kitchen access, electricity, child/pet rules, accessibility, cancellation terms and the full price for your dates.</p>' +
+      '<div class="camping-source-links">' + links + '</div>' +
+      '<p class="camping-source-note">No API connection or live price/availability verification is claimed. Confirm the exact property location, dates, total charges and included facilities on the provider booking page.</p>' +
+      '</section>';
   }
 
   function sourceLinks(destination, settings) {
@@ -300,6 +332,9 @@
   }
 
   function publishedSiteOptions(destination, settings) {
+    if (settings.campingSetup === "Glamping") {
+      return '<p>Glamping is a furnished outdoor-stay category rather than a standard tent pitch. Use the glamping-specific discovery links below instead of treating ordinary campsites as confirmed matches.</p>';
+    }
     const profiles = relevantSiteProfiles(destination);
     if (!profiles.length) {
       return '<p>No destination-specific campsite profile is available in the current curated set yet. Use the targeted directory and official-source searches below; unconfirmed details should stay unconfirmed rather than be guessed.</p>';
@@ -346,8 +381,9 @@
       '<strong>CAMPING AWAY · SITE-FIT CHECK</strong>' +
       '<p>These preferences refine what to look for around ' + esc(destination.name) + '. They are not proof that a matching pitch is available.</p>' +
       '<ul>' + rows + '</ul>' +
-      '<strong>PUBLISHED CAMPSITE OPTIONS</strong>' +
-      '<div class="camping-site-profiles">' + publishedSiteOptions(destination, settings) + '</div>' +
+      (settings.campingSetup === "Glamping" ? glampingSummary(destination) :
+        '<strong>PUBLISHED CAMPSITE OPTIONS</strong>' +
+        '<div class="camping-site-profiles">' + publishedSiteOptions(destination, settings) + '</div>') +
       '<strong>WHAT TO CONFIRM</strong><ul>' + advice(settings).map(item => '<li>' + esc(item) + '</li>').join("") + '</ul>' +
       '<strong>MORE CAMPSITE RESEARCH SOURCES</strong>' +
       '<div class="camping-source-links">' + links + '</div>' +
@@ -364,5 +400,5 @@
     sync();
   }
 
-  window.BMWCamping = { preferences, advice, sourceLinks, cardSummary, detailSummary, setupCampingControls, relevantSiteProfiles, profileFit };
+  window.BMWCamping = { preferences, advice, sourceLinks, glampingLinks, glampingSummary, cardSummary, detailSummary, setupCampingControls, relevantSiteProfiles, profileFit };
 })();
