@@ -149,6 +149,18 @@ assert(glampingLinks.some(link => link.url.includes(encodeURIComponent("R3000"))
 assert(glampingLinks.some(link => link.url.includes(encodeURIComponent("200 km"))), "Glamping search does not include the current distance limit.");
 assert(campingApi.glampingProfiles({ name: "Hermanus" }).some(profile => profile.name === "AfriCamps at Stanford Hills"), "Hermanus glamping profile missing.");
 assert(campingApi.glampingProfiles({ name: "No mapped destination" }).length === 0, "Glamping profiles should not be invented for unmapped destinations.");
+const smallGroupGlamping = campingApi.glampingSummary({ name: "Hermanus" }, { ...campingSettings, people: 4 });
+assert(smallGroupGlamping.includes("CHECK PRICE & ROUTE"), "Glamping profiles should show route and price verification for a group within the listed tent capacity.");
+const largeGroupGlamping = campingApi.glampingSummary({ name: "Hermanus" }, { ...campingSettings, people: 6 });
+assert(largeGroupGlamping.includes("GROUP SIZE EXCEEDS LISTED TENT CAPACITY"), "Glamping profile must warn when group size exceeds the listed five-person tent capacity.");
+assert(largeGroupGlamping.includes("maximum of five guests per tent"), "Glamping capacity warning must explain the published limit.");
+assert(largeGroupGlamping.includes("extra cost is not included"), "Glamping capacity warning must disclose that additional accommodation cost is not included.");
+const unmappedGlamping = campingApi.glampingSummary({ name: "No mapped destination" }, campingSettings);
+assert(unmappedGlamping.includes("No individually curated glamping property is currently mapped"), "Unmapped destinations must not imply a curated property match.");
+const glampingSearchText = campingApi.glampingLinks({ name: "Hermanus" }, campingSettings).map(link => link.url).join(" ");
+assert(glampingSearchText.includes(encodeURIComponent("4 guests")), "Glamping searches must include selected group size.");
+assert(glampingSearchText.includes(encodeURIComponent("2026-10-09 to 2026-10-11")), "Glamping searches must include selected dates.");
+assert(glampingSearchText.includes(encodeURIComponent("total weekend group budget R3000")), "Glamping searches must include total group budget.");
 const detail = campingApi.detailSummary({ name: "Hermanus" }, campingSettings);
 assert(detail.includes("Glamping") && detail.includes("not a booking API") === false, "Camping detail summary missing selected setup guidance.");
 console.log("Camping preferences:", campingApi.preferences(campingSettings).length);

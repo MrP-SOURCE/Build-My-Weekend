@@ -93,7 +93,7 @@
       '<p>Search luxury safari tents, furnished bell tents, domes, cabins, pods and treehouses around ' + esc(destination.name) + '. Current trip settings: ' + esc(context) + (settings.depart && settings.returnDate ? ' · dates ' + esc(settings.depart) + ' to ' + esc(settings.returnDate) : '') + '.</p>' +
       '<p><b>Budget and distance:</b> the planner filters destination recommendations using your trip budget and distance limit. Provider links help you search for a suitable property but do not enforce those filters; check the property address against your route and its full stay price against your remaining budget. Search results may fall outside the selected radius.</p>' +
       '<p><b>Compare before choosing:</b> private versus shared bathroom, real beds and linen, heating or cooling, kitchen access, electricity, child/pet rules, accessibility, cancellation terms and the full price for your dates.</p>' +
-      renderGlampingProfiles(destination) +
+      renderGlampingProfiles(destination, settings) +
       '<div class="camping-source-links">' + links + '</div>' +
       '<p class="camping-source-note">No API connection or live price/availability verification is claimed. Confirm the exact property location, dates, total charges and included facilities on the provider booking page.</p>' +
       '</section>';
@@ -141,16 +141,18 @@
     );
   }
 
-  function renderGlampingProfiles(destination) {
+  function renderGlampingProfiles(destination, settings = {}) {
     const profiles = glampingProfiles(destination);
+    const guests = Number(settings.people) || 0;
     if (!profiles.length) {
       return '<p>No individually curated glamping property is currently mapped to this destination. Use the targeted searches below and verify the actual drive.</p>';
     }
     return '<strong>CURATED GLAMPING OPTIONS · OFFICIAL PROPERTY INFORMATION</strong>' +
       '<div class="camping-site-profiles">' + profiles.map(profile =>
         '<article class="camping-site-profile">' +
-          '<div class="camping-site-top"><strong>' + esc(profile.name) + '</strong><span>CHECK PRICE & ROUTE</span></div>' +
+          '<div class="camping-site-top"><strong>' + esc(profile.name) + '</strong><span>' + (guests > 5 ? 'GROUP SIZE EXCEEDS LISTED TENT CAPACITY' : 'CHECK PRICE & ROUTE') + '</span></div>' +
           '<p class="camping-site-area">' + esc(profile.area) + '</p>' +
+          (guests > 5 ? '<p class="camping-profile-warning"><b>Capacity warning:</b> the published tent descriptions indicate a maximum of five guests per tent. This group size may require multiple tents or a different property; the extra cost is not included in the planner estimate.</p>' : '') +
           '<p>' + esc(profile.details) + '</p>' +
           '<p><a href="' + esc(profile.url) + '" target="_blank" rel="noopener noreferrer">Check official property details and dates ↗</a></p>' +
           '<p class="camping-source-note">Source: ' + esc(profile.source) + '. Price, availability, and fit to the selected distance limit are not verified by the app.</p>' +
