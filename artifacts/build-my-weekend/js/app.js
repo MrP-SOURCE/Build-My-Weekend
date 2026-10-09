@@ -820,6 +820,95 @@ function costLine(label, value, extraClass = "") {
   return `<div class="cost-line ${extraClass}"><span>${esc(label)}</span><strong>${money(value)}</strong></div>`;
 }
 
+const weatherCoordinates = {
+  "Hermanus": [-34.4187, 19.2345], "Gordon's Bay": [-34.1615, 18.8700],
+  "Betty's Bay": [-34.3528, 18.9170], "Kleinmond": [-34.3421, 19.0310],
+  "Strand": [-34.1174, 18.8250], "Yzerfontein": [-33.3440, 18.1600],
+  "Paternoster": [-32.8060, 17.8920], "Langebaan": [-33.0890, 18.0340],
+  "St Helena Bay": [-32.7660, 17.9930], "Greyton": [-34.0500, 19.6080],
+  "Franschhoek": [-33.9100, 19.1200], "Stellenbosch": [-33.9321, 18.8602],
+  "Ceres": [-33.3689, 19.3100], "Tulbagh": [-33.2825, 19.1428],
+  "Montagu": [-33.7860, 20.1210], "Grabouw": [-34.1515, 19.0150],
+  "Worcester": [-33.6465, 19.4485], "Beaverlac": [-32.9900, 19.0500],
+  "Algeria": [-32.3750, 19.0660], "Kogel Bay": [-34.2700, 18.9000],
+  "Matjiesrivier": [-32.4800, 19.1000], "De Pakhuys": [-32.3500, 19.0000],
+  "Witsand": [-34.3940, 20.8510], "Arniston": [-34.6670, 20.2300],
+  "Struisbaai": [-34.8000, 20.0500], "Breede River": [-34.4000, 20.8500],
+  "Paarl": [-33.7342, 18.9621], "Oudtshoorn": [-33.5906, 22.2014],
+  "Mossel Bay": [-34.1831, 22.1460], "Wilderness": [-33.9930, 22.5920]
+};
+
+function weatherDescription(code) {
+  if (code === 0) return "Clear";
+  if ([1, 2].includes(code)) return "Mainly clear / partly cloudy";
+  if (code === 3) return "Overcast";
+  if ([45, 48].includes(code)) return "Fog";
+  if ([51, 53, 55, 56, 57].includes(code)) return "Drizzle";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "Rain / showers";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "Snow / snow showers";
+  if ([95, 96, 99].includes(code)) return "Thunderstorm";
+  return "Conditions unavailable";
+}
+
+function weatherDateLabel(value) {
+  return new Date(value + "T12:00:00").toLocaleDateString("en-ZA", {
+    weekday: "short", day: "numeric", month: "short"
+  });
+}
+
+async function loadDestinationWeather(destination, settings) {
+  const panel = document.querySelector("#live-weather");
+  if (!panel) return;
+  const coords = weatherCoordinates[destination.name];
+  if (!coords) {
+    panel.innerHTML = "<strong>WEATHER FORECAST UNAVAILABLE</strong><p>No verified coordinates are configured for this destination.</p>";
+    return;
+  }
+  const startDate = settings.depart;
+  const endDate = settings.returnDate || settings.depart;
+  panel.innerHTML = "<strong>LIVE WEATHER FORECAST</strong><p>Loading the latest available forecast…</p>";
+  try {
+    const params = new URLSearchParams({
+      latitude: String(coords[0]),
+      longitude: String(coords[1]),
+      daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max",
+      timezone: "auto",
+      forecast_days: "16"
+    });
+    const response = await fetch("https://api.open-meteo.com/v1/forecast?" + params.toString(), {
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) throw new Error("Forecast service unavailable");
+    const data = await response.json();
+    if (!data.daily || !Array.isArray(data.daily.time)) throw new Error("Forecast data missing");
+    const dates = data.daily.time.map((date, index) => ({
+      date,
+      code: data.daily.weather_code?.[index],
+      max: data.daily.temperature_2m_max?.[index],
+      min: data.daily.temperature_2m_min?.[index],
+      rain: data.daily.precipitation_probability_max?.[index],
+      wind: data.daily.wind_speed_10m_max?.[index]
+    })).filter(day => day.date >= startDate && day.date <= endDate);
+    const retrieved = new Date().toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
+    if (!dates.length) {
+      panel.innerHTML = `<strong>LIVE WEATHER FORECAST</strong><p>The forecast provider currently offers up to 16 days of forecast data. Your selected dates (${esc(startDate)} to ${esc(endDate)}) are outside the available forecast window, or the dates are not covered.</p><small>Source: Open-Meteo · Checked ${esc(retrieved)}</small>`;
+      return;
+    }
+    panel.innerHTML = `<strong>LIVE WEATHER FORECAST · ${esc(destination.name.toUpperCase())}</strong>
+      <p class="weather-caption">Forecast for your selected dates · not a marine forecast or safety warning.</p>
+      <div class="weather-days">${dates.map(day => `<div class="weather-day">
+        <b>${esc(weatherDateLabel(day.date))}</b>
+        <span>${esc(weatherDescription(Number(day.code)))}</span>
+        <span>${Number.isFinite(Number(day.max)) && Number.isFinite(Number(day.min)) ? `${Math.round(Number(day.min))}–${Math.round(Number(day.max))}°C` : "Temperature unavailable"}</span>
+        <small>Rain chance: ${day.rain == null ? "n/a" : `${Math.round(Number(day.rain))}%`}</small>
+        <small>Max wind: ${day.wind == null ? "n/a" : `${Math.round(Number(day.wind))} km/h`}</small>
+      </div>`).join("")}</div>
+      <small>Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Retrieved ${esc(retrieved)}. Forecasts can change; check again before departure.</small>`;
+  } catch {
+    panel.innerHTML = `<strong>LIVE WEATHER TEMPORARILY UNAVAILABLE</strong><p>The forecast could not be retrieved. Check an official weather service before making travel or fishing decisions.</p><small>Source attempted: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a></small>`;
+  }
+}
+
 function detail(destination, settings) {
   const cost = destination.cost;
   const categories = destination.categories.join(", ");
@@ -842,6 +931,7 @@ function detail(destination, settings) {
     <p class="detail-sub">${esc(destination.region)} · ${esc(destination.province)} · ${esc(categories)}</p>
     <p class="detail-sub">${destination.distance} km one way from Cape Town · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving</p>
     <p class="detail-sub">${esc(destination.description)} Suitable for: ${esc(suitability)}.</p>
+    <section id="live-weather" class="live-weather" aria-live="polite"><strong>LIVE WEATHER FORECAST</strong><p>Loading the latest available forecast…</p></section>
     <div class="detail-callout">
       <div><span>ESTIMATED TYPICAL TOTAL FOR ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</span><br><strong>${money(cost.spend)}</strong></div>
       <strong>${money(cost.perPerson)}<span> / person</span></strong>
@@ -895,6 +985,7 @@ function detail(destination, settings) {
     </div>
     <p class="field-hint">Demo only: live availability, maps, facility status and navigation services are not connected.</p>`;
   dialog.showModal();
+  loadDestinationWeather(destination, settings);
 }
 
 function shareText(destination, settings) {
