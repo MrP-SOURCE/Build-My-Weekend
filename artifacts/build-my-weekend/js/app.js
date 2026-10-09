@@ -1515,13 +1515,7 @@ function card(destination, settings, badges) {
       : { label: "OVER BUDGET", detail: "Even the low estimate exceeds your budget.", level: "over" };
   const budgetConfidenceId = "budget-confidence-detail-" + destination.id;
   const budgetConfidenceHelp = "Budget confidence is based on the demonstration low-to-high cost range (" + money(cost.lowSpend) + "–" + money(cost.highSpend) + ") compared with your group budget (" + money(settings.budget) + "). It is a planning guide, not a verified quote.";
-  const budgetNextStep = glampingSelected || campingSelected
-    ? "Before booking, confirm the full accommodation fee for your dates and group; it may not be included in this estimate."
-    : budgetConfidence.level === "strong"
-      ? "NEXT STEP: Confirm the full stay price for your dates and group before booking."
-      : budgetConfidence.level === "caution"
-        ? "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget."
-        : "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.";
+  const budgetNextStep = shareBudgetNextStep(cost, settings);
   element.className = "trip-card";
   element.dataset.testid = `destination-${destination.id}`;
   element.innerHTML = `
