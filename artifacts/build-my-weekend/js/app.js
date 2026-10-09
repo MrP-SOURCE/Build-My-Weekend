@@ -727,6 +727,24 @@ function testTripDurationCostScaling() {
   return true;
 }
 
+function testFuelAndGroupScaling() {
+  const destination = destinations.find(item => item.id === "hermanus");
+  const base = { budget: 10000, people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11" };
+  const noFuelInTank = calc(destination, base);
+  const partlyCovered = calc(destination, { ...base, fuelExisting: 200 });
+  const fullyCovered = calc(destination, { ...base, fuelExisting: noFuelInTank.consumed });
+  const overCovered = calc(destination, { ...base, fuelExisting: noFuelInTank.consumed + 100 });
+  const fourPeople = calc(destination, { ...base, people: 4 });
+  if (noFuelInTank.consumed !== 470.4 || noFuelInTank.additional !== 470.4) throw new Error("Fuel purchase estimate must use return distance, consumption and price.");
+  if (partlyCovered.additional !== 270.4) throw new Error("Existing fuel value must reduce estimated additional fuel spend.");
+  if (fullyCovered.additional !== 0 || overCovered.additional !== 0) throw new Error("Existing fuel value must not create a negative fuel cost.");
+  if (fourPeople.consumed !== noFuelInTank.consumed || fourPeople.additional !== noFuelInTank.additional) throw new Error("Group size must not multiply vehicle fuel cost.");
+  if (fourPeople.accommodation !== noFuelInTank.accommodation * 2 || fourPeople.food !== noFuelInTank.food * 2 || fourPeople.activities !== noFuelInTank.activities * 2) throw new Error("Non-fuel costs must scale with group size.");
+  if (fourPeople.spend !== round2(noFuelInTank.additional + (noFuelInTank.spend - noFuelInTank.additional) * 2)) throw new Error("Total spend must scale group costs without duplicating vehicle fuel.");
+  if (noFuelInTank.perPerson <= fourPeople.perPerson) throw new Error("Per-person cost should fall when shared vehicle fuel is split across more people, with other costs unchanged per person.");
+  return true;
+}
+
 function testHermanusCalculation() {
   const hermanus = destinations.find(destination => destination.id === "hermanus");
   const settings = {
@@ -838,6 +856,7 @@ function testFishingPriorities() {
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testTripDurationCostScaling = testTripDurationCostScaling;
+  window.testFuelAndGroupScaling = testFuelAndGroupScaling;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
   window.testSavedSettingsApplication = testSavedSettingsApplication;
