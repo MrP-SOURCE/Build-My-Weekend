@@ -55,6 +55,9 @@ for (const marker of [
   "Check tide times",
   "wind swell forecast",
   "recent fishing reports",
+  "Check permits and catch limits",
+  "site:dffe.gov.za recreational fishing permit bag limits size limits South Africa",
+  "site:gov.za recreational fishing regulations South Africa",
   "not live forecasts or verified fishing reports"
 ]) {
   assert(app.includes(marker), "Missing app integration marker: " + marker);
