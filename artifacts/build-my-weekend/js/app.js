@@ -1295,7 +1295,7 @@ function card(destination, settings, badges) {
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
         <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights} night${cost.nights === 1 ? "" : "s"}</div></div>
-        <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
+        <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "LEFT BEFORE GLAMPING STAY" : "LEFT IN BUDGET"}</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
       <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> ${esc(rankingReason(destination, badges, settings))}</p>
