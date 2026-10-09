@@ -974,6 +974,25 @@ function outdoorMapPreview(destination, settings) {
   </section>`;
 }
 
+function routeResearchPanel(destination, settings) {
+  if (!["Hiking Away", "Climbing Away"].includes(settings.experience)) return "";
+  const isClimbing = settings.experience === "Climbing Away";
+  const area = destination.name + " Western Cape South Africa";
+  const dateContext = settings.depart && settings.returnDate ? " " + settings.depart + " " + settings.returnDate : "";
+  const searches = isClimbing
+    ? [["Find documented climbing routes", "\"" + area + "\" climbing routes " + (settings.climbingType && settings.climbingType !== "Any" ? settings.climbingType : "") + " " + (settings.climbingLevel && settings.climbingLevel !== "Any" ? settings.climbingLevel : "")], ["Search The Crag", "site:thecrag.com " + area + " climbing"], ["Check access and closures", "\"" + destination.name + "\" climbing access closures landowner"], ["Find approach and descent information", "\"" + destination.name + "\" crag approach descent"]]
+    : [["Find named hiking trails", "\"" + area + "\" hiking trail " + (settings.hikingDifficulty && settings.hikingDifficulty !== "Any" ? settings.hikingDifficulty : "") + " " + (settings.hikingSetting && settings.hikingSetting !== "Any" ? settings.hikingSetting : "")], ["Search official SANParks trail information", "site:sanparks.org " + destination.name + " hiking trail"], ["Check route distance and elevation", "\"" + destination.name + "\" hiking trail distance elevation"], ["Check access and current trail status", "\"" + destination.name + "\" trail access closure conditions"]];
+  const links = searches.map(([label, query]) => {
+    const url = "https://www.google.com/search?q=" + encodeURIComponent(query + dateContext);
+    return "<a href=\"" + esc(url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + esc(label) + " ↗</a>";
+  }).join(" · ");
+  const coords = weatherCoordinates[destination.name];
+  const mapLink = coords ? "<a href=\"https://www.openstreetmap.org/?mlat=" + coords[0] + "&mlon=" + coords[1] + "#map=13/" + coords[0] + "/" + coords[1] + "\" target=\"_blank\" rel=\"noopener noreferrer\">Open destination-area map ↗</a>" : "<a href=\"https://www.openstreetmap.org/search?query=" + encodeURIComponent(destination.name + ", Western Cape, South Africa") + "\" target=\"_blank\" rel=\"noopener noreferrer\">Search destination on OpenStreetMap ↗</a>";
+  return "<section class=\"outdoor-map-panel route-research-panel\"><h3>" + (isClimbing ? "ROUTE RESEARCH · CLIMBING" : "ROUTE RESEARCH · HIKING") + "</h3>" +
+    "<p>Research links tailored to " + esc(destination.name) + (isClimbing ? " and your selected climbing preferences." : " and your selected hiking preferences.") + " Search results are third-party information, not verified routes or confirmed access.</p>" +
+    "<div class=\"outdoor-source-links\">" + links + " · " + mapLink + "</div>" +
+    "<p class=\"detail-demo-note\">Before relying on a route, confirm the exact trailhead/crag, GPS coordinates, route length and elevation or grade, landowner permission, current access, fees/permits, weather, equipment and return plan. No trail or climbing-route API is connected.</p></section>";
+}
 function outdoorFineTuneAdvice(destination, settings) {
   if (!["Hiking Away", "Climbing Away"].includes(settings.experience)) return "";
   const items = [];
@@ -1541,6 +1560,7 @@ function detail(destination, settings) {
     <p class="detail-sub">${esc(destination.description)} Suitable for: ${esc(suitability)}.</p>
     <section id="live-weather" class="live-weather" aria-live="polite"><strong>LIVE WEATHER FORECAST</strong><p>Loading the latest available forecast…</p></section>
     ${outdoorMapPreview(destination, settings)}
+    ${routeResearchPanel(destination, settings)}
     <div class="detail-callout">
       <div><span>ESTIMATED TYPICAL TOTAL FOR ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</span><br><strong>${money(cost.spend)}</strong></div>
       <strong>${money(cost.perPerson)}<span> / person</span></strong>
