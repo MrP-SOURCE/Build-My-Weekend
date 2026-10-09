@@ -365,6 +365,11 @@ const esc = value => String(value).replace(/[&<>"']/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 }[char]));
 
+function localSearchUrl(kind, destination) {
+  const query = kind + " near " + destination.name + ", " + destination.region + ", Western Cape, South Africa";
+  return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query);
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -833,6 +838,22 @@ function testDestinationSafetyNoteCoverage() {
   return destinations.length;
 }
 
+function testLocalSafetySearchLinks() {
+  const destination = destinations.find(item => item.name === "Gordon's Bay");
+  if (!destination) throw new Error("Gordon's Bay destination required for map-search regression.");
+  for (const kind of ["hospital", "pharmacy", "fuel stations"]) {
+    const url = new URL(localSearchUrl(kind, destination));
+    if (url.protocol !== "https:" || url.hostname !== "www.google.com" || url.pathname !== "/maps/search/") {
+      throw new Error("Safety map handoff must use the HTTPS Google Maps search endpoint.");
+    }
+    const query = url.searchParams.get("query") || "";
+    if (!query.includes(kind) || !query.includes("Gordon's Bay") || !query.includes("Western Cape, South Africa")) {
+      throw new Error("Safety map query must encode the facility type and selected destination.");
+    }
+  }
+  return true;
+}
+
 function testHermanusCalculation() {
   const hermanus = destinations.find(destination => destination.id === "hermanus");
   const settings = {
@@ -948,6 +969,7 @@ if (typeof window !== "undefined") {
   window.testCostEstimateIntegrity = testCostEstimateIntegrity;
   window.testDestinationDataIntegrity = testDestinationDataIntegrity;
   window.testDestinationSafetyNoteCoverage = testDestinationSafetyNoteCoverage;
+  window.testLocalSafetySearchLinks = testLocalSafetySearchLinks;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
@@ -1834,9 +1856,9 @@ function detail(destination, settings) {
     </div>
     <div class="practical-box"><strong>GOOD TO KNOW · DEMONSTRATION NOTE</strong><br>${esc(destination.practicalInfo)}<br><br>Accommodation, food, activities, routes and drive times are illustrative estimates from Cape Town, not verified information. Fuel already in your tank is not charged to the budget again.</div>
     <div class="access-details" aria-label="Unverified local access notes">
-      <div><strong>HOSPITAL ACCESS · UNVERIFIED</strong>${esc(destination.hospitalAccess)}</div>
-      <div><strong>PHARMACY ACCESS · UNVERIFIED</strong>${esc(destination.pharmacyAccess)}</div>
-      <div><strong>FUEL ACCESS · UNVERIFIED</strong>${esc(destination.fuelAccess)}</div>
+      <div><strong>HOSPITAL ACCESS · UNVERIFIED</strong>${esc(destination.hospitalAccess)}<a class="access-search-link" href="${esc(localSearchUrl('hospital', destination))}" target="_blank" rel="noopener noreferrer">SEARCH HOSPITALS ON MAP ↗</a></div>
+      <div><strong>PHARMACY ACCESS · UNVERIFIED</strong>${esc(destination.pharmacyAccess)}<a class="access-search-link" href="${esc(localSearchUrl('pharmacy', destination))}" target="_blank" rel="noopener noreferrer">SEARCH PHARMACIES ON MAP ↗</a></div>
+      <div><strong>FUEL ACCESS · UNVERIFIED</strong>${esc(destination.fuelAccess)}<a class="access-search-link" href="${esc(localSearchUrl('fuel stations', destination))}" target="_blank" rel="noopener noreferrer">SEARCH FUEL STATIONS ON MAP ↗</a></div>
     </div>
     <p class="detail-demo-note">DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED. Do not use this information for actual travel, booking or emergency decisions.</p>
     <div class="detail-actions">
