@@ -815,6 +815,15 @@ function applySavedSettings(saved, targetForm, getElementById) {
   return true;
 }
 
+function restoreSettingsFromStorage(storage, targetForm, getElementById) {
+  try {
+    const saved = JSON.parse(storage.getItem("buildMyWeekendTrip") || "null");
+    return applySavedSettings(saved, targetForm, getElementById);
+  } catch {
+    return false;
+  }
+}
+
 function testSavedSettingsApplication() {
   const saved = {
     budget: "3200", people: "3", experience: "Camping Away", distance: "200",
@@ -842,7 +851,8 @@ function testSavedSettingsApplication() {
       return selector === 'input[name="distance"][value="200"]' ? distanceRadio : null;
     }
   };
-  if (!applySavedSettings(persisted, mockForm, id => controls[id])) throw new Error("Saved settings were not applied.");
+  const fakeStorage = { getItem: key => key === "buildMyWeekendTrip" ? JSON.stringify(settingsForStorage(persisted)) : null };
+  if (!restoreSettingsFromStorage(fakeStorage, mockForm, id => controls[id])) throw new Error("Saved settings were not restored from storage.");
   for (const key of ["budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
     if (elements[key].value !== persisted[key]) throw new Error("Saved field not restored: " + key);
   }
@@ -1485,10 +1495,7 @@ function findDestination(id) {
 }
 
 function settingsFromStorage() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("buildMyWeekendTrip") || "null");
-    applySavedSettings(saved, form, id => document.getElementById(id));
-  } catch {}
+  restoreSettingsFromStorage(localStorage, form, id => document.getElementById(id));
 }
 
 function localDate(date) {
