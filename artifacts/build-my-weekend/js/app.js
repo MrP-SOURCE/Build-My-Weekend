@@ -882,6 +882,20 @@ function testShareSummaryBudgetNextSteps() {
       !confidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
     throw new Error("Shared trip summary must show the estimated group cost range and exact group budget in its confidence statement.");
   }
+  const lowSettings = { ...base, budget: (cost.lowSpend + cost.highSpend) / 2 };
+  const lowConfidence = shareBudgetConfidence(cost, lowSettings);
+  if (!lowConfidence.includes("This may fit only toward the low end of the estimate") ||
+      !lowConfidence.includes(`budget ${money(lowSettings.budget)}`) ||
+      !lowConfidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
+    throw new Error("Low-end budget confidence must disclose the exact budget and estimated range.");
+  }
+  const overSettings = { ...base, budget: cost.lowSpend - 1 };
+  const overConfidence = shareBudgetConfidence(cost, overSettings);
+  if (!overConfidence.includes("The low estimate already exceeds your group budget") ||
+      !overConfidence.includes(`budget ${money(overSettings.budget)}`) ||
+      !overConfidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
+    throw new Error("Over-budget confidence must disclose the exact budget and estimated range.");
+  }
   const campingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Tent" });
   const glampingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Glamping" });
   const expectedCamping = "Before booking, confirm the full accommodation fee for your dates and group; it may not be included in this estimate.";
