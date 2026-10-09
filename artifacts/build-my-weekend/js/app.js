@@ -727,6 +727,21 @@ function testTripDurationCostScaling() {
   return true;
 }
 
+function testBudgetRangeDisclosure() {
+  const destination = destinations.find(item => item.id === "hermanus");
+  const settings = { budget: 5000, people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11" };
+  const cost = calc(destination, settings);
+  const belowRange = budgetRangeWarning(cost, { ...settings, budget: cost.highSpend + 1 });
+  if (belowRange !== "") throw new Error("Do not show a range-over-budget warning when the upper estimate fits.");
+  const generalWarning = budgetRangeWarning(cost, { ...settings, budget: cost.spend });
+  if (!generalWarning.includes("Upper demonstration estimate") || !generalWarning.includes("over your group budget")) throw new Error("General upper-range budget warning is missing.");
+  const campingWarning = budgetRangeWarning(cost, { ...settings, budget: cost.spend }, true, false);
+  if (!campingWarning.includes("Upper base estimate") || !campingWarning.includes("before the unverified campsite fee")) throw new Error("Camping warning must disclose excluded campsite fee.");
+  const glampingWarning = budgetRangeWarning(cost, { ...settings, budget: cost.spend }, true, true);
+  if (!glampingWarning.includes("before the unverified glamping stay price")) throw new Error("Glamping warning must disclose excluded stay price.");
+  return true;
+}
+
 function testFuelAndGroupScaling() {
   const destination = destinations.find(item => item.id === "hermanus");
   const base = { budget: 10000, people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11" };
@@ -857,6 +872,7 @@ if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testTripDurationCostScaling = testTripDurationCostScaling;
   window.testFuelAndGroupScaling = testFuelAndGroupScaling;
+  window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
   window.testSavedSettingsApplication = testSavedSettingsApplication;
@@ -1321,7 +1337,7 @@ function card(destination, settings, badges) {
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
-        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : campingSelected ? `BASE TRIP ESTIMATE · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"} · CAMPSITE FEE NOT VERIFIED` : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : campingSelected ? '<p class="detail-demo-note">The accommodation figure is a generic demonstration allowance, not a campsite tariff. The actual pitch/site fee is not mapped or included as a verified price. Confirm the total for your dates and group before deciding affordability.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div></div>
+        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : campingSelected ? `BASE TRIP ESTIMATE · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"} · CAMPSITE FEE NOT VERIFIED` : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : campingSelected ? '<p class="detail-demo-note">The accommodation figure is a generic demonstration allowance, not a campsite tariff. The actual pitch/site fee is not mapped or included as a verified price. Confirm the total for your dates and group before deciding affordability.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div>${budgetRangeWarning(cost, settings, campingSelected, glampingSelected)}</div>
         <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "LEFT BEFORE GLAMPING STAY" : campingSelected ? "LEFT BEFORE CAMPSITE FEE" : "LEFT IN BUDGET"}</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
@@ -1477,6 +1493,18 @@ function whyMatched(destination, settings) {
     budgetReason,
     `Planning figures are demonstration estimates, not confirmed provider prices or availability.`
   ];
+}
+
+function budgetRangeWarning(cost, settings, campingSelected = false, glampingSelected = false) {
+  if (cost.highSpend <= settings.budget) return "";
+  const excess = money(round2(cost.highSpend - settings.budget));
+  const label = campingSelected || glampingSelected ? "Upper base estimate" : "Upper demonstration estimate";
+  const caveat = glampingSelected
+    ? " before the unverified glamping stay price."
+    : campingSelected
+      ? " before the unverified campsite fee."
+      : ".";
+  return `<p class="card-range-warning">${label} is ${excess} over your group budget${caveat}</p>`;
 }
 
 function costLine(label, value, extraClass = "") {
