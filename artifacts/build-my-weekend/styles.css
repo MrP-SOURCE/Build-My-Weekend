@@ -46,3 +46,19 @@
 .fishing-tuning-list article strong{font-size:10px;color:#40594a}
 .fishing-tuning-list article p{font-size:10px;line-height:1.55;color:#68796d;margin:6px 0 0}
 @media(max-width:560px){.fishing-tuning-list{grid-template-columns:1fr}}
+
+
+/* Source-informed hiking, trail safety and climbing research */
+.hiking-detail{margin-top:18px;padding:17px;border:1px solid rgba(20,35,30,.14);background:#eef1e7}
+.hiking-detail>h3{margin:0 0 9px;font-size:10px;letter-spacing:.12em;color:#40594a}
+.hiking-detail>p{font-size:10px;line-height:1.55;color:#68796d}
+.hiking-safety-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:13px 0}
+.hiking-safety-grid article{padding:12px;background:#fffdf7;border:1px solid rgba(20,35,30,.12)}
+.hiking-safety-grid article strong{font-size:10px;color:#40594a}
+.hiking-safety-grid article p{font-size:10px;line-height:1.55;color:#68796d;margin:6px 0 0}
+.hiking-reference-panel{margin-top:14px;padding:14px;border:1px solid rgba(20,35,30,.14);background:#fffdf7}
+.hiking-reference-panel h4{margin:0 0 9px;font-size:10px;letter-spacing:.12em;color:#40594a}
+.hiking-reference-panel ul{padding-left:18px;display:grid;gap:8px;font-size:10px;line-height:1.55}
+.hiking-reference-panel a{color:#2e6550;text-decoration:underline;text-underline-offset:2px}
+.hiking-reference-panel small{display:block;font-size:10px;line-height:1.55;color:#68796d;margin-top:12px}
+@media(max-width:560px){.hiking-safety-grid{grid-template-columns:1fr}}
