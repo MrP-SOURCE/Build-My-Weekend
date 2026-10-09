@@ -158,7 +158,11 @@
       ).join("") + '</div>';
   }
 
-  function sourceLinks(destination, settings) {
+  function sourceLinks(destination, settings = {}) {
+    const guests = Number(settings.people) || 0;
+    const budget = Number(settings.budget) || 0;
+    const distance = settings.distance && settings.distance !== "any" ? Number(settings.distance) : null;
+    const dates = settings.depart && settings.returnDate ? settings.depart + " to " + settings.returnDate : "";
     const terms = [
       destination.name,
       settings.campingSetup && settings.campingSetup !== "Any" ? settings.campingSetup : "camping caravan tent",
@@ -166,6 +170,10 @@
       settings.campingAblutions && settings.campingAblutions !== "Any" ? settings.campingAblutions + " ablutions" : "",
       settings.campingShade && settings.campingShade !== "Any" ? settings.campingShade + " shade" : "",
       settings.campingTerrain && settings.campingTerrain !== "Any" ? settings.campingTerrain + " pitch" : "",
+      guests ? guests + " guests" : "",
+      budget ? "total weekend group budget R" + Math.round(budget) : "",
+      distance ? "within " + distance + " km one way of " + destination.name : "",
+      dates,
       "South Africa campsite"
     ].filter(Boolean).join(" ");
     const q = encodeURIComponent(terms);
