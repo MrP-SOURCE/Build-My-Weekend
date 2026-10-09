@@ -10,6 +10,7 @@
     "Hotel",
     "Lodge / Guest Farm",
     "Resort",
+    "Glamping / Boutique outdoor stay",
     "Camping / Caravan",
     "Other accommodation"
   ];
@@ -55,16 +56,23 @@
   }
 
   function rank(destination, settings) {
-    const preferred = settings?.experience === "Fishing Away"
-      ? ["Self-Catering", "Holiday House / Holiday Home", "B&B / Guesthouse", "Lodge / Guest Farm", "Camping / Caravan", "Resort", "Hotel", "Other accommodation"]
-      : ["Self-Catering", "B&B / Guesthouse", "Holiday House / Holiday Home", "Hotel", "Lodge / Guest Farm", "Resort", "Camping / Caravan", "Other accommodation"];
+    let preferred;
+    if (settings?.experience === "Camping Away" && settings?.campingSetup === "Glamping") {
+      preferred = ["Glamping / Boutique outdoor stay", "Camping / Caravan", "Lodge / Guest Farm", "Self-Catering", "Holiday House / Holiday Home", "B&B / Guesthouse", "Resort", "Hotel", "Other accommodation"];
+    } else if (settings?.experience === "Fishing Away") {
+      preferred = ["Self-Catering", "Holiday House / Holiday Home", "B&B / Guesthouse", "Lodge / Guest Farm", "Camping / Caravan", "Glamping / Boutique outdoor stay", "Resort", "Hotel", "Other accommodation"];
+    } else {
+      preferred = ["Self-Catering", "B&B / Guesthouse", "Holiday House / Holiday Home", "Hotel", "Lodge / Guest Farm", "Resort", "Glamping / Boutique outdoor stay", "Camping / Caravan", "Other accommodation"];
+    }
 
     return {
       types: TYPES,
       preferred,
-      note: settings?.experience === "Fishing Away"
-        ? "For Fishing Away, accommodation is ranked for fishing practicality and budget fit. Check parking, equipment storage, self-catering, access, current distance to the fishing area and current price."
-        : "The app checks the current suggested area across multiple accommodation sources and categories rather than claiming a small fixed property list is exhaustive. Availability, prices and suitability must be confirmed with the provider."
+      note: settings?.experience === "Camping Away" && settings?.campingSetup === "Glamping"
+        ? "Glamping and boutique outdoor stays are prioritised for your selected setup. Confirm exact property, dates, guest capacity, full stay price and distance; discovery links do not verify live availability."
+        : settings?.experience === "Fishing Away"
+          ? "For Fishing Away, accommodation is ranked for fishing practicality and budget fit. Check parking, equipment storage, self-catering, access, current distance to the fishing area and current price."
+          : "The app checks the current suggested area across multiple accommodation sources and categories rather than claiming a small fixed property list is exhaustive. Availability, prices and suitability must be confirmed with the provider."
     };
   }
 
