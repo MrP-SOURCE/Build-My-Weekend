@@ -236,6 +236,7 @@ assert(context.window.testCostEstimateIntegrity() > 0, "Cost estimate integrity 
 assert(context.window.testDestinationDataIntegrity() > 0, "Destination data integrity checks failed.");
 assert(context.window.testDestinationSafetyNoteCoverage() > 0, "Destination safety note coverage checks failed.");
 assert(context.window.testLocalSafetySearchLinks(), "Local safety map-search link checks failed.");
+assert(context.window.testDirectionsUrl(), "Google Maps driving directions regression checks failed.");
 console.log("Destination safety note coverage:", context.window.testDestinationSafetyNoteCoverage());
 console.log("Destination data integrity records:", context.window.testDestinationDataIntegrity());
 console.log("Cost estimate integrity scenarios:", context.window.testCostEstimateIntegrity());
