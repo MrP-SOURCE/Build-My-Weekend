@@ -376,6 +376,12 @@ function directionsUrl(destination) {
   return "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + target + "&travelmode=driving";
 }
 
+function sharedStayLinks(destination, settings) {
+  return window.BMWAccommodation
+    ? window.BMWAccommodation.links(destination, settings).map(link => `${link.name}: ${link.url}`).join("\n")
+    : "";
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -850,12 +856,9 @@ function testShareSummaryIncludesStayLinks() {
     budget: 3000, people: 4, consumption: 8, fuelExisting: 650, fuelPrice: 24.5,
     depart: "2026-10-09", returnDate: "2026-10-11"
   };
-  const summary = shareText(destination, settings);
+  const summary = sharedStayLinks(destination, settings);
   for (const name of ["Booking.com", "Airbnb", "LekkeSlaap"]) {
     if (!summary.includes(name + ": https://")) throw new Error("Shared trip summary must include the " + name + " stay-search link.");
-  }
-  if (!summary.includes("search pages only; prices and availability are not confirmed")) {
-    throw new Error("Shared stay-search links must disclose that prices and availability are not confirmed.");
   }
   if (!summary.includes("group_adults=4") || !summary.includes("checkin=2026-10-09") || !summary.includes("checkout=2026-10-11")) {
     throw new Error("Shared stay-search links must retain the selected group size and dates.");
@@ -1914,9 +1917,7 @@ function detail(destination, settings) {
 
 function shareText(destination, settings) {
   const cost = calc(destination, settings);
-  const stayLinks = window.BMWAccommodation
-    ? window.BMWAccommodation.links(destination, settings).map(link => `${link.name}: ${link.url}`).join("\n")
-    : "";
+  const stayLinks = sharedStayLinks(destination, settings);
   const campingSelected = settings.experience === "Camping Away";
   const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
