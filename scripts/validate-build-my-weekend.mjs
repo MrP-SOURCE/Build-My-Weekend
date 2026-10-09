@@ -117,6 +117,10 @@ assert(campsiteLinks.some(link => link.name.includes("SANParks campsites near th
 assert(campsiteLinks.some(link => link.name.includes("CapeNature campsites near this destination") && link.url.includes("site%3Acapenature.co.za")),
   "Destination-targeted CapeNature campsite search is missing.");
 assert(campsiteLinks.every(link => /^https:\/\//.test(link.url)), "Camping source link is not HTTPS.");
+assert(campsiteLinks.some(link => link.url.includes(encodeURIComponent("R3000"))), "Campsite search does not include the current group budget.");
+assert(campsiteLinks.some(link => link.url.includes(encodeURIComponent("200 km"))), "Campsite search does not include the current distance limit.");
+assert(campsiteLinks.some(link => link.url.includes(encodeURIComponent("2026-10-09 to 2026-10-11"))), "Campsite search does not include the selected dates.");
+assert(campsiteLinks.some(link => link.url.includes(encodeURIComponent("4 guests"))), "Campsite search does not include the group size.");
 const glampingLinks = campingApi.glampingLinks({ name: "Hermanus" }, campingSettings);
 assert(glampingLinks.length === 10, "Glamping source coverage changed.");
 assert(glampingLinks.some(link => link.name.includes("Booking.com glamping near this destination") && link.url.includes("site%3Abooking.com")),
