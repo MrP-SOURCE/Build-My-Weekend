@@ -436,7 +436,8 @@ function findCandidates(settings) {
       destination.distance <= distanceLimit &&
       (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
-      (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing"))
+      (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing")) &&
+      (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors"))
     );
 }
 
@@ -553,6 +554,9 @@ function testRecommendationScenarios() {
     { name: "Fishing · R5,000 · 2 people · anywhere", budget: 5000, people: 2, experience: "Fishing Away", distance: "any" },
     { name: "Fishing · Shore · Galjoen · under 200 km", budget: 5000, people: 2, experience: "Fishing Away", distance: "200", fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" },
     { name: "Family · R2,000 · 4 people · under 100 km", budget: 2000, people: 4, experience: "Family Away", distance: "100" },
+    { name: "Camping · R8,000 · 4 people · anywhere", budget: 8000, people: 4, experience: "Camping Away", distance: "any" },
+    { name: "Hiking · R5,000 · 2 people · under 200 km", budget: 5000, people: 2, experience: "Hiking Away", distance: "200" },
+    { name: "Climbing · R8,000 · 2 people · anywhere", budget: 8000, people: 2, experience: "Climbing Away", distance: "any" },
     { name: "Nature · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Nature", distance: "any" }
   ].map(scenario => {
     const settings = {
@@ -566,6 +570,9 @@ function testRecommendationScenarios() {
     const candidates = findCandidates(settings);
     const shortlist = buildShortlist(candidates);
     if (shortlist.length > 5) throw new Error(`${scenario.name}: more than five destinations were selected.`);
+    if (scenario.experience === "Camping Away" && candidates.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error(scenario.name + ": non-camping destination returned.");
+    if (scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))) throw new Error(scenario.name + ": non-hiking destination returned.");
+    if (scenario.experience === "Climbing Away" && candidates.some(item => !item.categories.includes("Climbing"))) throw new Error(scenario.name + ": non-climbing destination returned.");
     if (new Set(shortlist.map(item => item.destination.id)).size !== shortlist.length) {
       throw new Error(`${scenario.name}: duplicate destinations were selected.`);
     }
