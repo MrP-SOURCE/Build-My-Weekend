@@ -23,6 +23,8 @@ assert(app.includes("This subtracts fuel already in the vehicle from the amount 
 assert(app.includes("ESTIMATED NEW SPEND · ${settings.people}"), "Recommendation cards must label the budget figure as estimated new spend.");
 assert(app.includes("Fuel already in the vehicle is treated as already paid"), "Trip details must explain how existing fuel affects the cash budget estimate.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
+assert(app.includes("two-night weekend per person"), "Cost estimates must disclose their two-night baseline and scale with the selected duration.");
+assert(app.includes("demonstration range · ${cost.nights} night"), "Recommendation cards must display the selected trip-night count beside the estimate.");
 assert(app.includes("GLAMPING STAY PRICE NOT INCLUDED"), "Glamping recommendation cards and shared trip summaries must disclose that the property stay price is excluded.");
 assert(app.includes("Glamping budget warning: the property-specific stay price is not included"), "Glamping trip details must disclose that the property stay price is excluded from the demo total.");
 
@@ -172,6 +174,7 @@ const appLogic = app.slice(0, app.indexOf('const form = document.querySelector("
 assert(appLogic.length > 0, "Could not isolate planner logic for test execution.");
 vm.runInContext(appLogic, context);
 assert(context.window.testHermanusCalculation(), "Hermanus budget and fuel calculation failed.");
+assert(context.window.testTripDurationCostScaling(), "Trip duration cost scaling regression checks failed.");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
 assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
 assert(context.window.testSavedSettingsApplication() === 22, "Saved preference application regression checks failed.");
