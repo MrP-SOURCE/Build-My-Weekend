@@ -964,6 +964,19 @@ function testSavedSettingsApplication() {
   return 22;
 }
 
+function budgetRangeWarning(cost, settings, campingSelected = false, glampingSelected = false) {
+  if (cost.highSpend <= settings.budget) return "";
+  const excess = money(round2(cost.highSpend - settings.budget));
+  const label = campingSelected || glampingSelected ? "Upper base estimate" : "Upper demonstration estimate";
+  const caveat = glampingSelected
+    ? " before the unverified glamping stay price."
+    : campingSelected
+      ? " before the unverified campsite fee."
+      : ".";
+  return `<p class="card-range-warning">${label} is ${excess} over your group budget${caveat}</p>`;
+}
+
+
 const form = document.querySelector("#trip-form");
 const results = document.querySelector("#recommendations");
 const dialog = document.querySelector("#trip-dialog");
@@ -1493,18 +1506,6 @@ function whyMatched(destination, settings) {
     budgetReason,
     `Planning figures are demonstration estimates, not confirmed provider prices or availability.`
   ];
-}
-
-function budgetRangeWarning(cost, settings, campingSelected = false, glampingSelected = false) {
-  if (cost.highSpend <= settings.budget) return "";
-  const excess = money(round2(cost.highSpend - settings.budget));
-  const label = campingSelected || glampingSelected ? "Upper base estimate" : "Upper demonstration estimate";
-  const caveat = glampingSelected
-    ? " before the unverified glamping stay price."
-    : campingSelected
-      ? " before the unverified campsite fee."
-      : ".";
-  return `<p class="card-range-warning">${label} is ${excess} over your group budget${caveat}</p>`;
 }
 
 function costLine(label, value, extraClass = "") {
