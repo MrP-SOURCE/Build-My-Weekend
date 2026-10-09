@@ -760,6 +760,37 @@ function testFuelAndGroupScaling() {
   return true;
 }
 
+function testCostEstimateIntegrity() {
+  const scenarios = [
+    { people: 1, depart: "2026-10-09", returnDate: "2026-10-09" },
+    { people: 2, depart: "2026-10-09", returnDate: "2026-10-10" },
+    { people: 4, depart: "2026-10-09", returnDate: "2026-10-11" },
+    { people: 10, depart: "2026-10-09", returnDate: "2026-10-13" }
+  ];
+  let checked = 0;
+  for (const destination of destinations) {
+    for (const scenario of scenarios) {
+      const result = calc(destination, {
+        budget: 100000, consumption: 8, fuelExisting: 0, fuelPrice: 24.5,
+        ...scenario
+      });
+      for (const key of ["litres", "consumed", "additional", "accommodation", "food", "activities", "lowSpend", "spend", "highSpend", "remaining", "perPerson"]) {
+        if (!Number.isFinite(result[key]) || result[key] < 0 && !["remaining"].includes(key)) {
+          throw new Error("Cost estimate must be finite and non-negative for " + destination.id + " (" + key + ").");
+        }
+      }
+      if (result.lowSpend > result.spend || result.spend > result.highSpend) {
+        throw new Error("Low / typical / high estimate order invalid for " + destination.id + ".");
+      }
+      if (Math.abs(result.perPerson * scenario.people - result.spend) > 0.02) {
+        throw new Error("Per-person total does not reconcile for " + destination.id + ".");
+      }
+      checked++;
+    }
+  }
+  return checked;
+}
+
 function testHermanusCalculation() {
   const hermanus = destinations.find(destination => destination.id === "hermanus");
   const settings = {
@@ -872,6 +903,7 @@ if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testTripDurationCostScaling = testTripDurationCostScaling;
   window.testFuelAndGroupScaling = testFuelAndGroupScaling;
+  window.testCostEstimateIntegrity = testCostEstimateIntegrity;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
