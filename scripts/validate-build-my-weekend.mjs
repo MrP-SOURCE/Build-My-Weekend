@@ -18,6 +18,9 @@ function idsFromHtml(source) {
 
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
 
+assert(app.includes("function itineraryForDates(destination, settings)"), "Itinerary must adapt to the selected date range.");
+assert(app.includes("itineraryForDates(destination, settings).map"), "Trip details must render the date-aware itinerary.");
+
 const ids = idsFromHtml(html);
 const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
 assert(!duplicates.length, "Duplicate HTML ids: " + [...new Set(duplicates)].join(", "));
