@@ -376,6 +376,12 @@ function directionsUrl(destination) {
   return "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + target + "&travelmode=driving";
 }
 
+function sharedStayLinks(destination, settings) {
+  return window.BMWAccommodation
+    ? window.BMWAccommodation.links(destination, settings).map(link => `${link.name}: ${link.url}`).join("\n")
+    : "";
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -844,6 +850,22 @@ function testDestinationSafetyNoteCoverage() {
   return destinations.length;
 }
 
+function testShareSummaryIncludesStayLinks() {
+  const destination = destinations.find(item => item.id === "hermanus");
+  const settings = {
+    budget: 3000, people: 4, consumption: 8, fuelExisting: 650, fuelPrice: 24.5,
+    depart: "2026-10-09", returnDate: "2026-10-11"
+  };
+  const summary = sharedStayLinks(destination, settings);
+  for (const name of ["Booking.com", "Airbnb", "LekkeSlaap"]) {
+    if (!summary.includes(name + ": https://")) throw new Error("Shared trip summary must include the " + name + " stay-search link.");
+  }
+  if (!summary.includes("group_adults=4") || !summary.includes("checkin=2026-10-09") || !summary.includes("checkout=2026-10-11")) {
+    throw new Error("Shared stay-search links must retain the selected group size and dates.");
+  }
+  return true;
+}
+
 function testDirectionsUrl() {
   const destination = destinations.find(item => item.name === "Gordon's Bay");
   if (!destination) throw new Error("Gordon's Bay destination required for directions regression.");
@@ -991,6 +1013,7 @@ if (typeof window !== "undefined") {
   window.testDestinationSafetyNoteCoverage = testDestinationSafetyNoteCoverage;
   window.testLocalSafetySearchLinks = testLocalSafetySearchLinks;
   window.testDirectionsUrl = testDirectionsUrl;
+  window.testShareSummaryIncludesStayLinks = testShareSummaryIncludesStayLinks;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
@@ -1894,6 +1917,7 @@ function detail(destination, settings) {
 
 function shareText(destination, settings) {
   const cost = calc(destination, settings);
+  const stayLinks = sharedStayLinks(destination, settings);
   const campingSelected = settings.experience === "Camping Away";
   const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
@@ -1901,7 +1925,8 @@ function shareText(destination, settings) {
     (cost.highSpend > settings.budget ? `${glampingSelected || campingSelected ? "UPPER BASE ESTIMATE" : "UPPER DEMONSTRATION ESTIMATE"} EXCEEDS GROUP BUDGET BY ${money(round2(cost.highSpend - settings.budget))}${glampingSelected ? " BEFORE GLAMPING STAY PRICE" : campingSelected ? " BEFORE CAMPSITE/SITE FEE" : ""}.\n` : "") +
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
-    `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.`;
+    `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.` +
+    (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "");
 }
 
 function toastMessage(message) {
