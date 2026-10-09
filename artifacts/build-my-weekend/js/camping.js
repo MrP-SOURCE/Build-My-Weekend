@@ -463,7 +463,7 @@
       ? selected.map(([label, value]) => label + ": " + value).join(" · ")
       : "Open to different camping setups and facilities.";
     return '<div class="camping-result-box"><strong>CAMPING AWAY · YOUR SITE PREFERENCES</strong><p>' +
-      esc(summary) + '</p><p>Open VIEW WEEKEND for tailored campsite research. Availability and pitch-level details are not live-verified.</p></div>';
+      esc(summary) + '</p><p><b>BUDGET STATUS:</b> The trip card uses a generic demonstration accommodation allowance, not a verified campsite tariff. The actual pitch/site fee is not mapped or included as a confirmed price, so the displayed remainder is only the amount left before the campsite fee. Open VIEW WEEKEND to research sites, then confirm the full group price for your dates.</p><p>Availability and pitch-level details are not live-verified.</p></div>';
   }
 
   function detailSummary(destination, settings) {
@@ -475,6 +475,7 @@
     ).join("");
     return '<section class="camping-result-box" aria-label="Camping site matching guidance">' +
       '<strong>CAMPING AWAY · SITE-FIT CHECK</strong>' +
+      '<p><b>ESTIMATED AFFORDABILITY ONLY:</b> The trip estimate uses a generic accommodation allowance, not a verified campsite tariff. The actual pitch/site fee is not mapped or included as a confirmed price; treat any budget remainder as money left before that fee.</p>' +
       '<p>These preferences refine what to look for around ' + esc(destination.name) + '. They are not proof that a matching pitch is available.</p>' +
       '<ul>' + rows + '</ul>' +
       (settings.campingSetup === "Glamping" ? glampingSummary(destination, settings) :
