@@ -370,6 +370,12 @@ function localSearchUrl(kind, destination) {
   return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query);
 }
 
+function directionsUrl(destination) {
+  const origin = encodeURIComponent("Cape Town, South Africa");
+  const target = encodeURIComponent(destination.name + ", " + destination.region + ", Western Cape, South Africa");
+  return "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + target + "&travelmode=driving";
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -838,6 +844,20 @@ function testDestinationSafetyNoteCoverage() {
   return destinations.length;
 }
 
+function testDirectionsUrl() {
+  const destination = destinations.find(item => item.name === "Gordon's Bay");
+  if (!destination) throw new Error("Gordon's Bay destination required for directions regression.");
+  const url = directionsUrl(destination);
+  if (!url.startsWith("https://www.google.com/maps/dir/?api=1&origin=") || !url.includes("&travelmode=driving")) {
+    throw new Error("Navigation handoff must use Google Maps driving directions.");
+  }
+  const decoded = decodeURIComponent(url);
+  if (!decoded.includes("Cape Town, South Africa") || !decoded.includes("Gordon's Bay, Cape Helderberg, Western Cape, South Africa")) {
+    throw new Error("Navigation handoff must include the app origin and selected destination.");
+  }
+  return true;
+}
+
 function testLocalSafetySearchLinks() {
   const destination = destinations.find(item => item.name === "Gordon's Bay");
   if (!destination) throw new Error("Gordon's Bay destination required for map-search regression.");
@@ -970,6 +990,7 @@ if (typeof window !== "undefined") {
   window.testDestinationDataIntegrity = testDestinationDataIntegrity;
   window.testDestinationSafetyNoteCoverage = testDestinationSafetyNoteCoverage;
   window.testLocalSafetySearchLinks = testLocalSafetySearchLinks;
+  window.testDirectionsUrl = testDirectionsUrl;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
@@ -1863,10 +1884,10 @@ function detail(destination, settings) {
     <p class="detail-demo-note">DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED. Do not use this information for actual travel, booking or emergency decisions.</p>
     <div class="detail-actions">
       <button class="button button-primary" type="button" data-action="availability" data-testid="availability-button">CHECK AVAILABILITY</button>
-      <button class="button demo-button" type="button" data-action="navigate" data-testid="navigate-button">NAVIGATE</button>
+      <button class="button demo-button" type="button" data-action="navigate" data-destination="${destination.id}" data-testid="navigate-button">NAVIGATE</button>
       <button class="button demo-button" type="button" data-action="share" data-destination="${destination.id}" data-testid="detail-share-button">SHARE TRIP</button>
     </div>
-    <p class="field-hint">Demo only: live availability, maps, facility status and navigation services are not connected.</p>`;
+    <p class="field-hint">NAVIGATE opens a Google Maps driving-route search from Cape Town. Confirm the route, traffic, access and conditions before travelling; this is not live safety guidance.</p>`;
   dialog.showModal();
   loadDestinationWeather(destination, settings);
 }
@@ -1978,7 +1999,9 @@ dialog.addEventListener("click", event => {
     toastMessage("Demo only — live accommodation availability is not connected.");
   }
   if (button.dataset.action === "navigate") {
-    toastMessage("Demo only — live maps and turn-by-turn navigation are not connected.");
+    const destination = findDestination(button.dataset.destination);
+    if (destination) window.open(directionsUrl(destination), "_blank", "noopener,noreferrer");
+    else toastMessage("Could not find the selected destination.");
   }
   if (button.dataset.action === "share") {
     const destination = findDestination(button.dataset.destination);
