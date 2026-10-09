@@ -646,6 +646,35 @@ function fishingSpotSummary(destination, settings) {
   </div>`;
 }
 
+function hikingFineTuneAdvice(destination, settings) {
+  if (settings.experience !== "Hiking Away") return "";
+  const references = [
+    ["Forge Digital Trail Maps", "https://forgemaps.com", "Research offline-capable trail-map options; confirm coverage for the exact route and download maps before leaving."],
+    ["Hikers Network", "https://hikersnetwork.co.za", "Check whether current trail-condition or safety information is available for the specific route. Do not assume tracking or rescue monitoring is active."],
+    ["SANParks", "https://sanparks.org", "For national-park and multi-day trails, verify official route information, conservation rules, permits and booking requirements directly."],
+    ["Hiking South Africa directory", "https://hiking-south-africa.info", "Use as a discovery lead for inland and privately managed trails; confirm landowner permission, fees, route difficulty and current access."],
+    ["Climbing South Africa / Climb ZA", "https://climb.co.za", "Research local climbing areas and route information separately; verify access, current route status, grades and equipment requirements."],
+    ["The Crag", "https://thecrag.com", "Cross-check community-contributed climbing and bouldering information; verify GPS pins, access and route details before relying on them."]
+  ];
+  return `<section class="hiking-detail hiking-finetune">
+    <h3>FINE-TUNE THIS HIKING PLAN</h3>
+    <p class="detail-sub">Use these checks to move from a destination idea toward a route you have independently verified. BUILD MY WEEKEND does not yet hold a verified trail-GPS, live tracking, rescue-feed or climbing-route database.</p>
+    <div class="hiking-safety-grid">
+      <article><strong>1 · ROUTE & NAVIGATION</strong><p>Confirm the exact trailhead, route distance, elevation gain, expected duration, difficulty, turnaround point and whether the route is suitable for every person in your group. Download an offline map and carry a backup navigation method.</p></article>
+      <article><strong>2 · ACCESS & PERMISSION</strong><p>Check current opening status, booking or permit rules, landowner permission, parking, fees and any seasonal closures with the land manager or official park authority.</p></article>
+      <article><strong>3 · WEATHER & EXPOSURE</strong><p>Check a current forecast for the actual trail area, not just the nearest town. Consider wind, heat, rain, visibility, river crossings and exposed ridges; postpone if conditions exceed your group’s ability.</p></article>
+      <article><strong>4 · SAFETY PLAN</strong><p>Tell a reliable person your route, group size and return time; agree on a check-in and overdue procedure. Save the local land manager and emergency contacts before departure. Do not assume an app or website is tracking you or can dispatch rescue.</p></article>
+      <article><strong>5 · MULTI-DAY & SANPARKS TRAILS</strong><p>For overnight or national-park trails, verify official booking, accommodation/camp rules, water availability, carrying requirements, conservation restrictions and cancellation notices directly with the responsible authority.</p></article>
+      <article><strong>6 · CLIMBING & BOULDERING</strong><p>These links are research leads, not a climbing recommendation. Confirm route grade, rock and anchor condition, approach/access rules, required protection, partner competence and current local guidance before attempting a route.</p></article>
+    </div>
+    <div class="hiking-reference-panel">
+      <h4>TRAIL, MAP, SAFETY & CLIMBING RESEARCH SOURCES</h4>
+      <ul>${references.map(([name, url, note]) => `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${esc(name)}</a> — ${esc(note)}</li>`).join("")}</ul>
+      <small>Source capability, route coverage and update frequency have not been verified by this app. These are external research links, not live integrations or a substitute for official route notices, local emergency services or competent trip planning.</small>
+    </div>
+  </section>`;
+}
+
 function fishingFineTuneAdvice(destination, settings) {
   if (settings.experience !== "Fishing Away" || !window.BMWFishing) return "";
   const style = settings.fishingStyle || "Any";
@@ -1021,6 +1050,7 @@ function detail(destination, settings) {
       </section>`;
     })() : ""}
     ${fishingFineTuneAdvice(destination, settings)}
+    ${hikingFineTuneAdvice(destination, settings)}
     ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
       <section class="detail-section">
