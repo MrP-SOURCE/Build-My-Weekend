@@ -191,3 +191,8 @@ console.log("Activity panel switching cases: 12 PASS");
 console.log("Planner scenarios:", plannerScenarios.length);
 console.log("Fishing priorities:", fishingPriorities.length);
 
+
+assert(html.includes('data-testid="evidence-legend"'), "Results must show the evidence-status legend.");
+for (const marker of ["ESTIMATE", "LIVE FORECAST", "VERIFY BEFORE BOOKING", "not a marine forecast or safety warning", "must be confirmed with the relevant provider or authority"]) {
+  assert(html.includes(marker), "Evidence-status legend is missing: " + marker);
+}
