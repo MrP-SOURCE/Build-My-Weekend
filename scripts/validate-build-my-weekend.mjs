@@ -246,6 +246,8 @@ assert(context.window.testDestinationSafetyNoteCoverage() > 0, "Destination safe
 assert(context.window.testLocalSafetySearchLinks(), "Local safety map-search link checks failed.");
 assert(context.window.testDirectionsUrl(), "Google Maps driving directions regression checks failed.");
 assert(context.window.testShareSummaryIncludesStayLinks(), "Shared stay-search link regression checks failed.");
+assert(context.window.testShareSummaryBudgetNextSteps() === 3, "Shared trip summary budget next-step regression checks failed.");
+assert(app.includes("NEXT STEP: Confirm the full accommodation price for your dates and group before booking.") && app.includes("NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.") && app.includes("NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking."), "Shared trip summaries must provide budget-specific next steps.");
 assert(app.includes("STAY SEARCH LINKS — search pages only; prices and availability are not confirmed"), "Shared trip summary must disclose that stay links do not confirm prices or availability.");
 console.log("Destination safety note coverage:", context.window.testDestinationSafetyNoteCoverage());
 console.log("Destination data integrity records:", context.window.testDestinationDataIntegrity());
