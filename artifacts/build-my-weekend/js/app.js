@@ -927,12 +927,22 @@ function fishingSpotSummary(destination, settings) {
   const match = window.BMWFishing.bestSpot(destination.id, settings);
   if (!match) return "";
   const s = match.spot;
+  const dateContext = settings.depart && settings.returnDate ? " " + settings.depart + " to " + settings.returnDate : "";
+  const speciesContext = settings.targetSpecies && settings.targetSpecies !== "Any" ? " " + settings.targetSpecies : "";
+  const search = query => "https://www.google.com/search?q=" + encodeURIComponent(s.name + " " + s.area + speciesContext + dateContext + " " + query);
+  const researchLinks = [
+    ["Check tide times", search("tide times")],
+    ["Check wind and swell", search("wind swell forecast")],
+    ["Find recent fishing reports", search("recent fishing reports")]
+  ].map(([label, url]) => '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(label) + ' ↗</a>').join(" · ");
   return `<div class="fishing-result-box">
     <strong>BEST MATCHING FISHING AREA</strong>
     <span>${esc(s.name)} · ${esc(s.spotType)}</span>
     <small>Target: ${esc(s.species.join(", "))} · Style: ${esc(s.styles.join(", "))}</small>
     <small>Community note: ${esc(s.community)}</small>
     <small>DEMO ONLY — verify tide, swell, wind, access, permits and current regulations.</small>
+    <p><b>Before you go:</b> ${researchLinks}</p>
+    <small>These links open web searches; they are not live forecasts or verified fishing reports.</small>
   </div>`;
 }
 
