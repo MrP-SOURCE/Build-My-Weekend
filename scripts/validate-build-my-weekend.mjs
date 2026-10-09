@@ -178,7 +178,7 @@ for (const name of ["budget", "people", "experience", "depart", "consumption", "
 assert(html.includes('name="distance"') && html.includes('value="200"'),
   "Saved preference distance restore option 200 km is missing.");
 
-assert(context.window.testActivityPanelState() === 12, "Activity panel switching regression checks failed.");
+assert(context.window.testActivityPanelState() === 13, "Activity panel switching regression checks failed.");
 const plannerScenarios = context.window.testWeekendScenarios();
 assert(plannerScenarios.length >= 8, "Planner scenario coverage is unexpectedly small.");
 assert(plannerScenarios.some(scenario => scenario.scenario.startsWith("Camping")), "Camping Away scenario is missing.");
