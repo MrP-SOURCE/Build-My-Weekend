@@ -1234,10 +1234,38 @@ function card(destination, settings, badges) {
         <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
+      <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> ${esc(rankingReason(destination, badges, settings))}</p>
     </div>
     <div class="card-actions">
       <button type="button" data-action="view" data-destination="${destination.id}" data-testid="view-${destination.id}">VIEW WEEKEND <span aria-hidden="true">↗</span></button>
-      <button type="button" data-action="share" data-destination="${destination.id}" data-testid="share-${destination.id}">SHARE TRIP</button>
+      <button type="button" data-action="share" datafunction rankingReason(destination, badges, settings) {
+  const reasons = [];
+  const roles = new Set(badges);
+  if (roles.has("BEST FISHING OPPORTUNITY") || (settings.experience === "Fishing Away" && settings.fishingPriority === "Best Fishing Opportunity")) {
+    reasons.push(`it ranks strongly for the selected fishing-priority score (${Math.round(destination.fishingScore || 0)}/100)`);
+  }
+  if (roles.has("LOWEST COST") || (settings.experience === "Fishing Away" && settings.fishingPriority === "Lowest Cost")) {
+    reasons.push(`its estimated new spend is the lowest among the shortlisted options (${money(destination.cost.spend)})`);
+  }
+  if (roles.has("CLOSEST AFFORDABLE") || (settings.experience === "Fishing Away" && settings.fishingPriority === "Shortest Drive")) {
+    reasons.push(`it is one of the closest affordable choices at ${destination.distance} km one way`);
+  }
+  if (roles.has("FURTHEST AFFORDABLE")) {
+    reasons.push(`it is the furthest affordable choice at ${destination.distance} km one way`);
+  }
+  if (roles.has("BEST EXPERIENCE MATCH")) {
+    reasons.push("its categories score well against your selected weekend type");
+  }
+  if (roles.has("BEST VALUE") || roles.has("GOOD MATCH")) {
+    reasons.push("its estimated cost, distance and activity fit give it a strong overall match score");
+  }
+  if (!reasons.length) {
+    reasons.push("it passed your activity, distance and budget filters and ranked in the shortlist");
+  }
+  return `${reasons.slice(0, 2).join("; ")}. Rankings use demonstration data and scoring rules, not verified live demand, prices or availability.`;
+}
+
+-destination="${destination.id}" data-testid="share-${destination.id}">SHARE TRIP</button>
     </div>`;
   return element;
 }
