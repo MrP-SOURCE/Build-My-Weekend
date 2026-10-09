@@ -646,6 +646,59 @@ function fishingSpotSummary(destination, settings) {
   </div>`;
 }
 
+function fishingFineTuneAdvice(destination, settings) {
+  if (settings.experience !== "Fishing Away" || !window.BMWFishing) return "";
+  const style = settings.fishingStyle || "Any";
+  const preference = settings.spotPreference || "Let the app choose";
+  const species = settings.targetSpecies || "Any";
+  const advice = [];
+
+  if (style === "Rock" || preference === "Rocks" || preference === "Point") {
+    advice.push({
+      title: "Rock and point selection",
+      text: "Compare exposed points with safer, more sheltered shoreline options. Choose the fishing window only after checking current swell, wind, tide and safe access; a matching spot is not a safety assessment."
+    });
+  } else if (style === "Estuary" || ["Estuary", "Lagoon", "River Mouth"].includes(preference)) {
+    advice.push({
+      title: "Tide and estuary timing",
+      text: "Before setting departure time, check tide, river flow or rainfall, the current mouth state and local access rules. These factors can change the usefulness of an estuary or lagoon spot."
+    });
+  } else if (style === "Shore" || ["Bay", "Beach"].includes(preference)) {
+    advice.push({
+      title: "Shoreline choice",
+      text: "Compare sheltered bays or beaches with exposed points. Use current wind, swell and tide information to refine the spot choice instead of relying on the destination name alone."
+    });
+  } else {
+    advice.push({
+      title: "Refine the fishing match",
+      text: "Choose a fishing style, target species or preferred shoreline type to narrow the shortlist. The current spot records are demonstration matches, not live catch reports."
+    });
+  }
+
+  if (species !== "Any") {
+    advice.push({
+      title: `Target species: ${species}`,
+      text: "Before leaving, verify current permit requirements, minimum sizes, bag limits, closed seasons and area restrictions with the relevant official authority. The app's species match does not confirm that keeping this species is legal at the selected spot."
+    });
+  }
+
+  advice.push({
+    title: "Consider a different fishing format",
+    text: "FishingBooker is a research lead for deep-sea or guided charter trips; compare departure port, duration, inclusions, weather cancellation terms and date availability. Charter results are separate from this shore/estuary shortlist."
+  });
+  advice.push({
+    title: "Freshwater or fly-fishing alternative",
+    text: "Fish the Fly SA is a specialist research lead for inland river and fly-fishing. The current destination shortlist does not yet score verified inland fly-fishing locations, so use it as a separate research path rather than treating it as a matched recommendation."
+  });
+
+  return `<section class="fishing-detail fishing-finetune">
+    <h3>FINE-TUNE THIS FISHING PLAN</h3>
+    <p class="detail-sub">Suggestions are tailored to your selected fishing style, target species and preferred area. They are planning checks, not live conditions or verified legal advice.</p>
+    <div class="fishing-tuning-list">${advice.map(item => `<article><strong>${esc(item.title)}</strong><p>${esc(item.text)}</p></article>`).join("")}</div>
+    <p class="detail-demo-note">Official guidance starting point: <a href="https://www.westerncape.gov.za/" target="_blank" rel="noopener noreferrer">Western Cape Government</a>. Confirm which authority applies to the exact fishing area.</p>
+  </section>`;
+}
+
 function getSettings() {
   const values = new FormData(form);
   return {
@@ -967,6 +1020,7 @@ function detail(destination, settings) {
         </div>
       </section>`;
     })() : ""}
+    ${fishingFineTuneAdvice(destination, settings)}
     ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
       <section class="detail-section">
