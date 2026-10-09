@@ -876,6 +876,10 @@ function testShareSummaryBudgetNextSteps() {
   if (within !== "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.") throw new Error("Shared summary must tell affordable trips to confirm the full accommodation price.");
   if (lowEnd !== "NEXT STEP: Check lower-cost dates or accommodation first; the high estimate exceeds your budget.") throw new Error("Shared summary must give a lower-cost next step when only the low estimate fits.");
   if (over !== "NEXT STEP: Reduce stay, food or activity costs, or choose a lower-cost destination before booking.") throw new Error("Shared summary must give a cost-reduction next step when the low estimate exceeds budget.");
+  const campingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Tent" });
+  const glampingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Glamping" });
+  const expectedCamping = "Before booking, confirm the full accommodation fee for your dates and group; it may not be included in this estimate.";
+  if (campingNext !== expectedCamping || glampingNext !== expectedCamping) throw new Error("Camping and glamping budget guidance must flag accommodation fees that may be excluded.");
   return 3;
 }
 
@@ -1134,6 +1138,11 @@ function budgetRangeWarning(cost, settings, campingSelected = false, glampingSel
 
 
 function shareBudgetNextStep(cost, settings) {
+  const campingSelected = settings.experience === "Camping Away";
+  const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
+  if (glampingSelected || campingSelected) {
+    return "Before booking, confirm the full accommodation fee for your dates and group; it may not be included in this estimate.";
+  }
   if (cost.highSpend <= settings.budget) {
     return "NEXT STEP: Confirm the full accommodation price for your dates and group before booking.";
   }
