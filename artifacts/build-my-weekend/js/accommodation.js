@@ -44,10 +44,18 @@
     const dates = settings?.depart && settings?.returnDate
       ? `&checkin=${q(settings.depart)}&checkout=${q(settings.returnDate)}`
       : "";
+    const people = Math.max(1, Number(settings?.people) || 1);
+    const bookingGuests = `&group_adults=${people}&no_rooms=1&group_children=0`;
+    const airbnbParams = [
+      `adults=${people}`,
+      ...(settings?.depart && settings?.returnDate
+        ? [`checkin=${q(settings.depart)}`, `checkout=${q(settings.returnDate)}`]
+        : [])
+    ].join("&");
 
     return [
-      { name: "Booking.com", url: `https://www.booking.com/searchresults.html?ss=${q(area + " South Africa")}${dates}` },
-      { name: "Airbnb", url: `https://www.airbnb.com/s/${q(area + " South Africa")}/homes` },
+      { name: "Booking.com", url: `https://www.booking.com/searchresults.html?ss=${q(area + " South Africa")}${dates}${bookingGuests}` },
+      { name: "Airbnb", url: `https://www.airbnb.com/s/${q(area + " South Africa")}/homes?${airbnbParams}` },
       { name: "LekkeSlaap", url: `https://www.lekkeslaap.co.za/search?search=${query}` },
       { name: "SafariNow", url: `https://www.safarinow.com/destinations/search.aspx?search=${query}` },
       { name: "SA-Venues", url: `https://www.sa-venues.com/search.php?search=${query}` },
