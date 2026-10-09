@@ -1883,7 +1883,7 @@ function detail(destination, settings) {
     </div>
     <p class="detail-demo-note">DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED. Do not use this information for actual travel, booking or emergency decisions.</p>
     <div class="detail-actions">
-      <button class="button button-primary" type="button" data-action="availability" data-testid="availability-button">CHECK AVAILABILITY</button>
+      <button class="button button-primary" type="button" data-action="availability" data-testid="availability-button">FIND STAY OPTIONS</button>
       <button class="button demo-button" type="button" data-action="navigate" data-destination="${destination.id}" data-testid="navigate-button">NAVIGATE</button>
       <button class="button demo-button" type="button" data-action="share" data-destination="${destination.id}" data-testid="detail-share-button">SHARE TRIP</button>
     </div>
@@ -1996,7 +1996,14 @@ dialog.addEventListener("click", event => {
   const button = event.target.closest("button[data-action]");
   if (!button) return;
   if (button.dataset.action === "availability") {
-    toastMessage("Demo only — live accommodation availability is not connected.");
+    const staySearches = dialogContent.querySelector(".accommodation-box");
+    const firstSearch = staySearches?.querySelector("a");
+    if (staySearches && firstSearch) {
+      staySearches.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstSearch.focus({ preventScroll: true });
+    } else {
+      toastMessage("Stay search links are not available for this destination.");
+    }
   }
   if (button.dataset.action === "navigate") {
     const destination = findDestination(button.dataset.destination);
