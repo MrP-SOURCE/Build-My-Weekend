@@ -842,11 +842,11 @@ function testLocalSafetySearchLinks() {
   const destination = destinations.find(item => item.name === "Gordon's Bay");
   if (!destination) throw new Error("Gordon's Bay destination required for map-search regression.");
   for (const kind of ["hospital", "pharmacy", "fuel stations"]) {
-    const url = new URL(localSearchUrl(kind, destination));
-    if (url.protocol !== "https:" || url.hostname !== "www.google.com" || url.pathname !== "/maps/search/") {
+    const url = localSearchUrl(kind, destination);
+    if (!url.startsWith("https://www.google.com/maps/search/?api=1&query=")) {
       throw new Error("Safety map handoff must use the HTTPS Google Maps search endpoint.");
     }
-    const query = url.searchParams.get("query") || "";
+    const query = decodeURIComponent(url.split("query=")[1] || "");
     if (!query.includes(kind) || !query.includes("Gordon's Bay") || !query.includes("Western Cape, South Africa")) {
       throw new Error("Safety map query must encode the facility type and selected destination.");
     }
