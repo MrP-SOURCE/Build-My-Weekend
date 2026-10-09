@@ -865,6 +865,15 @@ function testSavedSettingsApplication() {
   controls["camping-setup"].value = "";
   applySavedSettings(invalidSaved, mockForm, id => controls[id]);
   if (controls["camping-setup"].value !== "") throw new Error("Invalid select value should not overwrite the UI.");
+  if (restoreSettingsFromStorage({ getItem: () => "{" }, mockForm, id => controls[id]) !== false) {
+    throw new Error("Malformed saved JSON should fail safely.");
+  }
+  if (restoreSettingsFromStorage({ getItem: () => null }, mockForm, id => controls[id]) !== false) {
+    throw new Error("Missing saved settings should return false.");
+  }
+  if (restoreSettingsFromStorage({ getItem: () => { throw new Error("Storage unavailable"); } }, mockForm, id => controls[id]) !== false) {
+    throw new Error("Unavailable storage should fail safely.");
+  }
   return 22;
 }
 
