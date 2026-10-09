@@ -23,6 +23,7 @@ assert(app.includes("This subtracts fuel already in the vehicle from the amount 
 assert((app.match(/budgetRangeWarning\(cost, settings, campingSelected, glampingSelected\)/g) || []).length >= 2, "Upper-range budget warnings must appear on recommendation cards and trip details.");
 assert(app.includes("ESTIMATED NEW SPEND · ${settings.people}"), "Recommendation cards must label the budget figure as estimated new spend.");
 assert(app.includes("Fuel already in the vehicle is treated as already paid"), "Trip details must explain how existing fuel affects the cash budget estimate.");
+assert(app.includes("UPPER DEMONSTRATION ESTIMATE") && app.includes("UPPER BASE ESTIMATE") && app.includes("shareText(destination, settings)"), "Shared trip summaries must disclose upper-range budget overruns.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
 assert(app.includes("two-night weekend per person"), "Cost estimates must disclose their two-night baseline and scale with the selected duration.");
 assert(app.includes("day trip") && app.includes("accommodationMultiplier = nights / 2"), "Same-day trips must be identified as day trips and exclude overnight accommodation cost.");
