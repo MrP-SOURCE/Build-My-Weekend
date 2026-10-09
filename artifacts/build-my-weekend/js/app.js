@@ -1368,6 +1368,29 @@ async function loadDestinationWeather(destination, settings) {
   }
 }
 
+function itineraryForDates(destination, settings) {
+  const start = new Date(settings.depart + "T12:00:00");
+  const end = new Date((settings.returnDate || settings.depart) + "T12:00:00");
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end < start) {
+    return destination.itinerary;
+  }
+  const days = [];
+  for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+    days.push(new Date(cursor));
+    if (days.length > 31) return destination.itinerary;
+  }
+  if (days.length === 1) {
+    return [["DAY 08:00", `Illustrative day trip from Cape Town toward ${destination.name}; allow time for stops and return travel.`],
+      ["RETURN 16:00", "Allow time for the return drive; timings are illustrative, not live navigation."]];
+  }
+  return days.map((day, index) => {
+    const weekday = day.toLocaleDateString("en-ZA", { weekday: "short" }).toUpperCase();
+    if (index === 0) return [`${weekday} 08:00`, `Illustrative departure from Cape Town toward ${destination.name}; allow time for stops.`];
+    if (index === days.length - 1) return [`${weekday} 10:00`, "Enjoy a final local stop, then allow time for the return drive."];
+    return [`${weekday} 09:00`, `A relaxed day for ${destination.weekendIdea}.`];
+  });
+}
+
 function detail(destination, settings) {
   const cost = destination.cost;
   const categories = destination.categories.join(", ");
@@ -1440,7 +1463,7 @@ function detail(destination, settings) {
       </section>
       <section class="detail-section">
         <h3>ILLUSTRATIVE ITINERARY · NOT A LIVE ROUTE</h3>
-        <ol class="itinerary">${destination.itinerary.map(([time, text]) =>
+        <ol class="itinerary">${itineraryForDates(destination, settings).map(([time, text]) =>
           `<li><time>${esc(time)}</time><span>${esc(text)}</span></li>`
         ).join("")}</ol>
       </section>
