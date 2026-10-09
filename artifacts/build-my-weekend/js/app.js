@@ -774,7 +774,11 @@ function render() {
       returnDate: settings.returnDate,
       consumption: settings.consumption,
       fuelExisting: settings.fuelExisting,
-      fuelPrice: settings.fuelPrice
+      fuelPrice: settings.fuelPrice,
+      fishingStyle: settings.fishingStyle,
+      targetSpecies: settings.targetSpecies,
+      spotPreference: settings.spotPreference,
+      fishingPriority: settings.fishingPriority
     }));
   } catch {}
 
@@ -946,6 +950,18 @@ function settingsFromStorage() {
       const radio = form.querySelector(`input[name="distance"][value="${saved.distance}"]`);
       if (radio) radio.checked = true;
     }
+    for (const [key, id] of [
+      ["fishingStyle", "fishing-style"],
+      ["targetSpecies", "target-species"],
+      ["spotPreference", "spot-preference"],
+      ["fishingPriority", "fishing-priority"]
+    ]) {
+      const field = document.getElementById(id);
+      if (field && typeof saved[key] === "string" &&
+          [...field.options].some(option => option.value === saved[key])) {
+        field.value = saved[key];
+      }
+    }
   } catch {}
 }
 
@@ -1015,6 +1031,17 @@ dialog.addEventListener("click", event => {
 document.querySelector("#reset-filters").addEventListener("click", () => {
   form.elements.experience.value = "Any";
   form.querySelector('input[name="distance"][value="any"]').checked = true;
+  const defaults = {
+    "fishing-style": "Any",
+    "target-species": "Any",
+    "spot-preference": "Let the app choose",
+    "fishing-priority": "Best Overall Weekend"
+  };
+  for (const [id, value] of Object.entries(defaults)) {
+    const field = document.getElementById(id);
+    if (field) field.value = value;
+  }
+  form.elements.experience.dispatchEvent(new Event("change", { bubbles: true }));
   render();
 });
 

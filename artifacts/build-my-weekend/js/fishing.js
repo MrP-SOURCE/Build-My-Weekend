@@ -33,24 +33,51 @@
     return byDestination[destinationId] || [];
   }
 
-  function matchSpot(spot, settings) {
-    let score = 0;
-    if (settings.fishingStyle === "Any" || spot.styles.includes(settings.fishingStyle)) score += 3;
-    if (settings.targetSpecies === "Any" || spot.species.includes(settings.targetSpecies)) score += 3;
-    if (settings.spotPreference === "Let the app choose" || spot.spotType.toLowerCase().includes(settings.spotPreference.toLowerCase())) score += 2;
-    if (settings.fishingStyle === "Boat" && !spot.styles.includes("Boat")) score -= 10;
+  const preferenceAliases = {
+    "Bay": ["bay"],
+    "Beach": ["beach"],
+    "Rocks": ["rock"],
+    "Point": ["point"],
+    "Estuary": ["estuary"],
+    "Lagoon": ["lagoon"],
+    "Harbour": ["harbour", "harbor"],
+    "River Mouth": ["river mouth", "river-mouth"]
+  };
+
+  function matchSpot(spot, settings = {}) {
+    const style = settings.fishingStyle || "Any";
+    const species = settings.targetSpecies || "Any";
+    const preference = settings.spotPreference || "Let the app choose";
+
+    // Treat the selected style/species as requirements, not bonus points.
+    // Unsupported options must never produce a misleading recommendation.
+    if (style !== "Any" && !spot.styles.includes(style)) return -Infinity;
+    if (species !== "Any" && !spot.species.includes(species)) return -Infinity;
+
+    let score = (style === "Any" ? 0 : 3) + (species === "Any" ? 0 : 3);
+    if (preference === "Let the app choose") {
+      score += 2;
+    } else {
+      const aliases = preferenceAliases[preference];
+      if (!aliases) return -Infinity;
+      const normalizedType = spot.spotType.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      if (!aliases.some(alias => normalizedType.includes(alias))) return -Infinity;
+      score += 2;
+    }
     return score;
   }
 
   function bestSpot(destinationId, settings) {
-    return getSpots(destinationId)
+    const ranked = getSpots(destinationId)
       .map(spot => ({ spot, score: matchSpot(spot, settings) }))
-      .sort((a,b) => b.score - a.score)[0] || null;
+      .filter(result => Number.isFinite(result.score))
+      .sort((a, b) => b.score - a.score);
+    return ranked[0] || null;
   }
 
   function destinationMatch(destinationId, settings) {
-    const matches = getSpots(destinationId).map(spot => ({spot, score: matchSpot(spot, settings)}));
-    return matches.length ? Math.max(...matches.map(x => x.score)) : 0;
+    const scores = getSpots(destinationId).map(spot => matchSpot(spot, settings)).filter(Number.isFinite);
+    return scores.length ? Math.max(...scores) : 0;
   }
 
   window.BMWFishing = {
@@ -59,8 +86,8 @@
     bestSpot,
     destinationMatch,
     matchSpot,
-    styles: ["Any","Shore","Rock","Estuary","Freshwater","Boat"],
-    species: ["Any","Galjoen","Steenbras","Other"],
-    spotPreferences: ["Let the app choose","Bay","Beach","Rocks","Point","Reef","Estuary","Lagoon","Harbour","River Mouth","Local / Informal Spot"]
+    styles: ["Any","Shore","Rock","Estuary"],
+    species: ["Any","Galjoen","Steenbras"],
+    spotPreferences: ["Let the app choose","Bay","Beach","Rocks","Point","Estuary","Lagoon","Harbour","River Mouth"]
   };
 })();

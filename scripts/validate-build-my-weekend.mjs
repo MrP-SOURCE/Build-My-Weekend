@@ -41,7 +41,10 @@ for (const marker of [
   "window.testFishingPriorities",
   "window.BMWAccommodation",
   "window.BMWFishing",
-  "accommodationSummary(destination, settings)"
+  "accommodationSummary(destination, settings)",
+  'fishingStyle: settings.fishingStyle',
+  '["fishingStyle", "fishing-style"]',
+  'form.elements.experience.dispatchEvent(new Event("change"'
 ]) {
   assert(app.includes(marker), "Missing app integration marker: " + marker);
 }
@@ -60,6 +63,12 @@ vm.runInContext(fishing, context);
 const fishingApi = context.window.BMWFishing;
 assert(fishingApi && fishingApi.spots.length >= 15, "Fishing demo dataset is unexpectedly small.");
 assert(fishingApi.bestSpot("hermanus", { fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" }), "Hermanus fishing match failed.");
+assert(!fishingApi.bestSpot("hermanus", { fishingStyle: "Freshwater", targetSpecies: "Any", spotPreference: "Let the app choose" }), "Unsupported freshwater style must not return a spot.");
+assert(!fishingApi.bestSpot("hermanus", { fishingStyle: "Any", targetSpecies: "Other", spotPreference: "Let the app choose" }), "Unsupported species must not return a spot.");
+assert(!fishingApi.bestSpot("hermanus", { fishingStyle: "Any", targetSpecies: "Any", spotPreference: "Reef" }), "Unsupported reef preference must not return a spot.");
+assert(!fishingApi.bestSpot("hermanus", { fishingStyle: "Boat", targetSpecies: "Any", spotPreference: "Let the app choose" }), "Boat style must not return a shore spot.");
+assert(fishingApi.bestSpot("hermanus", { fishingStyle: "Rock", targetSpecies: "Galjoen", spotPreference: "Rocks" }), "Supported rock preference should match.");
+
 
 vm.runInContext(accommodation, context);
 const accommodationApi = context.window.BMWAccommodation;
