@@ -531,6 +531,10 @@ function driveLabel(minutes) {
     : `${remainingMinutes} min`;
 }
 
+function dateRangeValid(depart, returnDate, today = localDate(new Date())) {
+  return Boolean(depart && returnDate) && depart >= today && returnDate >= depart;
+}
+
 function testDateRangeValidation() {
   const cases = [
     { depart: "2026-10-10", returnDate: "2026-10-11", today: "2026-10-09", expected: true, label: "future trip" },
@@ -915,10 +919,6 @@ function getSettings() {
     campingTerrain: values.get("campingTerrain") || "Any",
     ...fishingSettings()
   };
-}
-
-function dateRangeValid(depart, returnDate, today = localDate(new Date())) {
-  return Boolean(depart && returnDate) && depart >= today && returnDate >= depart;
 }
 
 function valid(settings) {
