@@ -183,6 +183,8 @@ const plannerScenarios = context.window.testWeekendScenarios();
 assert(plannerScenarios.length >= 8, "Planner scenario coverage is unexpectedly small.");
 assert(plannerScenarios.some(scenario => scenario.scenario.startsWith("Camping")), "Camping Away scenario is missing.");
 assert(plannerScenarios.some(scenario => scenario.scenario.startsWith("Cycling")), "Cycling Away scenario is missing.");
+for (const prefix of ["Wildlife", "Couples", "Road trip"]) assert(plannerScenarios.some(scenario => scenario.scenario.startsWith(prefix)), prefix + " scenario is missing.");
+assert(plannerScenarios.length >= 11, "Activity-category regression coverage is unexpectedly small.");
 const fishingPriorities = context.window.testFishingPriorities();
 assert(fishingPriorities.length === 4, "Fishing priority coverage changed.");
 console.log("Planner calculation tests: PASS");

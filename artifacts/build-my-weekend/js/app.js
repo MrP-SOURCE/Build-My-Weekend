@@ -440,7 +440,12 @@ function findCandidates(settings) {
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
       (settings.experience !== "Cycling Away" || destination.categories.includes("Cycling")) &&
       (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing")) &&
-      (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors"))
+      (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors")) &&
+      (settings.experience !== "Family Away" || destination.categories.includes("Family")) &&
+      (settings.experience !== "Couples Away" || destination.categories.includes("Couples")) &&
+      (settings.experience !== "Wildlife Away" || destination.categories.includes("Wildlife")) &&
+      (settings.experience !== "Road Trip Away" || destination.categories.includes("Road Trip")) &&
+      (settings.experience !== "Nature" || destination.categories.includes("Nature"))
     );
 }
 
@@ -718,7 +723,10 @@ function testRecommendationScenarios() {
     { name: "Hiking · R5,000 · 2 people · under 200 km", budget: 5000, people: 2, experience: "Hiking Away", distance: "200" },
     { name: "Cycling · R8,000 · 2 people · anywhere", budget: 8000, people: 2, experience: "Cycling Away", distance: "any" },
     { name: "Climbing · R8,000 · 2 people · anywhere", budget: 8000, people: 2, experience: "Climbing Away", distance: "any" },
-    { name: "Nature · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Nature", distance: "any" }
+    { name: "Nature · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Nature", distance: "any" },
+    { name: "Wildlife · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Wildlife Away", distance: "any" },
+    { name: "Couples · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Couples Away", distance: "any" },
+    { name: "Road trip · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Road Trip Away", distance: "any" }
   ].map(scenario => {
     const settings = {
       ...scenario,
@@ -741,6 +749,9 @@ function testRecommendationScenarios() {
     if (scenario.experience === "Camping Away" && candidates.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error(scenario.name + ": non-camping destination returned.");
     if (scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))) throw new Error(scenario.name + ": non-hiking destination returned.");
     if (scenario.experience === "Cycling Away" && candidates.some(item => !item.categories.includes("Cycling"))) throw new Error(scenario.name + ": non-cycling destination returned.");
+    const requiredCategory = { "Family Away": "Family", "Couples Away": "Couples", "Wildlife Away": "Wildlife", "Road Trip Away": "Road Trip", "Nature": "Nature" }[scenario.experience];
+    if (requiredCategory && candidates.some(item => !item.categories.includes(requiredCategory))) throw new Error(scenario.name + ": destination missing required " + requiredCategory + " category.");
+    if (requiredCategory && !candidates.length) throw new Error(scenario.name + ": no suitable destinations returned for " + requiredCategory + ".");
     if (scenario.experience === "Climbing Away" && candidates.some(item => !item.categories.includes("Climbing"))) throw new Error(scenario.name + ": non-climbing destination returned.");
     if (new Set(shortlist.map(item => item.destination.id)).size !== shortlist.length) {
       throw new Error(`${scenario.name}: duplicate destinations were selected.`);
