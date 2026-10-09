@@ -189,7 +189,7 @@ const destinations = [
   }, 1),
   makeDestination({
     name: "Montagu", region: "Route 62", distance: 185, driveTime: 150,
-    categories: ["Nature", "Hiking", "Couples", "Camping", "Road Trip"],
+    categories: ["Nature", "Hiking", "Climbing", "Couples", "Camping", "Road Trip"],
     accommodation: [320, 410, 750], food: [150, 250, 420], activities: [40, 120, 320],
     description: "A Route 62 stop with mountain backdrops, historic streets and outdoor time.",
     practicalInfo: "Hot days and changing trail conditions are possible. Carry water and check access locally.",
@@ -216,7 +216,7 @@ const destinations = [
   }, 4),
   makeDestination({
     name: "Beaverlac", region: "Cederberg", distance: 180, driveTime: 165,
-    categories: ["Camping", "Outdoors", "Nature", "Hiking", "Couples"],
+    categories: ["Camping", "Outdoors", "Nature", "Hiking", "Climbing", "Couples"],
     accommodation: [160, 220, 450], food: [130, 180, 300], activities: [20, 70, 200],
     description: "A remote outdoors-focused escape with mountain scenery and swimming-hole appeal.",
     practicalInfo: "Remote access and facility rules are not verified. Confirm current conditions and pack essentials.",
@@ -301,7 +301,7 @@ const destinations = [
   }, 1),
   makeDestination({
     name: "Paarl", region: "Cape Winelands", distance: 60, driveTime: 55,
-    categories: ["Family", "Nature", "Hiking", "Couples", "Road Trip"],
+    categories: ["Family", "Nature", "Hiking", "Climbing", "Couples", "Road Trip"],
     accommodation: [280, 360, 660], food: [160, 250, 420], activities: [40, 110, 320],
     description: "A nearby Winelands town with mountain views, heritage streets and outdoor stops.",
     practicalInfo: "Trail and venue access can vary. Check opening times and any fees in advance.",
@@ -343,6 +343,7 @@ const experienceProfiles = {
   "Surprise Me": [],
   "Fishing Away": ["Fishing"],
   "Hiking Away": ["Hiking", "Nature"],
+  "Climbing Away": ["Climbing", "Outdoors", "Nature"],
   "Nature": ["Nature", "Hiking"],
   "Camping Away": ["Camping", "Outdoors"],
   "Family Away": ["Family"],
@@ -433,7 +434,9 @@ function findCandidates(settings) {
     .filter(destination =>
       destination.cost.remaining >= 0 &&
       destination.distance <= distanceLimit &&
-      (settings.experience !== "Fishing Away" || destination.fishingScore > 0)
+      (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
+      (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
+      (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing"))
     );
 }
 
@@ -620,13 +623,23 @@ function fishingSettings() {
 function setupFishingControls() {
   const experience = document.querySelector("#experience");
   const panel = document.querySelector("#fishing-controls");
-  if (!experience || !panel) return;
+  const outdoorPanel = document.querySelector("#outdoor-controls");
+  if (!experience) return;
   const sync = () => {
-    const active = experience.value === "Fishing Away";
-    panel.hidden = !active;
-    document.querySelector("#planner-title").textContent = active
+    const fishing = experience.value === "Fishing Away";
+    const hiking = experience.value === "Hiking Away";
+    const climbing = experience.value === "Climbing Away";
+    if (panel) panel.hidden = !fishing;
+    if (outdoorPanel) outdoorPanel.hidden = !(hiking || climbing);
+    document.querySelector("#planner-title").textContent = fishing
       ? "Build your fishing weekend"
+      : climbing ? "Find a climbing weekend"
+      : hiking ? "Find your hiking weekend"
       : "What feels like a good getaway?";
+    const heading = document.querySelector("#outdoor-heading span");
+    if (heading) heading.textContent = climbing
+      ? "CLIMBING AWAY · FINE-TUNE YOUR MATCH"
+      : "HIKING AWAY · FINE-TUNE YOUR MATCH";
   };
   experience.addEventListener("change", sync);
   sync();
@@ -644,6 +657,98 @@ function fishingSpotSummary(destination, settings) {
     <small>Community note: ${esc(s.community)}</small>
     <small>DEMO ONLY — verify tide, swell, wind, access, permits and current regulations.</small>
   </div>`;
+}
+
+function outdoorMapPreview(destination, settings) {
+  const coords = weatherCoordinates[destination.name];
+  if (!coords || !["Hiking Away", "Climbing Away"].includes(settings.experience)) return "";
+  const [lat, lon] = coords;
+  const bbox = [lon - 0.035, lat - 0.025, lon + 0.035, lat + 0.025].map(v => v.toFixed(5)).join("%2C");
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
+  const sourceUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=13/${lat}/${lon}`;
+  const label = settings.experience === "Climbing Away" ? "CLIMBING AREA LOCATION PREVIEW" : "HIKING AREA LOCATION PREVIEW";
+  return `<section class="outdoor-map-panel">
+    <h3>${label}</h3>
+    <p>Map preview for ${esc(destination.name)}. This pin shows the general destination area, not a verified trail, climbing approach, route line or safe access point.</p>
+    <iframe title="OpenStreetMap location preview for ${esc(destination.name)}" loading="lazy" referrerpolicy="no-referrer" src="${mapUrl}" allowfullscreen></iframe>
+    <div class="outdoor-map-footer"><span>OpenStreetMap · location-level preview</span><a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">Open larger map ↗</a></div>
+  </section>`;
+}
+
+function outdoorFineTuneAdvice(destination, settings) {
+  if (!["Hiking Away", "Climbing Away"].includes(settings.experience)) return "";
+  const items = [];
+  if (settings.experience === "Hiking Away") {
+    const difficulty = settings.hikingDifficulty || "Any";
+    const scenery = settings.hikingSetting || "Any";
+    items.push({
+      title: `Your hike preference: ${difficulty === "Any" ? "any difficulty" : difficulty.toLowerCase()}`,
+      text: difficulty === "Easy"
+        ? "Prioritise a short, clearly marked route with modest elevation gain, easy turnaround options and a difficulty rating confirmed by the trail operator. The current destination dataset does not verify individual trail grades."
+        : difficulty === "Moderate"
+        ? "Look for a published route with a clear distance, elevation gain, estimated duration and return option. Confirm that the rating suits the least experienced person in the group."
+        : difficulty === "Hard"
+        ? "Only shortlist a strenuous route after confirming elevation gain, exposure, navigation demands, water availability and a realistic turnaround time with the route operator."
+        : "Before choosing a trail, compare published distance, elevation gain, duration, exposure and the route operator's difficulty rating."
+    });
+    items.push({
+      title: `Preferred scenery: ${scenery === "Any" ? "open choice" : scenery.toLowerCase()}`,
+      text: scenery === "Coastal"
+        ? "Prioritise verified coastal paths and check wind, cliff-edge exposure, tide where relevant and any access closures."
+        : scenery === "Forest"
+        ? "Look for managed forest routes; check rain, slippery surfaces, daylight and whether the trail is open to the public."
+        : scenery === "Mountain"
+        ? "Check elevation profile, exposed ridges, wind, cloud, temperature changes and navigation before committing."
+        : scenery === "Water"
+        ? "Verify river-crossing conditions, recent rainfall, slippery rocks and seasonal waterfall access with the land manager."
+        : "Compare the actual route description and map before choosing scenery; destination categories alone do not establish what a specific trail contains."
+    });
+    items.push({
+      title: "Before you leave",
+      text: "Confirm trailhead coordinates, route distance and elevation, current access, fees or permits, weather, daylight, water and emergency arrangements. Download an offline map and tell someone your route and return time."
+    });
+  } else {
+    const discipline = settings.climbingType || "Any";
+    const level = settings.climbingLevel || "Any";
+    items.push({
+      title: `Climbing preference: ${discipline === "Any" ? "any discipline" : discipline.toLowerCase()}`,
+      text: discipline === "Bouldering"
+        ? "Check whether the area has documented boulder problems, current access permission, landing-zone conditions and the pads/spotters appropriate to your session."
+        : discipline === "Sport"
+        ? "Confirm route grades, bolt/anchor condition, access rules and whether the route is appropriate for your lead and belay experience."
+        : discipline === "Traditional"
+        ? "Confirm gear style, protection requirements, route description, descent and local access guidance with a reliable climbing source."
+        : "Verify the actual climbing discipline and route details at the chosen crag; a destination-level match does not confirm route availability."
+    });
+    items.push({
+      title: `Experience level: ${level === "Any" ? "not specified" : level.toLowerCase()}`,
+      text: level === "Beginner"
+        ? "Choose an established, well-documented area and climb with a competent partner or qualified guide. Confirm grades, access and equipment needs before travelling."
+        : level === "Intermediate"
+        ? "Compare the published grade range, route length, protection style and descent; do not rely on an area name as proof that routes suit your level."
+        : level === "Advanced"
+        ? "Check route-specific beta, grade system, protection, approach and descent, and confirm that the information is current."
+        : "Select a grade range and discipline before treating a crag as a suitable match. Route grades and current conditions are not yet in the app database."
+    });
+    items.push({
+      title: "Climbing safety and access",
+      text: "Confirm landowner access, seasonal closures, route/anchor condition, weather, approach path, descent and required equipment. Use qualified instruction where needed; this app does not assess technical safety."
+    });
+  }
+  return `<section class="outdoor-finetune">
+    <h3>${settings.experience === "Climbing Away" ? "FINE-TUNE THIS CLIMBING PLAN" : "FINE-TUNE THIS HIKING PLAN"}</h3>
+    <p>Advice uses your selected preferences. Destination-level matching is available, but verified individual trail routes, elevation profiles, climbing grades and live access feeds are not yet connected.</p>
+    <div class="outdoor-finetune-grid">${items.map(item => `<article><strong>${esc(item.title)}</strong><p>${esc(item.text)}</p></article>`).join("")}</div>
+    <div class="outdoor-source-links">
+      <a href="https://forgemaps.com" target="_blank" rel="noopener noreferrer">Forge Maps</a>
+      <a href="https://hikersnetwork.co.za" target="_blank" rel="noopener noreferrer">Hikers Network</a>
+      <a href="https://www.sanparks.org/" target="_blank" rel="noopener noreferrer">SANParks official trails</a>
+      <a href="https://hiking-south-africa.info" target="_blank" rel="noopener noreferrer">Hiking South Africa</a>
+      <a href="https://climb.co.za" target="_blank" rel="noopener noreferrer">Climb ZA</a>
+      <a href="https://thecrag.com" target="_blank" rel="noopener noreferrer">The Crag</a>
+    </div>
+    <p class="detail-demo-note">External links are research sources, not verified live integrations. TheCrag API access and permitted use must be agreed with the provider before commercial integration.</p>
+  </section>`;
 }
 
 function hikingFineTuneAdvice(destination, settings) {
@@ -740,6 +845,10 @@ function getSettings() {
     consumption: Number(values.get("consumption")),
     fuelExisting: Number(values.get("fuelExisting")),
     fuelPrice: Number(values.get("fuelPrice")),
+    hikingDifficulty: values.get("hikingDifficulty") || "Any",
+    hikingSetting: values.get("hikingSetting") || "Any",
+    climbingType: values.get("climbingType") || "Any",
+    climbingLevel: values.get("climbingLevel") || "Any",
     ...fishingSettings()
   };
 }
@@ -860,7 +969,11 @@ function render() {
       fishingStyle: settings.fishingStyle,
       targetSpecies: settings.targetSpecies,
       spotPreference: settings.spotPreference,
-      fishingPriority: settings.fishingPriority
+      fishingPriority: settings.fishingPriority,
+      hikingDifficulty: settings.hikingDifficulty,
+      hikingSetting: settings.hikingSetting,
+      climbingType: settings.climbingType,
+      climbingLevel: settings.climbingLevel
     }));
   } catch {}
 
@@ -1014,6 +1127,7 @@ function detail(destination, settings) {
     <p class="detail-sub">${destination.distance} km one way from Cape Town · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving</p>
     <p class="detail-sub">${esc(destination.description)} Suitable for: ${esc(suitability)}.</p>
     <section id="live-weather" class="live-weather" aria-live="polite"><strong>LIVE WEATHER FORECAST</strong><p>Loading the latest available forecast…</p></section>
+    ${outdoorMapPreview(destination, settings)}
     <div class="detail-callout">
       <div><span>ESTIMATED TYPICAL TOTAL FOR ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</span><br><strong>${money(cost.spend)}</strong></div>
       <strong>${money(cost.perPerson)}<span> / person</span></strong>
@@ -1050,7 +1164,7 @@ function detail(destination, settings) {
       </section>`;
     })() : ""}
     ${fishingFineTuneAdvice(destination, settings)}
-    ${hikingFineTuneAdvice(destination, settings)}
+    ${outdoorFineTuneAdvice(destination, settings)}
     ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
       <section class="detail-section">
@@ -1140,7 +1254,11 @@ function settingsFromStorage() {
       ["fishingStyle", "fishing-style"],
       ["targetSpecies", "target-species"],
       ["spotPreference", "spot-preference"],
-      ["fishingPriority", "fishing-priority"]
+      ["fishingPriority", "fishing-priority"],
+      ["hikingDifficulty", "hiking-difficulty"],
+      ["hikingSetting", "hiking-setting"],
+      ["climbingType", "climbing-type"],
+      ["climbingLevel", "climbing-level"]
     ]) {
       const field = document.getElementById(id);
       if (field && typeof saved[key] === "string" &&
@@ -1221,7 +1339,11 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
     "fishing-style": "Any",
     "target-species": "Any",
     "spot-preference": "Let the app choose",
-    "fishing-priority": "Best Overall Weekend"
+    "fishing-priority": "Best Overall Weekend",
+    "hiking-difficulty": "Any",
+    "hiking-setting": "Any",
+    "climbing-type": "Any",
+    "climbing-level": "Any"
   };
   for (const [id, value] of Object.entries(defaults)) {
     const field = document.getElementById(id);

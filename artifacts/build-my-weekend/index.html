@@ -67,7 +67,7 @@
             <fieldset class="field field-wide experience-field">
               <legend>What are you in the mood for?</legend>
               <div class="select-wrap"><select id="experience" name="experience" aria-describedby="experience-error" data-testid="experience-select">
-                <option>Any</option><option>Fishing Away</option><option>Hiking Away</option><option>Nature</option><option>Camping Away</option><option>Family Away</option><option>Couples Away</option><option>Beach Away</option><option>Wildlife Away</option><option>Road Trip Away</option><option>Surprise Me</option>
+                <option>Any</option><option>Fishing Away</option><option>Hiking Away</option><option>Climbing Away</option><option>Nature</option><option>Camping Away</option><option>Family Away</option><option>Couples Away</option><option>Beach Away</option><option>Wildlife Away</option><option>Road Trip Away</option><option>Surprise Me</option>
               </select><span class="select-chevron" aria-hidden="true">⌄</span></div>
               <small class="field-error" id="experience-error"></small>
             </fieldset>
@@ -79,6 +79,16 @@
                 <div class="field"><label for="spot-preference">Preferred fishing area</label><div class="select-wrap"><select id="spot-preference" name="spotPreference"><option>Let the app choose</option><option>Bay</option><option>Beach</option><option>Rocks</option><option>Point</option><option>Estuary</option><option>Lagoon</option><option>Harbour</option><option>River Mouth</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
                 <div class="field"><label for="fishing-priority">Fishing priority</label><div class="select-wrap"><select id="fishing-priority" name="fishingPriority"><option>Best Overall Weekend</option><option>Best Fishing Opportunity</option><option>Lowest Cost</option><option>Shortest Drive</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
               </div>
+            </fieldset>
+            <fieldset class="field field-wide outdoor-controls" id="outdoor-controls" hidden aria-labelledby="outdoor-heading">
+              <div class="fishing-heading" id="outdoor-heading"><span>HIKING & CLIMBING · FINE-TUNE YOUR MATCH</span><span class="mini-rule"></span></div>
+              <div class="fishing-grid">
+                <div class="field"><label for="hiking-difficulty">Preferred difficulty</label><div class="select-wrap"><select id="hiking-difficulty" name="hikingDifficulty"><option value="Any">Any level</option><option value="Easy">Easy / beginner</option><option value="Moderate">Moderate</option><option value="Hard">Hard / strenuous</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="hiking-setting">Preferred scenery</label><div class="select-wrap"><select id="hiking-setting" name="hikingSetting"><option value="Any">Let the app choose</option><option value="Mountain">Mountains / ridgelines</option><option value="Forest">Forest / shade</option><option value="Coastal">Coastal / sea views</option><option value="Water">Rivers / waterfalls</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="climbing-type">Climbing discipline</label><div class="select-wrap"><select id="climbing-type" name="climbingType"><option value="Any">Any discipline</option><option value="Bouldering">Bouldering</option><option value="Sport">Sport climbing</option><option value="Traditional">Traditional / trad</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="climbing-level">Climbing experience</label><div class="select-wrap"><select id="climbing-level" name="climbingLevel"><option value="Any">Any level</option><option value="Beginner">Beginner</option><option value="Intermediate">Intermediate</option><option value="Advanced">Advanced</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+              </div>
+              <small class="field-hint">Preferences refine the planning guidance. Verified trail grades, elevation profiles and climbing route grades are not yet connected.</small>
             </fieldset>
             <fieldset class="field field-wide distance-field">
               <legend>How far feels right?</legend>
