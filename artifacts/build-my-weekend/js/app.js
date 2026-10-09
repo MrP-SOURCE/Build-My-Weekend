@@ -535,6 +535,53 @@ function dateRangeValid(depart, returnDate, today = localDate(new Date())) {
   return Boolean(depart && returnDate) && depart >= today && returnDate >= depart;
 }
 
+function settingsForStorage(settings) {
+  return {
+    budget: settings.budget,
+    people: settings.people,
+    experience: settings.experience,
+    distance: settings.distance,
+    depart: settings.depart,
+    returnDate: settings.returnDate,
+    consumption: settings.consumption,
+    fuelExisting: settings.fuelExisting,
+    fuelPrice: settings.fuelPrice,
+    fishingStyle: settings.fishingStyle,
+    targetSpecies: settings.targetSpecies,
+    spotPreference: settings.spotPreference,
+    fishingPriority: settings.fishingPriority,
+    hikingDifficulty: settings.hikingDifficulty,
+    hikingSetting: settings.hikingSetting,
+    climbingType: settings.climbingType,
+    climbingLevel: settings.climbingLevel,
+    campingSetup: settings.campingSetup,
+    campingPower: settings.campingPower,
+    campingAblutions: settings.campingAblutions,
+    campingShade: settings.campingShade,
+    campingTerrain: settings.campingTerrain
+  };
+}
+
+function testSavedSettingsCoverage() {
+  const sample = {
+    budget: 3200, people: 3, experience: "Camping Away", distance: "200",
+    depart: "2026-10-10", returnDate: "2026-10-12", consumption: 7.5,
+    fuelExisting: 100, fuelPrice: 24.5, fishingStyle: "Shore",
+    targetSpecies: "Galjoen", spotPreference: "Rocks", fishingPriority: "Lowest Cost",
+    hikingDifficulty: "Easy", hikingSetting: "Forest", climbingType: "Bouldering",
+    climbingLevel: "Beginner", campingSetup: "Glamping", campingPower: "Required",
+    campingAblutions: "Full", campingShade: "Shaded", campingTerrain: "Firm level"
+  };
+  const saved = settingsForStorage(sample);
+  for (const [key, value] of Object.entries(sample)) {
+    if (saved[key] !== value) throw new Error("Saved preferences omitted or changed: " + key);
+  }
+  if (Object.keys(saved).length !== Object.keys(sample).length) {
+    throw new Error("Saved preferences include unexpected or missing fields.");
+  }
+  return Object.keys(saved).length;
+}
+
 function testDateRangeValidation() {
   const cases = [
     { depart: "2026-10-10", returnDate: "2026-10-11", today: "2026-10-09", expected: true, label: "future trip" },
@@ -650,6 +697,7 @@ function testFishingPriorities() {
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testDateRangeValidation = testDateRangeValidation;
+  window.testSavedSettingsCoverage = testSavedSettingsCoverage;
   window.testWeekendScenarios = testRecommendationScenarios;
   window.testFishingPriorities = testFishingPriorities;
 }
@@ -1024,30 +1072,7 @@ function render() {
   const settings = getSettings();
   if (!valid(settings)) return;
   try {
-    localStorage.setItem("buildMyWeekendTrip", JSON.stringify({
-      budget: settings.budget,
-      people: settings.people,
-      experience: settings.experience,
-      distance: settings.distance,
-      depart: settings.depart,
-      returnDate: settings.returnDate,
-      consumption: settings.consumption,
-      fuelExisting: settings.fuelExisting,
-      fuelPrice: settings.fuelPrice,
-      fishingStyle: settings.fishingStyle,
-      targetSpecies: settings.targetSpecies,
-      spotPreference: settings.spotPreference,
-      fishingPriority: settings.fishingPriority,
-      hikingDifficulty: settings.hikingDifficulty,
-      hikingSetting: settings.hikingSetting,
-      climbingType: settings.climbingType,
-      climbingLevel: settings.climbingLevel,
-      campingSetup: settings.campingSetup,
-      campingPower: settings.campingPower,
-      campingAblutions: settings.campingAblutions,
-      campingShade: settings.campingShade,
-      campingTerrain: settings.campingTerrain
-    }));
+    localStorage.setItem("buildMyWeekendTrip", JSON.stringify(settingsForStorage(settings)));
   } catch {}
 
   const candidates = findCandidates(settings);
