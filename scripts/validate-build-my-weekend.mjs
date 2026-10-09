@@ -41,7 +41,10 @@ for (const marker of [
   "window.testFishingPriorities",
   "window.BMWAccommodation",
   "window.BMWFishing",
-  "accommodationSummary(destination, settings)"
+  "accommodationSummary(destination, settings)",
+  'fishingStyle: settings.fishingStyle',
+  '["fishingStyle", "fishing-style"]',
+  'form.elements.experience.dispatchEvent(new Event("change"'
 ]) {
   assert(app.includes(marker), "Missing app integration marker: " + marker);
 }
