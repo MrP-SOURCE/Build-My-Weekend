@@ -942,9 +942,19 @@ function fishingSpotSummary(destination, settings) {
     <span>${esc(s.name)} · ${esc(s.spotType)}</span>
     <small>Target: ${esc(s.species.join(", "))} · Style: ${esc(s.styles.join(", "))}</small>
     <small>Community note: ${esc(s.community)}</small>
-    <small>DEMO ONLY — verify tide, swell, wind, access, permits and current regulations.</small>
-    <p><b>Before you go:</b> ${researchLinks}</p>
-    <small>These links open web searches; they are not live forecasts or verified fishing reports.</small>
+    <small>DEMO ONLY — this spot match does not confirm current conditions, safe access or legal fishing permission.</small>
+    <section class="fishing-pretrip-checklist" aria-label="Fishing pre-trip safety and rules checklist">
+      <strong>CONFIRM BEFORE DEPARTURE</strong>
+      <ul>
+        <li>Check the latest tide, wind, swell and weather for the exact fishing area.</li>
+        <li>Confirm public access, parking, opening hours and whether fishing is permitted at the chosen spot.</li>
+        <li>Verify current permit requirements and species-specific size, bag and seasonal limits from official sources.</li>
+        <li>Agree on a safe return time, check mobile coverage and tell someone where the group plans to fish.</li>
+      </ul>
+      <small>Checklist is general guidance, not a live safety assessment or legal confirmation.</small>
+    </section>
+    <p><b>Research links:</b> ${researchLinks}</p>
+    <small>Links open external searches; they are not live forecasts, verified reports or confirmation of current rules.</small>
   </div>`;
 }
 

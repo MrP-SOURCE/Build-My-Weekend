@@ -58,7 +58,11 @@ for (const marker of [
   "Check permits and catch limits",
   "site:dffe.gov.za recreational fishing permit bag limits size limits South Africa",
   "site:gov.za recreational fishing regulations South Africa",
-  "not live forecasts or verified fishing reports"
+  "not live forecasts, verified reports or confirmation of current rules",
+  "CONFIRM BEFORE DEPARTURE",
+  "Confirm public access, parking, opening hours and whether fishing is permitted",
+  "species-specific size, bag and seasonal limits",
+  "not a live safety assessment or legal confirmation"
 ]) {
   assert(app.includes(marker), "Missing app integration marker: " + marker);
 }
