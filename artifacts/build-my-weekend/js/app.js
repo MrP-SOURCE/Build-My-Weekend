@@ -1982,10 +1982,10 @@ function shareText(destination, settings) {
   const budgetRange = `${money(cost.lowSpend)}–${money(cost.highSpend)}`;
   const groupBudget = money(settings.budget);
   const budgetConfidence = cost.highSpend <= settings.budget
-    ? `BUDGET CONFIDENCE: High estimate ${money(cost.highSpend)} is within your ${groupBudget} group budget (range ${budgetRange}).`
+    ? `BUDGET CONFIDENCE: The high estimate is within your group budget. High estimate ${money(cost.highSpend)}; budget ${groupBudget}; range ${budgetRange}.`
     : cost.lowSpend <= settings.budget
-      ? `BUDGET CONFIDENCE: Low estimate ${money(cost.lowSpend)} fits your ${groupBudget} group budget, but high estimate ${money(cost.highSpend)} exceeds it (range ${budgetRange}).`
-      : `BUDGET CONFIDENCE: Low estimate ${money(cost.lowSpend)} already exceeds your ${groupBudget} group budget (range ${budgetRange}).`;
+      ? `BUDGET CONFIDENCE: This may fit only toward the low end of the estimate; the high estimate exceeds your group budget. Low estimate ${money(cost.lowSpend)}; high estimate ${money(cost.highSpend)}; budget ${groupBudget}; range ${budgetRange}.`
+      : `BUDGET CONFIDENCE: The low estimate already exceeds your group budget. Low estimate ${money(cost.lowSpend)}; budget ${groupBudget}; range ${budgetRange}.`;
   const budgetNextStep = shareBudgetNextStep(cost, settings);
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
     `${budgetConfidence}\n${budgetNextStep}\n` +
