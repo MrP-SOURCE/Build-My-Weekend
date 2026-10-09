@@ -48,11 +48,11 @@ const ids = idsFromHtml(html);
 const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
 assert(!duplicates.length, "Duplicate HTML ids: " + [...new Set(duplicates)].join(", "));
 
-const formControls = [...html.matchAll(/<(input|select|textarea)\\b([^>]*)>/gi)];
+const formControls = [...html.matchAll(/<(input|select|textarea)\b([^>]*)>/gi)];
 for (const match of formControls) {
   const tag = match[1].toLowerCase();
   const attrs = match[2];
-  const type = attrs.match(/\\btype=["']([^"']+)["']/i)?.[1]?.toLowerCase() || "";
+  const type = attrs.match(/\btype=["']([^"']+)["']/i)?.[1]?.toLowerCase() || "";
   if (type === "hidden") continue;
   if (type === "radio") {
     const before = html.slice(Math.max(0, match.index - 100), match.index);
@@ -60,9 +60,15 @@ for (const match of formControls) {
     assert(before.lastIndexOf("<label") > before.lastIndexOf("</label>") && after.includes("</label>"), "Radio option must be wrapped by an accessible label.");
     continue;
   }
-  const id = attrs.match(/\\bid=["']([^"']+)["']/i)?.[1];
+  const id = attrs.match(/\bid=["']([^"']+)["']/i)?.[1];
   assert(id, tag + " control must have an id.");
-  const escapedId = id.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g, "\\\\const requiredScripts = [");
+  const hasLabel = html.includes('for="' + id + '"') || html.includes("for='" + id + "'");
+  const hasAriaLabel = /\baria-label=["'][^"']+["']/i.test(attrs);
+  assert(hasLabel || hasAriaLabel, "Form control needs a programmatic label: " + id);
+}
+assert(/role=["']radiogroup["'][^>]*aria-label=["'][^"']+["']/.test(html), "Distance radio group must have an accessible group label.");
+
+const requiredScripts = [");
   const hasLabel = new RegExp("<label\\\\b[^>]*\\\\bfor=[\\\\\"']" + escapedId + "[\\\\\"']", "i").test(html);
   const hasAriaLabel = /\\baria-label=["'][^"']+["']/i.test(attrs);
   assert(hasLabel || hasAriaLabel, "Form control needs a programmatic label: " + id);
