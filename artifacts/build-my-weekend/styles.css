@@ -20,3 +20,17 @@
 
 /* Core accommodation discovery */
 .accommodation-box{margin:0 0 14px;padding:12px 13px;background:#f0f2e9;border-left:3px solid #829477;font-size:9px;line-height:1.45;color:#68796d}.accommodation-box>strong{display:block;font-size:8px;letter-spacing:.1em;color:#40594a;margin-bottom:7px}.accommodation-types{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px}.accommodation-types span{padding:4px 6px;background:#fff;border:1px solid #dce2d9;color:#607267}.accommodation-box small{display:block;margin-bottom:8px}.accommodation-links{display:flex;flex-wrap:wrap;gap:6px}.accommodation-links a{color:#3f6250;font-weight:700;text-decoration:none;border-bottom:1px solid #b9c8bc;padding-bottom:1px}.accommodation-links a:hover{color:#233831}
+
+
+/* Live destination weather — this integration does not make other demo data live */
+.live-weather{margin:16px 0;padding:15px 16px;border:1px solid #b9c8bc;background:#f3f6f0;color:#344c3d;font-size:12px;line-height:1.5}
+.live-weather>strong{display:block;font-size:10px;letter-spacing:.12em;margin-bottom:5px}
+.live-weather p{margin:5px 0 9px}
+.live-weather small{display:block;font-size:10px;color:#66756a;margin-top:9px}
+.live-weather a{color:#3f6250;font-weight:700}
+.weather-caption{font-size:11px;color:#66756a}
+.weather-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}
+.weather-day{display:grid;align-content:start;gap:4px;padding:10px;background:#fff;border:1px solid #dce4da}
+.weather-day b{font-size:11px}
+.weather-day span{font-size:11px}
+.weather-day small{margin:0;font-size:10px}
