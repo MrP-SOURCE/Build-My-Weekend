@@ -1351,7 +1351,7 @@ function card(destination, settings, badges) {
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
         <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : campingSelected ? `BASE TRIP ESTIMATE · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"} · CAMPSITE FEE NOT VERIFIED` : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : campingSelected ? '<p class="detail-demo-note">The accommodation figure is a generic demonstration allowance, not a campsite tariff. The actual pitch/site fee is not mapped or included as a verified price. Confirm the total for your dates and group before deciding affordability.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div>${budgetRangeWarning(cost, settings, campingSelected, glampingSelected)}</div>
-        <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "LEFT BEFORE GLAMPING STAY" : campingSelected ? "LEFT BEFORE CAMPSITE FEE" : "LEFT IN BUDGET"}</span></div>
+        <div class="leftover"><b>${money(cost.remaining)}</b><span>${glampingSelected ? "TYPICAL LEFT BEFORE GLAMPING STAY" : campingSelected ? "TYPICAL LEFT BEFORE CAMPSITE FEE" : "TYPICAL LEFT IN BUDGET"}</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
       <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> ${esc(rankingReason(destination, badges, settings))}</p>
@@ -1684,7 +1684,7 @@ function detail(destination, settings) {
     costLine(`Food · typical × ${settings.people}`, cost.food),
     costLine(`Activities · typical × ${settings.people}`, cost.activities),
     costLine(campingSelected ? "Base trip estimate · stay/site fee not verified" : "Typical total trip spend", cost.spend, "total"),
-    costLine(glampingSelected ? "Budget remaining before glamping stay price" : campingSelected ? "Budget remaining before campsite/site fee" : "Budget remaining", cost.remaining),
+    costLine(glampingSelected ? "Typical budget remaining before glamping stay price" : campingSelected ? "Typical budget remaining before campsite/site fee" : "Typical budget remaining", cost.remaining),
     costLine("Typical cost per person", cost.perPerson)
   ].join("");
 
@@ -1782,7 +1782,7 @@ function shareText(destination, settings) {
     (cost.highSpend > settings.budget ? `${glampingSelected || campingSelected ? "UPPER BASE ESTIMATE" : "UPPER DEMONSTRATION ESTIMATE"} EXCEEDS GROUP BUDGET BY ${money(round2(cost.highSpend - settings.budget))}${glampingSelected ? " BEFORE GLAMPING STAY PRICE" : campingSelected ? " BEFORE CAMPSITE/SITE FEE" : ""}.\n` : "") +
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
-    `${money(cost.remaining)} ${glampingSelected ? "left before glamping stay price" : campingSelected ? "left before campsite/site fee" : "left in the group budget"}. Distances, costs, routes and facilities are not live or verified.`;
+    `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.`;
 }
 
 function toastMessage(message) {

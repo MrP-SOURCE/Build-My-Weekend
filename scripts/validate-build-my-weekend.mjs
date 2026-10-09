@@ -24,6 +24,7 @@ assert((app.match(/budgetRangeWarning\(cost, settings, campingSelected, glamping
 assert(app.includes("ESTIMATED NEW SPEND · ${settings.people}"), "Recommendation cards must label the budget figure as estimated new spend.");
 assert(app.includes("Fuel already in the vehicle is treated as already paid"), "Trip details must explain how existing fuel affects the cash budget estimate.");
 assert(app.includes("UPPER DEMONSTRATION ESTIMATE") && app.includes("UPPER BASE ESTIMATE") && app.includes("shareText(destination, settings)"), "Shared trip summaries must disclose upper-range budget overruns.");
+assert(app.includes("TYPICAL LEFT IN BUDGET") && app.includes("typical amount left in the group budget"), "Budget remainder labels must identify typical estimates rather than guaranteed leftovers.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
 assert(app.includes("two-night weekend per person"), "Cost estimates must disclose their two-night baseline and scale with the selected duration.");
 assert(app.includes("day trip") && app.includes("accommodationMultiplier = nights / 2"), "Same-day trips must be identified as day trips and exclude overnight accommodation cost.");
@@ -33,8 +34,8 @@ assert(app.includes("LEFT BEFORE CAMPSITE FEE"), "Ordinary camping cards must la
 assert(app.includes('const nearRole = stayFeeExcluded ? "CLOSEST BASE-ESTIMATE FIT" : "CLOSEST AFFORDABLE"'), "Camping recommendations must not imply confirmed affordability when site fees are excluded.");
 assert(app.includes('const farRole = stayFeeExcluded ? "FURTHEST BASE-ESTIMATE FIT" : "FURTHEST AFFORDABLE"'), "Camping distance-role labels must disclose they are based on estimates before site fees.");
 assert(app.includes("buildShortlist(candidates, settings)"), "Shortlist ranking must receive the selected experience to apply camping-specific affordability labels.");
-assert(app.includes("Budget remaining before campsite/site fee"), "Camping detail breakdown must label budget remaining before campsite fees.");
-assert(app.includes("Budget remaining before glamping stay price"), "Glamping detail breakdown must label budget remaining before the stay price.");
+assert(app.includes("Typical budget remaining before campsite/site fee"), "Camping detail breakdown must label budget remaining before campsite fees.");
+assert(app.includes("Typical budget remaining before glamping stay price"), "Glamping detail breakdown must label budget remaining before the stay price.");
 assert(app.includes("CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED"), "Shared camping trip must disclose unverified campsite/site fees.");
 assert(app.includes("Generic accommodation allowance · campsite fee not verified"), "Camping detail cost rows must not imply the accommodation amount is a verified campsite tariff.");
 assert(app.includes("CAMPSITE FEE NOT VERIFIED"), "Ordinary camping spend must disclose that the campsite fee is not verified.");
