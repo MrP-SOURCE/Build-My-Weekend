@@ -1481,6 +1481,40 @@ async function loadDestinationWeather(destination, settings) {
   }
 }
 
+function itineraryTime(hour, minute = 0) {
+  const total = ((hour * 60 + minute) % 1440 + 1440) % 1440;
+  return String(Math.floor(total / 60)).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
+}
+
+function buildPracticalItinerary(destination, settings, cost) {
+  const driveMinutes = Math.max(0, Number(destination.driveTime) || 0);
+  const stopBuffer = driveMinutes >= 150 ? 30 : driveMinutes >= 75 ? 20 : 10;
+  const fridayDeparture = 14 * 60;
+  const fridayArrival = fridayDeparture + driveMinutes + stopBuffer;
+  const sundayDeparture = 13 * 60;
+  const sundayArrival = sundayDeparture + driveMinutes + stopBuffer;
+  const mealBudget = cost.food / 5;
+  const activityMain = cost.activities * 0.6;
+  const activityExtra = cost.activities * 0.4;
+  const ideas = destination.activityIdeas || [];
+  const mainActivity = ideas[0] || destination.weekendIdea || "Explore the local area";
+  const secondActivity = ideas[1] || "Take a relaxed local walk";
+  const finalActivity = ideas[2] || "Enjoy a final viewpoint or short stop";
+  const clock = minutes => itineraryTime(Math.floor(minutes / 60), minutes % 60);
+  return [
+    ["FRI 14:00", "Suggested departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."],
+    ["FRI " + clock(fridayArrival), "Illustrative arrival in " + destination.name + ". Check the property's actual check-in time, access instructions and parking before leaving."],
+    ["FRI 19:00", "Dinner / self-catered meal. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
+    ["SAT 09:00", mainActivity + ". Keep the morning flexible and check local access, weather and any fees first. Activity allowance: about " + money(activityMain) + " for the group."],
+    ["SAT 12:30", "Lunch and rest break. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
+    ["SAT 14:00", secondActivity + ". Choose a shorter or free alternative if the weather, access or budget requires it. Remaining activity allowance: about " + money(activityExtra) + " for the group."],
+    ["SAT 18:30", "Dinner and downtime. Planning allowance: about " + money(mealBudget) + " for the group; confirm actual menu prices or bring groceries."],
+    ["SUN 08:30", "Breakfast, pack and check the property's confirmed check-out time. Meal planning allowance: about " + money(mealBudget) + " for the group."],
+    ["SUN 10:00", finalActivity + ". Keep this stop short enough to leave a buffer for the return journey."],
+    ["SUN 12:00", "Check out at the property's confirmed time; consider lunch before driving. Planning allowance: about " + money(mealBudget) + " for the group."],
+    ["SUN " + clock(sundayDeparture), "Suggested return departure. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a stop; illustrative arrival back near " + clock(sundayArrival) + ". Leave earlier for longer journeys or if conditions require it."]
+  ];
+}
 function detail(destination, settings) {
   const cost = destination.cost;
   const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
@@ -1556,7 +1590,8 @@ function detail(destination, settings) {
       </section>
       <section class="detail-section">
         <h3>ILLUSTRATIVE ITINERARY · NOT A LIVE ROUTE</h3>
-        <ol class="itinerary">${destination.itinerary.map(([time, text]) =>
+        <p class="detail-demo-note">Suggested schedule only. Meal and activity allocations are portions of the demonstration estimates already shown above, not extra charges or confirmed prices. Verify check-in/out, opening hours, access, route and conditions before travel.</p>
+        <ol class="itinerary">${buildPracticalItinerary(destination, settings, cost).map(([time, text]) =>
           `<li><time>${esc(time)}</time><span>${esc(text)}</span></li>`
         ).join("")}</ol>
       </section>
