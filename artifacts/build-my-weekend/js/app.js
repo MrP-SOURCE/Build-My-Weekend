@@ -828,7 +828,7 @@ function testFishingPriorities() {
   return priorities.map(fishingPriority => {
     const candidates = findCandidates({ ...base, fishingPriority });
     if (!candidates.length) throw new Error("Fishing priority test has no candidates: " + fishingPriority);
-    const shortlist = buildShortlist(candidates, settings);
+    const shortlist = buildShortlist(candidates, { ...base, fishingPriority });
     const expectedFirst = sortBy(candidates, settingsForShortlist(candidates))[0].id;
     if (shortlist[0]?.destination.id !== expectedFirst) throw new Error("Fishing priority order failed: " + fishingPriority);
     return { priority: fishingPriority, first: shortlist[0].destination.name };
