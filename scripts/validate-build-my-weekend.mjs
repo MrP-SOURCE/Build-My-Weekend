@@ -36,6 +36,7 @@ assert(app.includes('const nearRole = stayFeeExcluded ? "CLOSEST BASE-ESTIMATE F
 assert(app.includes('const farRole = stayFeeExcluded ? "FURTHEST BASE-ESTIMATE FIT" : "FURTHEST AFFORDABLE"'), "Camping distance-role labels must disclose they are based on estimates before site fees.");
 assert(app.includes("buildShortlist(candidates, settings)"), "Shortlist ranking must receive the selected experience to apply camping-specific affordability labels.");
 assert(app.includes("Planning factors:") && app.includes("activity fit;") && app.includes("estimated new spend"), "Every recommendation must expose transparent activity-fit, distance and estimated-spend factors.");
+assert(app.includes("estimate range") && app.includes("within budget even at the high estimate") && app.includes("may fit only toward the low end of the estimate"), "Recommendation explanations must distinguish robust affordability from estimates that only fit at the low end.");
 assert(app.includes("Typical budget remaining before campsite/site fee"), "Camping detail breakdown must label budget remaining before campsite fees.");
 assert(app.includes("Typical budget remaining before glamping stay price"), "Glamping detail breakdown must label budget remaining before the stay price.");
 assert(app.includes("CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED"), "Shared camping trip must disclose unverified campsite/site fees.");
