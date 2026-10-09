@@ -122,6 +122,7 @@ vm.runInContext(appLogic, context);
 assert(context.window.testHermanusCalculation(), "Hermanus budget and fuel calculation failed.");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
 assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
+assert(context.window.testSavedSettingsApplication() === 22, "Saved preference application regression checks failed.");
 const restoreControlIds = [
   "fishing-style", "target-species", "spot-preference", "fishing-priority",
   "hiking-difficulty", "hiking-setting", "climbing-type", "climbing-level",
