@@ -1189,6 +1189,7 @@ function accommodationSummary(destination, settings) {
 function card(destination, settings, badges) {
   const element = document.createElement("article");
   const cost = destination.cost;
+  const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
   element.className = "trip-card";
   element.dataset.testid = `destination-${destination.id}`;
   element.innerHTML = `
@@ -1207,7 +1208,7 @@ function card(destination, settings, badges) {
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
-        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">TYPICAL TOTAL · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</div><div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range</div></div>
+        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `TYPICAL TOTAL · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range</div></div>
         <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
@@ -1370,6 +1371,7 @@ async function loadDestinationWeather(destination, settings) {
 
 function detail(destination, settings) {
   const cost = destination.cost;
+  const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
   const categories = destination.categories.join(", ");
   const suitability = destination.suitableFor.join(", ");
   const costRows = [
@@ -1396,6 +1398,7 @@ function detail(destination, settings) {
       <div><span>ESTIMATED TYPICAL TOTAL FOR ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</span><br><strong>${money(cost.spend)}</strong></div>
       <strong>${money(cost.perPerson)}<span> / person</span></strong>
       <small>${money(cost.remaining)} left from your ${money(settings.budget)} group budget · Dates: ${dateSpan(settings)}</small>
+      ${glampingSelected ? '<p class="detail-demo-note">Glamping budget warning: the property-specific stay price is not included in this demonstration total. Confirm the full price for your dates and group before deciding affordability.</p>' : ""}
       <div class="detail-range">Typical-cost demonstration range for the group: ${money(cost.lowSpend)}–${money(cost.highSpend)}. No value is a quote.</div>
     </div>
     <section class="why-matched" aria-labelledby="why-matched-title">
@@ -1464,7 +1467,9 @@ function detail(destination, settings) {
 
 function shareText(destination, settings) {
   const cost = calc(destination, settings);
+  const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
+    (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — check full property price before deciding affordability.\n" : "") +
     `Demonstration estimates only — typical total ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
     `${money(cost.remaining)} left in the group budget. Distances, costs, routes and facilities are not live or verified.`;
