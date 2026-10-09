@@ -1285,6 +1285,41 @@ function noResultsMessage(settings) {
   return `No destination matches all your current filters (weekend type, distance and budget). Try widening the distance, increasing the group budget, or choosing a broader weekend type. These are demonstration estimates, so confirm real prices before booking.`;
 }
 
+function budgetTradeoffPanel(candidates, settings) {
+  if (candidates.length < 2) return "";
+  const cheapest = sortBy(candidates, (a, b) => a.cost.spend - b.cost.spend || a.distance - b.distance)[0];
+  const farthest = sortBy(candidates, (a, b) => b.distance - a.distance || a.cost.spend - b.cost.spend)[0];
+  let nearer = sortBy(candidates, (a, b) => a.distance - b.distance || a.cost.spend - b.cost.spend)[0];
+  let farther = farthest;
+  if (nearer.id === farther.id) {
+    farther = sortBy(candidates.filter(item => item.id !== nearer.id), (a, b) => b.distance - a.distance || a.cost.spend - b.cost.spend)[0];
+  }
+  if (!farther || nearer.id === farther.id) return "";
+  const saving = round2(farther.cost.spend - cheapest.cost.spend);
+  const distanceDifference = farther.distance - cheapest.distance;
+  const options = [
+    { label: "LOWER-SPEND OPTION", item: cheapest, note: "Lowest estimated new spend among destinations that passed your filters." },
+    { label: "FARTHER-AWAY OPTION", item: farther, note: "A longer drive; compare the extra distance against the estimated spend." }
+  ];
+  const unique = options.filter((option, index, all) => all.findIndex(other => other.item.id === option.item.id) === index);
+  return `<section aria-label="Budget trade-off comparison" data-testid="budget-tradeoff" style="margin:0 0 1.25rem;padding:1.1rem;border:1px solid #d9dfd2;border-radius:16px;background:#f7f8f3;color:#26352c">
+    <div style="font-size:.72rem;font-weight:800;letter-spacing:.12em;margin-bottom:.35rem">COMPARE THE TRADE-OFF</div>
+    <h3 style="margin:.1rem 0 .4rem;font-size:1.2rem">Spend less nearby, or travel farther?</h3>
+    <p style="margin:.2rem 0 .9rem;line-height:1.5">Both options fit your current budget and distance filters, using demonstration estimates. Fuel already in your tank is treated as already paid; only estimated fuel still to buy is counted.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:.75rem">
+      ${unique.map(({label,item,note}) => `<div style="padding:.85rem;border:1px solid #e0e4db;border-radius:12px;background:#fff">
+        <div style="font-size:.68rem;font-weight:800;letter-spacing:.08em;color:#526b59">${label}</div>
+        <div style="font-size:1.05rem;font-weight:800;margin:.35rem 0">${esc(item.name)}</div>
+        <div style="font-size:1.15rem;font-weight:800">${money(item.cost.spend)} <span style="font-size:.75rem;font-weight:500">estimated new spend</span></div>
+        <div style="font-size:.85rem;margin:.35rem 0">${item.distance} km one way · ${money(item.cost.perPerson)} per person</div>
+        <div style="font-size:.85rem;margin:.35rem 0">${money(item.cost.remaining)} of group budget left</div>
+        <p style="font-size:.8rem;line-height:1.45;margin:.45rem 0 0">${note}</p>
+      </div>`).join("")}
+    </div>
+    <p style="font-size:.82rem;line-height:1.45;margin:.8rem 0 0"><strong>Trade-off:</strong> ${saving >= 0 ? `${esc(farther.name)} is ${money(saving)} more than the lower-spend option` : `${esc(cheapest.name)} costs ${money(Math.abs(saving))} less than the farther option`}; the farther option changes the one-way drive by ${Math.abs(distanceDifference)} km. Estimates are not live quotes; confirm accommodation, activities and other costs before booking.</p>
+  </section>`;
+}
+
 function render() {
   const settings = getSettings();
   if (!valid(settings)) return;
@@ -1303,6 +1338,9 @@ function render() {
   results.replaceChildren();
   noResults.hidden = candidates.length > 0;
   if (!candidates.length) return;
+  const comparison = document.createElement("div");
+  comparison.innerHTML = budgetTradeoffPanel(candidates, settings);
+  if (comparison.firstElementChild) results.append(comparison.firstElementChild);
   for (const item of shortlist) results.append(card(item.destination, settings, item.badges));
 }
 
