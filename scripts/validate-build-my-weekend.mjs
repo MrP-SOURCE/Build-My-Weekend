@@ -24,7 +24,7 @@ assert(app.includes("ESTIMATED NEW SPEND · ${settings.people}"), "Recommendatio
 assert(app.includes("Fuel already in the vehicle is treated as already paid"), "Trip details must explain how existing fuel affects the cash budget estimate.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
 assert(app.includes("two-night weekend per person"), "Cost estimates must disclose their two-night baseline and scale with the selected duration.");
-assert(app.includes("demonstration range · ${cost.nights} night"), "Recommendation cards must display the selected trip-night count beside the estimate.");
+assert(app.includes("day trip") && app.includes("accommodationMultiplier = nights / 2"), "Same-day trips must be identified as day trips and exclude overnight accommodation cost.");
 assert(app.includes("GLAMPING STAY PRICE NOT INCLUDED"), "Glamping recommendation cards and shared trip summaries must disclose that the property stay price is excluded.");
 assert(app.includes("LEFT BEFORE GLAMPING STAY"), "Glamping recommendation cards must not present the pre-accommodation remainder as confirmed money left in budget.");
 assert(camping.includes("displayed remainder is not confirmed money left after accommodation"), "Glamping detail guidance must explicitly distinguish the base estimate from verified affordability.");
