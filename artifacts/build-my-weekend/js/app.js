@@ -435,6 +435,7 @@ function findCandidates(settings) {
       destination.cost.remaining >= 0 &&
       destination.distance <= distanceLimit &&
       (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
+      (settings.experience !== "Beach Away" || destination.categories.includes("Beach")) &&
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
       (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing")) &&
       (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors"))
@@ -569,6 +570,13 @@ function testRecommendationScenarios() {
     };
     const candidates = findCandidates(settings);
     const shortlist = buildShortlist(candidates);
+    const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
+    if (candidates.some(item => item.cost.remaining < 0)) {
+      throw new Error(`${scenario.name}: a destination exceeding the group budget was returned.`);
+    }
+    if (candidates.some(item => item.distance > distanceLimit)) {
+      throw new Error(`${scenario.name}: a destination beyond the selected distance limit was returned.`);
+    }
     if (shortlist.length > 5) throw new Error(`${scenario.name}: more than five destinations were selected.`);
     if (scenario.experience === "Camping Away" && candidates.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error(scenario.name + ": non-camping destination returned.");
     if (scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))) throw new Error(scenario.name + ": non-hiking destination returned.");
@@ -582,6 +590,19 @@ function testRecommendationScenarios() {
       selected: shortlist.map(item => item.destination.name)
     };
   });
+  const strictBase = {
+    people: 4, consumption: 8, fuelExisting: 0, fuelPrice: 24.5,
+    depart: "2026-10-09", returnDate: "2026-10-11", distance: "any"
+  };
+  const impossibleBudget = findCandidates({ ...strictBase, budget: 1, experience: "Beach Away" });
+  if (impossibleBudget.length !== 0) throw new Error("A trip with a R1 group budget must not return unaffordable destinations.");
+  const affordableBeach = findCandidates({ ...strictBase, budget: 10000, experience: "Beach Away" });
+  if (!affordableBeach.length) throw new Error("Beach Away should return options when the group budget is sufficient.");
+  if (affordableBeach.some(item => !item.categories.includes("Beach"))) throw new Error("Beach Away returned a destination without a Beach category.");
+  const affordableCamping = findCandidates({ ...strictBase, budget: 10000, experience: "Camping Away" });
+  if (!affordableCamping.length) throw new Error("Camping Away should return options when the group budget is sufficient.");
+  if (affordableCamping.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error("Switching to Camping Away retained a non-camping destination.");
+
   if (destinations.length !== 30) throw new Error(`Expected 30 unique destinations, found ${destinations.length}.`);
   if (new Set(destinations.map(destination => destination.id)).size !== destinations.length) {
     throw new Error("Destination IDs must be unique.");
