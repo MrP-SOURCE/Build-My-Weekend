@@ -370,24 +370,33 @@ function calc(destination, settings) {
   const litres = returnDistance * settings.consumption / 100;
   const consumed = round2(litres * settings.fuelPrice);
   const additional = round2(Math.max(0, consumed - settings.fuelExisting));
-  const accommodation = round2(destination.accommodationTypical * settings.people);
-  const food = round2(destination.foodTypical * settings.people);
-  const activities = round2(destination.activitiesTypical * settings.people);
+  // Source estimates represent a two-night weekend per person. Scale the non-fuel estimate
+  // proportionally to the selected stay length; this remains an illustrative estimate, not a quote.
+  const parsedDepart = settings.depart ? Date.parse(settings.depart + "T12:00:00Z") : NaN;
+  const parsedReturn = settings.returnDate ? Date.parse(settings.returnDate + "T12:00:00Z") : NaN;
+  const validDateSpan = Number.isFinite(parsedDepart) && Number.isFinite(parsedReturn) && parsedReturn >= parsedDepart;
+  const nights = validDateSpan ? Math.max(1, Math.round((parsedReturn - parsedDepart) / 86400000)) : 2;
+  const durationMultiplier = nights / 2;
+  const accommodation = round2(destination.accommodationTypical * settings.people * durationMultiplier);
+  const food = round2(destination.foodTypical * settings.people * durationMultiplier);
+  const activities = round2(destination.activitiesTypical * settings.people * durationMultiplier);
   const lowSpend = round2(
     additional +
-    destination.accommodationLow * settings.people +
-    destination.foodLow * settings.people +
-    destination.activitiesLow * settings.people
+    destination.accommodationLow * settings.people * durationMultiplier +
+    destination.foodLow * settings.people * durationMultiplier +
+    destination.activitiesLow * settings.people * durationMultiplier
   );
   const spend = round2(additional + accommodation + food + activities);
   const highSpend = round2(
     additional +
-    destination.accommodationHigh * settings.people +
-    destination.foodHigh * settings.people +
-    destination.activitiesHigh * settings.people
+    destination.accommodationHigh * settings.people * durationMultiplier +
+    destination.foodHigh * settings.people * durationMultiplier +
+    destination.activitiesHigh * settings.people * durationMultiplier
   );
   return {
     returnDistance,
+    nights,
+    durationMultiplier,
     litres: round2(litres),
     consumed,
     additional,
@@ -693,6 +702,23 @@ function testDateRangeValidation() {
     if (actual !== item.expected) throw new Error("Date validation failed for " + item.label + ".");
   }
   return cases.length;
+}
+
+function testTripDurationCostScaling() {
+  const destination = destinations.find(item => item.id === "hermanus");
+  const base = { budget: 5000, people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11" };
+  const weekend = calc(destination, base);
+  const oneNight = calc(destination, { ...base, returnDate: "2026-10-10" });
+  const fourNights = calc(destination, { ...base, returnDate: "2026-10-13" });
+  if (weekend.nights !== 2 || weekend.durationMultiplier !== 1) throw new Error("Two-night weekend should use the baseline cost estimate.");
+  if (oneNight.nights !== 1 || oneNight.durationMultiplier !== 0.5) throw new Error("One-night stay should scale non-fuel costs to half the weekend baseline.");
+  if (fourNights.nights !== 4 || fourNights.durationMultiplier !== 2) throw new Error("Four-night stay should double the weekend non-fuel estimate.");
+  if (weekend.additional !== oneNight.additional || weekend.additional !== fourNights.additional) throw new Error("Trip duration must not change the same route's fuel estimate.");
+  if (oneNight.accommodation * 2 !== weekend.accommodation || fourNights.accommodation !== weekend.accommodation * 2) throw new Error("Accommodation cost scaling failed.");
+  if (oneNight.spend * 2 !== weekend.spend || fourNights.spend !== weekend.spend * 2) throw new Error("Total estimate scaling failed.");
+  const sameDay = calc(destination, { ...base, returnDate: "2026-10-09" });
+  if (sameDay.nights !== 1) throw new Error("Same-day trips must use the minimum one-night estimate rather than zero lodging cost.");
+  return true;
 }
 
 function testHermanusCalculation() {
@@ -1267,7 +1293,7 @@ function card(destination, settings, badges) {
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
-        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range</div></div>
+        <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights} night${cost.nights === 1 ? "" : "s"}</div></div>
         <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
       </div>
       <div class="card-highlights"><strong>THINGS TO DO · DEMONSTRATION IDEAS</strong>${destination.activityIdeas.map(esc).join(" · ")}</div>
