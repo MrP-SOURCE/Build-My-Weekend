@@ -535,6 +535,48 @@ function dateRangeValid(depart, returnDate, today = localDate(new Date())) {
   return Boolean(depart && returnDate) && depart >= today && returnDate >= depart;
 }
 
+function activityPanelState(experience) {
+  const fishing = experience === "Fishing Away";
+  const hiking = experience === "Hiking Away";
+  const climbing = experience === "Climbing Away";
+  const camping = experience === "Camping Away";
+  return {
+    fishing,
+    hiking,
+    climbing,
+    camping,
+    outdoor: hiking || climbing,
+    plannerTitle: fishing ? "Build your fishing weekend"
+      : climbing ? "Find a climbing weekend"
+      : hiking ? "Find your hiking weekend"
+      : camping ? "Find your camping weekend"
+      : "What feels like a good getaway?",
+    outdoorHeading: climbing
+      ? "CLIMBING AWAY · FINE-TUNE YOUR MATCH"
+      : "HIKING AWAY · FINE-TUNE YOUR MATCH"
+  };
+}
+
+function testActivityPanelState() {
+  const experiences = [
+    "Any", "Fishing Away", "Hiking Away", "Climbing Away", "Nature",
+    "Camping Away", "Family Away", "Couples Away", "Beach Away",
+    "Wildlife Away", "Road Trip Away", "Surprise Me"
+  ];
+  for (const experience of experiences) {
+    const state = activityPanelState(experience);
+    const visiblePanels = [state.fishing, state.outdoor, state.camping].filter(Boolean).length;
+    if (visiblePanels > 1) throw new Error("Activity panels overlap for " + experience);
+    if (state.fishing !== (experience === "Fishing Away")) throw new Error("Fishing panel mismatch for " + experience);
+    if (state.outdoor !== ["Hiking Away", "Climbing Away"].includes(experience)) throw new Error("Outdoor panel mismatch for " + experience);
+    if (state.camping !== (experience === "Camping Away")) throw new Error("Camping panel mismatch for " + experience);
+  }
+  if (activityPanelState("Fishing Away").plannerTitle !== "Build your fishing weekend") throw new Error("Fishing title mismatch.");
+  if (activityPanelState("Climbing Away").outdoorHeading !== "CLIMBING AWAY · FINE-TUNE YOUR MATCH") throw new Error("Climbing heading mismatch.");
+  if (activityPanelState("Hiking Away").outdoorHeading !== "HIKING AWAY · FINE-TUNE YOUR MATCH") throw new Error("Hiking heading mismatch.");
+  return experiences.length;
+}
+
 function settingsForStorage(settings) {
   return {
     budget: settings.budget,
@@ -726,6 +768,7 @@ if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
+  window.testActivityPanelState = testActivityPanelState;
   window.testWeekendScenarios = testRecommendationScenarios;
   window.testFishingPriorities = testFishingPriorities;
 }
@@ -759,26 +802,17 @@ function setupFishingControls() {
   const experience = document.querySelector("#experience");
   const panel = document.querySelector("#fishing-controls");
   const outdoorPanel = document.querySelector("#outdoor-controls");
+  const campingPanel = document.querySelector("#camping-controls");
   if (!experience) return;
   const sync = () => {
-    const fishing = experience.value === "Fishing Away";
-    const hiking = experience.value === "Hiking Away";
-    const climbing = experience.value === "Climbing Away";
-    const camping = experience.value === "Camping Away";
-    const campingPanel = document.querySelector("#camping-controls");
-    if (panel) panel.hidden = !fishing;
-    if (outdoorPanel) outdoorPanel.hidden = !(hiking || climbing);
-    if (campingPanel) campingPanel.hidden = !camping;
-    document.querySelector("#planner-title").textContent = fishing
-      ? "Build your fishing weekend"
-      : climbing ? "Find a climbing weekend"
-      : hiking ? "Find your hiking weekend"
-      : camping ? "Find your camping weekend"
-      : "What feels like a good getaway?";
+    const state = activityPanelState(experience.value);
+    if (panel) panel.hidden = !state.fishing;
+    if (outdoorPanel) outdoorPanel.hidden = !state.outdoor;
+    if (campingPanel) campingPanel.hidden = !state.camping;
+    const title = document.querySelector("#planner-title");
+    if (title) title.textContent = state.plannerTitle;
     const heading = document.querySelector("#outdoor-heading span");
-    if (heading) heading.textContent = climbing
-      ? "CLIMBING AWAY · FINE-TUNE YOUR MATCH"
-      : "HIKING AWAY · FINE-TUNE YOUR MATCH";
+    if (heading) heading.textContent = state.outdoorHeading;
   };
   experience.addEventListener("change", sync);
   sync();
