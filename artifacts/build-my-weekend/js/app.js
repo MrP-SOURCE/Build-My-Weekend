@@ -375,21 +375,22 @@ function calc(destination, settings) {
   const parsedDepart = settings.depart ? Date.parse(settings.depart + "T12:00:00Z") : NaN;
   const parsedReturn = settings.returnDate ? Date.parse(settings.returnDate + "T12:00:00Z") : NaN;
   const validDateSpan = Number.isFinite(parsedDepart) && Number.isFinite(parsedReturn) && parsedReturn >= parsedDepart;
-  const nights = validDateSpan ? Math.max(1, Math.round((parsedReturn - parsedDepart) / 86400000)) : 2;
-  const durationMultiplier = nights / 2;
-  const accommodation = round2(destination.accommodationTypical * settings.people * durationMultiplier);
+  const nights = validDateSpan ? Math.round((parsedReturn - parsedDepart) / 86400000) : 2;
+  const durationMultiplier = Math.max(0.5, nights / 2);
+  const accommodationMultiplier = nights / 2;
+  const accommodation = round2(destination.accommodationTypical * settings.people * accommodationMultiplier);
   const food = round2(destination.foodTypical * settings.people * durationMultiplier);
   const activities = round2(destination.activitiesTypical * settings.people * durationMultiplier);
   const lowSpend = round2(
     additional +
-    destination.accommodationLow * settings.people * durationMultiplier +
+    destination.accommodationLow * settings.people * accommodationMultiplier +
     destination.foodLow * settings.people * durationMultiplier +
     destination.activitiesLow * settings.people * durationMultiplier
   );
   const spend = round2(additional + accommodation + food + activities);
   const highSpend = round2(
     additional +
-    destination.accommodationHigh * settings.people * durationMultiplier +
+    destination.accommodationHigh * settings.people * accommodationMultiplier +
     destination.foodHigh * settings.people * durationMultiplier +
     destination.activitiesHigh * settings.people * durationMultiplier
   );
@@ -397,6 +398,7 @@ function calc(destination, settings) {
     returnDistance,
     nights,
     durationMultiplier,
+    accommodationMultiplier,
     litres: round2(litres),
     consumed,
     additional,
@@ -717,7 +719,8 @@ function testTripDurationCostScaling() {
   if (oneNight.accommodation * 2 !== weekend.accommodation || fourNights.accommodation !== weekend.accommodation * 2) throw new Error("Accommodation cost scaling failed.");
   if (round2((oneNight.spend - oneNight.additional) * 2) !== round2(weekend.spend - weekend.additional) || round2(fourNights.spend - fourNights.additional) !== round2((weekend.spend - weekend.additional) * 2)) throw new Error("Non-fuel total estimate scaling failed.");
   const sameDay = calc(destination, { ...base, returnDate: "2026-10-09" });
-  if (sameDay.nights !== 1) throw new Error("Same-day trips must use the minimum one-night estimate rather than zero lodging cost.");
+  if (sameDay.nights !== 0 || sameDay.accommodation !== 0 || sameDay.accommodationMultiplier !== 0) throw new Error("Same-day trips must not include overnight accommodation costs.");
+  if (sameDay.durationMultiplier !== 0.5 || sameDay.food <= 0 || sameDay.activities <= 0) throw new Error("Same-day trips should retain a half-day food/activity estimate without lodging.");
   return true;
 }
 
