@@ -435,6 +435,7 @@ function findCandidates(settings) {
       destination.cost.remaining >= 0 &&
       destination.distance <= distanceLimit &&
       (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
+      (settings.experience !== "Beach Away" || destination.categories.includes("Beach")) &&
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
       (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing")) &&
       (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors"))
