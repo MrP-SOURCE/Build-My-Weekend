@@ -825,15 +825,16 @@ function testSavedSettingsApplication() {
     climbingLevel: "Beginner", campingSetup: "Glamping", campingPower: "Required",
     campingAblutions: "Full", campingShade: "Shaded", campingTerrain: "Firm level"
   };
+  const persisted = JSON.parse(JSON.stringify(settingsForStorage(saved)));
   const elements = {};
   for (const key of ["budget", "people", "experience", "depart", "return", "consumption", "fuelExisting", "fuelPrice"]) {
     elements[key] = { value: "" };
   }
   const distanceRadio = { checked: false };
   const controls = {};
-  const plan = savedSettingsRestorePlan(saved);
+  const plan = savedSettingsRestorePlan(persisted);
   for (const [key, id] of plan.selects) {
-    controls[id] = { value: "", options: [{ value: saved[key] }, { value: "Any" }] };
+    controls[id] = { value: "", options: [{ value: persisted[key] }, { value: "Any" }] };
   }
   const mockForm = {
     elements,
@@ -841,16 +842,16 @@ function testSavedSettingsApplication() {
       return selector === 'input[name="distance"][value="200"]' ? distanceRadio : null;
     }
   };
-  if (!applySavedSettings(saved, mockForm, id => controls[id])) throw new Error("Saved settings were not applied.");
+  if (!applySavedSettings(persisted, mockForm, id => controls[id])) throw new Error("Saved settings were not applied.");
   for (const key of ["budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
-    if (elements[key].value !== saved[key]) throw new Error("Saved field not restored: " + key);
+    if (elements[key].value !== persisted[key]) throw new Error("Saved field not restored: " + key);
   }
-  if (elements.return.value !== saved.returnDate) throw new Error("Return date not restored.");
+  if (elements.return.value !== persisted.returnDate) throw new Error("Return date not restored.");
   if (!distanceRadio.checked) throw new Error("Distance option not restored.");
   for (const [key, id] of plan.selects) {
     if (controls[id].value !== saved[key]) throw new Error("Saved select not restored: " + key);
   }
-  const invalidSaved = { ...saved, campingSetup: "Invalid option" };
+  const invalidSaved = { ...persisted, campingSetup: "Invalid option" };
   controls["camping-setup"].value = "";
   applySavedSettings(invalidSaved, mockForm, id => controls[id]);
   if (controls["camping-setup"].value !== "") throw new Error("Invalid select value should not overwrite the UI.");
