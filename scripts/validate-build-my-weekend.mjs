@@ -112,7 +112,11 @@ const campsiteLinks = campingApi.sourceLinks({ name: "Hermanus" }, campingSettin
 assert(campsiteLinks.length === 6, "Camping source coverage changed.");
 assert(campsiteLinks.every(link => /^https:\/\//.test(link.url)), "Camping source link is not HTTPS.");
 const glampingLinks = campingApi.glampingLinks({ name: "Hermanus" }, campingSettings);
-assert(glampingLinks.length === 8, "Glamping source coverage changed.");
+assert(glampingLinks.length === 10, "Glamping source coverage changed.");
+assert(glampingLinks.some(link => link.name.includes("Booking.com glamping near this destination") && link.url.includes("site%3Abooking.com")),
+  "Destination-targeted Booking.com glamping search is missing.");
+assert(glampingLinks.some(link => link.name.includes("Glamping Hub near this destination") && link.url.includes("site%3Aglampinghub.com")),
+  "Destination-targeted Glamping Hub search is missing.");
 assert(glampingLinks.every(link => /^https:\/\//.test(link.url)), "Glamping source link is not HTTPS.");
 assert(glampingLinks.some(link => link.url.includes(encodeURIComponent("R3000"))), "Glamping search does not include the current budget.");
 assert(glampingLinks.some(link => link.url.includes(encodeURIComponent("200 km"))), "Glamping search does not include the current distance limit.");
