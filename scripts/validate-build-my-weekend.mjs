@@ -28,6 +28,10 @@ assert(app.includes("day trip") && app.includes("accommodationMultiplier = night
 assert(app.includes("GLAMPING STAY PRICE NOT INCLUDED"), "Glamping recommendation cards and shared trip summaries must disclose that the property stay price is excluded.");
 assert(app.includes("LEFT BEFORE GLAMPING STAY"), "Glamping recommendation cards must not present the pre-accommodation remainder as confirmed money left in budget.");
 assert(app.includes("LEFT BEFORE CAMPSITE FEE"), "Ordinary camping cards must label the remaining budget as before the campsite fee.");
+assert(app.includes("Budget remaining before campsite/site fee"), "Camping detail breakdown must label budget remaining before campsite fees.");
+assert(app.includes("Budget remaining before glamping stay price"), "Glamping detail breakdown must label budget remaining before the stay price.");
+assert(app.includes("CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED"), "Shared camping trip must disclose unverified campsite/site fees.");
+assert(app.includes("Generic accommodation allowance · campsite fee not verified"), "Camping detail cost rows must not imply the accommodation amount is a verified campsite tariff.");
 assert(app.includes("CAMPSITE FEE NOT VERIFIED"), "Ordinary camping spend must disclose that the campsite fee is not verified.");
 assert(camping.includes("generic demonstration accommodation allowance, not a verified campsite tariff"), "Camping summary must disclose the generic accommodation estimate and unverified campsite tariff.");
 assert(camping.includes("displayed remainder is only the amount left before the campsite fee"), "Camping summary must not imply confirmed affordability before the campsite fee.");

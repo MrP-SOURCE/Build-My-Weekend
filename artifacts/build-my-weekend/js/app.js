@@ -1620,24 +1620,26 @@ function activitySuitabilityEvidence(destination, settings) {
 }
 function detail(destination, settings) {
   const cost = destination.cost;
-  const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
+  const campingSelected = settings.experience === "Camping Away";
+  const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
   const categories = destination.categories.join(", ");
   const suitability = destination.suitableFor.join(", ");
   const costRows = [
     costLine(`Fuel consumed (${cost.litres} L return)`, cost.consumed),
     costLine("Fuel already in vehicle (already paid)", settings.fuelExisting),
     costLine("Additional fuel to buy", cost.additional),
-    costLine(`Accommodation · typical × ${settings.people}`, cost.accommodation),
+    costLine(campingSelected ? "Generic accommodation allowance · campsite fee not verified" : `Accommodation · typical × ${settings.people}`, cost.accommodation),
     costLine(`Food · typical × ${settings.people}`, cost.food),
     costLine(`Activities · typical × ${settings.people}`, cost.activities),
-    costLine("Typical total trip spend", cost.spend, "total"),
-    costLine("Budget remaining", cost.remaining),
+    costLine(campingSelected ? "Base trip estimate · stay/site fee not verified" : "Typical total trip spend", cost.spend, "total"),
+    costLine(glampingSelected ? "Budget remaining before glamping stay price" : campingSelected ? "Budget remaining before campsite/site fee" : "Budget remaining", cost.remaining),
     costLine("Typical cost per person", cost.perPerson)
   ].join("");
 
   dialogContent.innerHTML = `
     <span class="detail-eyebrow">A WEEKEND IDEA · DEMONSTRATION DATA — NOT LIVE</span>
     <p class="detail-demo-note">Budget figure is an estimate of new cash to spend. Fuel already in the vehicle is treated as already paid; confirm actual prices and add any costs not listed before booking.</p>
+    ${campingSelected ? `<p class="detail-demo-note">${glampingSelected ? "The property-specific glamping stay price is excluded." : "The accommodation amount is a generic demonstration allowance, not a campsite tariff; the actual campsite/site fee is not verified or included."} The displayed remainder is only before that stay/site fee. Confirm the complete price for your selected dates and ${settings.people} ${settings.people === 1 ? "person" : "people"} before deciding whether this trip fits your budget.</p>` : ""}
     <h2 id="detail-title" class="detail-title">${esc(destination.name)}</h2>
     <p class="detail-sub">${esc(destination.region)} · ${esc(destination.province)} · ${esc(categories)}</p>
     <p class="detail-sub">${destination.distance} km one way from Cape Town · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving</p>
@@ -1648,7 +1650,7 @@ function detail(destination, settings) {
     <div class="detail-callout">
       <div><span>ESTIMATED TYPICAL TOTAL FOR ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</span><br><strong>${money(cost.spend)}</strong></div>
       <strong>${money(cost.perPerson)}<span> / person</span></strong>
-      <small>${money(cost.remaining)} left from your ${money(settings.budget)} group budget · Dates: ${dateSpan(settings)}</small>
+      <small>${money(cost.remaining)} ${glampingSelected ? "left before glamping stay price" : campingSelected ? "left before campsite/site fee" : "left from your group budget"} · Group budget: ${money(settings.budget)} · Dates: ${dateSpan(settings)}</small>
       ${glampingSelected ? '<p class="detail-demo-note">Glamping budget warning: the property-specific stay price is not included in this demonstration total. Confirm the full price for your dates and group before deciding affordability.</p>' : ""}
       <div class="detail-range">Typical-cost demonstration range for the group: ${money(cost.lowSpend)}–${money(cost.highSpend)}. No value is a quote.</div>
     </div>
@@ -1720,12 +1722,13 @@ function detail(destination, settings) {
 
 function shareText(destination, settings) {
   const cost = calc(destination, settings);
-  const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
+  const campingSelected = settings.experience === "Camping Away";
+  const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
-    (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — check full property price before deciding affordability.\n" : "") +
+    (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — budget remainder is before the stay price; check the full property price.\n" : campingSelected ? "CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED — budget remainder is before this fee; confirm full cost for the group and dates.\n" : "") +
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
-    `${money(cost.remaining)} left in the group budget. Distances, costs, routes and facilities are not live or verified.`;
+    `${money(cost.remaining)} ${glampingSelected ? "left before glamping stay price" : campingSelected ? "left before campsite/site fee" : "left in the group budget"}. Distances, costs, routes and facilities are not live or verified.`;
 }
 
 function toastMessage(message) {
