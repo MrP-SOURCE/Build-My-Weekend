@@ -1493,7 +1493,7 @@ function shareText(destination, settings) {
   const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
   return `Weekend idea: ${destination.name} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}\n` +
     (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — check full property price before deciding affordability.\n" : "") +
-    `Demonstration estimates only — typical total ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}.\n` +
+    `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
     `${money(cost.remaining)} left in the group budget. Distances, costs, routes and facilities are not live or verified.`;
 }

@@ -16,6 +16,8 @@ function idsFromHtml(source) {
   return [...source.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 }
 
+assert(app.includes("estimated new spend ${money(cost.spend)}"), "Shared trip summary must label the budget figure as estimated new spend.");
+assert(app.includes("This subtracts fuel already in the vehicle from the amount still to buy"), "Shared trip summary must explain how existing fuel affects the estimate.");
 assert(app.includes("ESTIMATED NEW SPEND · ${settings.people}"), "Recommendation cards must label the budget figure as estimated new spend.");
 assert(app.includes("Fuel already in the vehicle is treated as already paid"), "Trip details must explain how existing fuel affects the cash budget estimate.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
