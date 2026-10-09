@@ -1164,7 +1164,6 @@ function detail(destination, settings) {
       </section>`;
     })() : ""}
     ${fishingFineTuneAdvice(destination, settings)}
-    ${hikingFineTuneAdvice(destination, settings)}
     ${outdoorFineTuneAdvice(destination, settings)}
     ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
@@ -1255,7 +1254,11 @@ function settingsFromStorage() {
       ["fishingStyle", "fishing-style"],
       ["targetSpecies", "target-species"],
       ["spotPreference", "spot-preference"],
-      ["fishingPriority", "fishing-priority"]
+      ["fishingPriority", "fishing-priority"],
+      ["hikingDifficulty", "hiking-difficulty"],
+      ["hikingSetting", "hiking-setting"],
+      ["climbingType", "climbing-type"],
+      ["climbingLevel", "climbing-level"]
     ]) {
       const field = document.getElementById(id);
       if (field && typeof saved[key] === "string" &&
@@ -1336,7 +1339,11 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
     "fishing-style": "Any",
     "target-species": "Any",
     "spot-preference": "Let the app choose",
-    "fishing-priority": "Best Overall Weekend"
+    "fishing-priority": "Best Overall Weekend",
+    "hiking-difficulty": "Any",
+    "hiking-setting": "Any",
+    "climbing-type": "Any",
+    "climbing-level": "Any"
   };
   for (const [id, value] of Object.entries(defaults)) {
     const field = document.getElementById(id);
