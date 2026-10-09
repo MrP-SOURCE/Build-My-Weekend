@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="./styles.css">
     <script src="./js/fishing.js"></script>
     <script src="./js/accommodation.js"></script>
+    <script src="./js/camping.js"></script>
     <script type="module" src="./js/app.js"></script>
   </head>
   <body>
@@ -89,6 +90,18 @@
                 <div class="field"><label for="climbing-level">Climbing experience</label><div class="select-wrap"><select id="climbing-level" name="climbingLevel"><option value="Any">Any level</option><option value="Beginner">Beginner</option><option value="Intermediate">Intermediate</option><option value="Advanced">Advanced</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
               </div>
               <small class="field-hint">Preferences refine the planning guidance. Verified trail grades, elevation profiles and climbing route grades are not yet connected.</small>
+            </fieldset>
+
+            <fieldset class="field field-wide camping-controls" id="camping-controls" hidden aria-labelledby="camping-heading">
+              <div class="fishing-heading" id="camping-heading"><span>CAMPING AWAY · FIND THE RIGHT KIND OF SITE</span><span class="mini-rule"></span></div>
+              <div class="fishing-grid camping-grid">
+                <div class="field"><label for="camping-setup">What are you camping in?</label><div class="select-wrap"><select id="camping-setup" name="campingSetup"><option value="Any">Open to options</option><option value="Tent">Tent</option><option value="Caravan">Caravan</option><option value="Motorhome">Motorhome / campervan</option><option value="Rooftop tent">Rooftop tent</option><option value="Off-grid">Remote / off-grid camping</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="camping-power">Electricity</label><div class="select-wrap"><select id="camping-power" name="campingPower"><option value="Any">No preference</option><option value="Required">Powered site required</option><option value="Preferred">Prefer powered, can manage without</option><option value="Unpowered">Unpowered is fine</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="camping-ablutions">Toilets and showers</label><div class="select-wrap"><select id="camping-ablutions" name="campingAblutions"><option value="Any">No preference</option><option value="Full">Toilets and showers</option><option value="Basic">Basic ablutions acceptable</option><option value="Minimal">Minimal / no facilities acceptable</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="camping-shade">Shade at the pitch</label><div class="select-wrap"><select id="camping-shade" name="campingShade"><option value="Any">No preference</option><option value="Shaded">Shaded pitch preferred</option><option value="Partial">Partial shade is fine</option><option value="Open">Open sun is fine</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+                <div class="field"><label for="camping-terrain">Preferred ground</label><div class="select-wrap"><select id="camping-terrain" name="campingTerrain"><option value="Any">No preference</option><option value="Grass">Grass</option><option value="Firm level">Firm, level pitch</option><option value="Sand">Sand</option><option value="Gravel">Gravel / hardstand</option></select><span class="select-chevron" aria-hidden="true">⌄</span></div></div>
+              </div>
+              <small class="field-hint">These preferences tailor campsite research. Pitch-level power, ground, shade and facilities must be confirmed with the site; the app does not claim live availability.</small>
             </fieldset>
             <fieldset class="field field-wide distance-field">
               <legend>How far feels right?</legend>

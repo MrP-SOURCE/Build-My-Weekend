@@ -620,6 +620,16 @@ function fishingSettings() {
   };
 }
 
+function campingCardSummary(destination, settings) {
+  if (settings.experience !== "Camping Away" || !window.BMWCamping) return "";
+  return window.BMWCamping.cardSummary(destination, settings);
+}
+
+function campingDetailSummary(destination, settings) {
+  if (settings.experience !== "Camping Away" || !window.BMWCamping) return "";
+  return window.BMWCamping.detailSummary(destination, settings);
+}
+
 function setupFishingControls() {
   const experience = document.querySelector("#experience");
   const panel = document.querySelector("#fishing-controls");
@@ -629,12 +639,16 @@ function setupFishingControls() {
     const fishing = experience.value === "Fishing Away";
     const hiking = experience.value === "Hiking Away";
     const climbing = experience.value === "Climbing Away";
+    const camping = experience.value === "Camping Away";
+    const campingPanel = document.querySelector("#camping-controls");
     if (panel) panel.hidden = !fishing;
     if (outdoorPanel) outdoorPanel.hidden = !(hiking || climbing);
+    if (campingPanel) campingPanel.hidden = !camping;
     document.querySelector("#planner-title").textContent = fishing
       ? "Build your fishing weekend"
       : climbing ? "Find a climbing weekend"
       : hiking ? "Find your hiking weekend"
+      : camping ? "Find your camping weekend"
       : "What feels like a good getaway?";
     const heading = document.querySelector("#outdoor-heading span");
     if (heading) heading.textContent = climbing
@@ -849,6 +863,11 @@ function getSettings() {
     hikingSetting: values.get("hikingSetting") || "Any",
     climbingType: values.get("climbingType") || "Any",
     climbingLevel: values.get("climbingLevel") || "Any",
+    campingSetup: values.get("campingSetup") || "Any",
+    campingPower: values.get("campingPower") || "Any",
+    campingAblutions: values.get("campingAblutions") || "Any",
+    campingShade: values.get("campingShade") || "Any",
+    campingTerrain: values.get("campingTerrain") || "Any",
     ...fishingSettings()
   };
 }
@@ -923,7 +942,7 @@ function card(destination, settings, badges) {
         ).join("")}</div>
       </div>
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
-      <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${accommodationSummary(destination, settings)}
+      <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
         <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">TYPICAL TOTAL · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range</div></div>
         <div class="leftover"><b>${money(cost.remaining)}</b><span>LEFT IN BUDGET</span></div>
@@ -973,7 +992,12 @@ function render() {
       hikingDifficulty: settings.hikingDifficulty,
       hikingSetting: settings.hikingSetting,
       climbingType: settings.climbingType,
-      climbingLevel: settings.climbingLevel
+      climbingLevel: settings.climbingLevel,
+      campingSetup: settings.campingSetup,
+      campingPower: settings.campingPower,
+      campingAblutions: settings.campingAblutions,
+      campingShade: settings.campingShade,
+      campingTerrain: settings.campingTerrain
     }));
   } catch {}
 
@@ -1165,6 +1189,7 @@ function detail(destination, settings) {
     })() : ""}
     ${fishingFineTuneAdvice(destination, settings)}
     ${outdoorFineTuneAdvice(destination, settings)}
+    ${campingDetailSummary(destination, settings)}
     ${accommodationSummary(destination, settings)}
     <div class="detail-columns">
       <section class="detail-section">
@@ -1258,7 +1283,12 @@ function settingsFromStorage() {
       ["hikingDifficulty", "hiking-difficulty"],
       ["hikingSetting", "hiking-setting"],
       ["climbingType", "climbing-type"],
-      ["climbingLevel", "climbing-level"]
+      ["climbingLevel", "climbing-level"],
+      ["campingSetup", "camping-setup"],
+      ["campingPower", "camping-power"],
+      ["campingAblutions", "camping-ablutions"],
+      ["campingShade", "camping-shade"],
+      ["campingTerrain", "camping-terrain"]
     ]) {
       const field = document.getElementById(id);
       if (field && typeof saved[key] === "string" &&
@@ -1343,7 +1373,12 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
     "hiking-difficulty": "Any",
     "hiking-setting": "Any",
     "climbing-type": "Any",
-    "climbing-level": "Any"
+    "climbing-level": "Any",
+    "camping-setup": "Any",
+    "camping-power": "Any",
+    "camping-ablutions": "Any",
+    "camping-shade": "Any",
+    "camping-terrain": "Any"
   };
   for (const [id, value] of Object.entries(defaults)) {
     const field = document.getElementById(id);
@@ -1356,6 +1391,7 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
 initDates();
 settingsFromStorage();
 setupFishingControls();
+if (window.BMWCamping) window.BMWCamping.setupCampingControls();
 if (form.elements.return.value < form.elements.depart.value) {
   form.elements.return.value = form.elements.depart.value;
 }
