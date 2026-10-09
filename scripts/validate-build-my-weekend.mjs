@@ -16,6 +16,8 @@ function idsFromHtml(source) {
   return [...source.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 }
 
+assert(app.includes("ESTIMATED NEW SPEND · ${settings.people}"), "Recommendation cards must label the budget figure as estimated new spend.");
+assert(app.includes("Fuel already in the vehicle is treated as already paid"), "Trip details must explain how existing fuel affects the cash budget estimate.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
 assert(app.includes("GLAMPING STAY PRICE NOT INCLUDED"), "Glamping recommendation cards and shared trip summaries must disclose that the property stay price is excluded.");
 assert(app.includes("Glamping budget warning: the property-specific stay price is not included"), "Glamping trip details must disclose that the property stay price is excluded from the demo total.");
