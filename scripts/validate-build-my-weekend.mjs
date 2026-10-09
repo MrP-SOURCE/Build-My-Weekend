@@ -193,6 +193,8 @@ vm.runInContext(appLogic, context);
 assert(context.window.testHermanusCalculation(), "Hermanus budget and fuel calculation failed.");
 assert(context.window.testTripDurationCostScaling(), "Trip duration cost scaling regression checks failed.");
 assert(context.window.testFuelAndGroupScaling(), "Fuel and group-size cost regression checks failed.");
+assert(context.window.testBudgetRangeDisclosure(), "Budget range disclosure regression checks failed.");
+console.log("Budget range disclosure regression checks: PASS");
 console.log("Fuel and group-size scaling regression checks: PASS");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
 assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
