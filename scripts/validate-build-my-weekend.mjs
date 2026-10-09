@@ -28,6 +28,9 @@ assert(app.includes("day trip") && app.includes("accommodationMultiplier = night
 assert(app.includes("GLAMPING STAY PRICE NOT INCLUDED"), "Glamping recommendation cards and shared trip summaries must disclose that the property stay price is excluded.");
 assert(app.includes("LEFT BEFORE GLAMPING STAY"), "Glamping recommendation cards must not present the pre-accommodation remainder as confirmed money left in budget.");
 assert(app.includes("LEFT BEFORE CAMPSITE FEE"), "Ordinary camping cards must label the remaining budget as before the campsite fee.");
+assert(app.includes('const nearRole = stayFeeExcluded ? "CLOSEST BASE-ESTIMATE FIT" : "CLOSEST AFFORDABLE"'), "Camping recommendations must not imply confirmed affordability when site fees are excluded.");
+assert(app.includes('const farRole = stayFeeExcluded ? "FURTHEST BASE-ESTIMATE FIT" : "FURTHEST AFFORDABLE"'), "Camping distance-role labels must disclose they are based on estimates before site fees.");
+assert(app.includes("buildShortlist(candidates, settings)"), "Shortlist ranking must receive the selected experience to apply camping-specific affordability labels.");
 assert(app.includes("Budget remaining before campsite/site fee"), "Camping detail breakdown must label budget remaining before campsite fees.");
 assert(app.includes("Budget remaining before glamping stay price"), "Glamping detail breakdown must label budget remaining before the stay price.");
 assert(app.includes("CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED"), "Shared camping trip must disclose unverified campsite/site fees.");
