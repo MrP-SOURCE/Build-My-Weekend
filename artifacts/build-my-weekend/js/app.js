@@ -819,6 +819,20 @@ function testDestinationDataIntegrity() {
   return seen.size;
 }
 
+function testDestinationSafetyNoteCoverage() {
+  for (const destination of destinations) {
+    for (const key of ["hospitalAccess", "pharmacyAccess", "fuelAccess"]) {
+      if (typeof destination[key] !== "string" || destination[key].trim().length < 20) {
+        throw new Error("Destination safety note is missing or too short: " + destination.id + " (" + key + ").");
+      }
+      if (!/not verified|confirm|check official sources|check locally/i.test(destination[key])) {
+        throw new Error("Safety note must communicate verification limits: " + destination.id + " (" + key + ").");
+      }
+    }
+  }
+  return destinations.length;
+}
+
 function testHermanusCalculation() {
   const hermanus = destinations.find(destination => destination.id === "hermanus");
   const settings = {
@@ -933,6 +947,7 @@ if (typeof window !== "undefined") {
   window.testFuelAndGroupScaling = testFuelAndGroupScaling;
   window.testCostEstimateIntegrity = testCostEstimateIntegrity;
   window.testDestinationDataIntegrity = testDestinationDataIntegrity;
+  window.testDestinationSafetyNoteCoverage = testDestinationSafetyNoteCoverage;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
