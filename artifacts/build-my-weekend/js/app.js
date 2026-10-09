@@ -81,7 +81,7 @@ const destinations = [
   }, 1),
   makeDestination({
     name: "Betty's Bay", region: "Overberg coast", distance: 95, driveTime: 75,
-    categories: ["Beach", "Nature", "Hiking", "Family", "Couples"],
+    categories: ["Beach", "Nature", "Hiking", "Cycling", "Family", "Couples"],
     accommodation: [260, 350, 650], food: [140, 230, 380], activities: [30, 90, 240],
     description: "A quiet coastal base for sea air, fynbos scenery and short nature walks.",
     practicalInfo: "Some coastal areas are exposed to wind. Check local access rules before visiting nature sites.",
@@ -144,7 +144,7 @@ const destinations = [
   }, 2),
   makeDestination({
     name: "Greyton", region: "Overberg", distance: 140, driveTime: 120,
-    categories: ["Nature", "Hiking", "Camping", "Couples", "Family"],
+    categories: ["Nature", "Hiking", "Camping", "Cycling", "Couples", "Family"],
     accommodation: [260, 340, 620], food: [130, 220, 370], activities: [30, 90, 250],
     description: "A village escape with mountain views, shady lanes and nearby walking routes.",
     practicalInfo: "Trail conditions can change. Check locally before setting out and carry water.",
@@ -162,7 +162,7 @@ const destinations = [
   }, 4),
   makeDestination({
     name: "Stellenbosch", region: "Cape Winelands", distance: 52, driveTime: 48,
-    categories: ["Nature", "Hiking", "Family", "Couples", "Road Trip"],
+    categories: ["Nature", "Hiking", "Cycling", "Family", "Couples", "Road Trip"],
     accommodation: [350, 450, 780], food: [190, 300, 500], activities: [50, 150, 420],
     description: "A nearby Winelands base for oak-lined streets, gardens and mountain scenery.",
     practicalInfo: "Weekend traffic and venue hours vary. Verify opening times and any activity fees.",
@@ -171,7 +171,7 @@ const destinations = [
   }, 5),
   makeDestination({
     name: "Ceres", region: "Cape Winelands", distance: 150, driveTime: 120,
-    categories: ["Nature", "Hiking", "Family", "Camping", "Road Trip"],
+    categories: ["Nature", "Hiking", "Cycling", "Family", "Camping", "Road Trip"],
     accommodation: [240, 320, 600], food: [130, 220, 370], activities: [25, 90, 260],
     description: "A mountain-ringed town with orchard-country scenery and outdoor options.",
     practicalInfo: "Mountain weather can shift quickly. Check road and trail conditions before departure.",
@@ -189,7 +189,7 @@ const destinations = [
   }, 1),
   makeDestination({
     name: "Montagu", region: "Route 62", distance: 185, driveTime: 150,
-    categories: ["Nature", "Hiking", "Climbing", "Couples", "Camping", "Road Trip"],
+    categories: ["Nature", "Hiking", "Climbing", "Cycling", "Couples", "Camping", "Road Trip"],
     accommodation: [320, 410, 750], food: [150, 250, 420], activities: [40, 120, 320],
     description: "A Route 62 stop with mountain backdrops, historic streets and outdoor time.",
     practicalInfo: "Hot days and changing trail conditions are possible. Carry water and check access locally.",
@@ -301,7 +301,7 @@ const destinations = [
   }, 1),
   makeDestination({
     name: "Paarl", region: "Cape Winelands", distance: 60, driveTime: 55,
-    categories: ["Family", "Nature", "Hiking", "Climbing", "Couples", "Road Trip"],
+    categories: ["Family", "Nature", "Hiking", "Climbing", "Cycling", "Couples", "Road Trip"],
     accommodation: [280, 360, 660], food: [160, 250, 420], activities: [40, 110, 320],
     description: "A nearby Winelands town with mountain views, heritage streets and outdoor stops.",
     practicalInfo: "Trail and venue access can vary. Check opening times and any fees in advance.",
@@ -343,6 +343,7 @@ const experienceProfiles = {
   "Surprise Me": [],
   "Fishing Away": ["Fishing"],
   "Hiking Away": ["Hiking", "Nature"],
+  "Cycling Away": ["Cycling"],
   "Climbing Away": ["Climbing", "Outdoors", "Nature"],
   "Nature": ["Nature", "Hiking"],
   "Camping Away": ["Camping", "Outdoors"],
@@ -437,6 +438,7 @@ function findCandidates(settings) {
       (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
       (settings.experience !== "Beach Away" || destination.categories.includes("Beach")) &&
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
+      (settings.experience !== "Cycling Away" || destination.categories.includes("Cycling")) &&
       (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing")) &&
       (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors"))
     );
@@ -559,7 +561,7 @@ function activityPanelState(experience) {
 
 function testActivityPanelState() {
   const experiences = [
-    "Any", "Fishing Away", "Hiking Away", "Climbing Away", "Nature",
+    "Any", "Fishing Away", "Hiking Away", "Cycling Away", "Climbing Away", "Nature",
     "Camping Away", "Family Away", "Couples Away", "Beach Away",
     "Wildlife Away", "Road Trip Away", "Surprise Me"
   ];
@@ -714,6 +716,7 @@ function testRecommendationScenarios() {
     { name: "Family · R2,000 · 4 people · under 100 km", budget: 2000, people: 4, experience: "Family Away", distance: "100" },
     { name: "Camping · R8,000 · 4 people · anywhere", budget: 8000, people: 4, experience: "Camping Away", distance: "any" },
     { name: "Hiking · R5,000 · 2 people · under 200 km", budget: 5000, people: 2, experience: "Hiking Away", distance: "200" },
+    { name: "Cycling · R8,000 · 2 people · anywhere", budget: 8000, people: 2, experience: "Cycling Away", distance: "any" },
     { name: "Climbing · R8,000 · 2 people · anywhere", budget: 8000, people: 2, experience: "Climbing Away", distance: "any" },
     { name: "Nature · R10,000 · 2 people · anywhere", budget: 10000, people: 2, experience: "Nature", distance: "any" }
   ].map(scenario => {
@@ -737,6 +740,7 @@ function testRecommendationScenarios() {
     if (shortlist.length > 5) throw new Error(`${scenario.name}: more than five destinations were selected.`);
     if (scenario.experience === "Camping Away" && candidates.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error(scenario.name + ": non-camping destination returned.");
     if (scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))) throw new Error(scenario.name + ": non-hiking destination returned.");
+    if (scenario.experience === "Cycling Away" && candidates.some(item => !item.categories.includes("Cycling"))) throw new Error(scenario.name + ": non-cycling destination returned.");
     if (scenario.experience === "Climbing Away" && candidates.some(item => !item.categories.includes("Climbing"))) throw new Error(scenario.name + ": non-climbing destination returned.");
     if (new Set(shortlist.map(item => item.destination.id)).size !== shortlist.length) {
       throw new Error(`${scenario.name}: duplicate destinations were selected.`);
@@ -758,6 +762,9 @@ function testRecommendationScenarios() {
   if (affordableBeach.some(item => !item.categories.includes("Beach"))) throw new Error("Beach Away returned a destination without a Beach category.");
   const affordableCamping = findCandidates({ ...strictBase, budget: 10000, experience: "Camping Away" });
   if (!affordableCamping.length) throw new Error("Camping Away should return options when the group budget is sufficient.");
+  const affordableCycling = findCandidates({ ...strictBase, budget: 10000, experience: "Cycling Away" });
+  if (!affordableCycling.length) throw new Error("Cycling Away should return options when the group budget is sufficient.");
+  if (affordableCycling.some(item => !item.categories.includes("Cycling"))) throw new Error("Cycling Away returned a destination without a Cycling category.");
   if (affordableCamping.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error("Switching to Camping Away retained a non-camping destination.");
 
   if (destinations.length !== 30) throw new Error(`Expected 30 unique destinations, found ${destinations.length}.`);
