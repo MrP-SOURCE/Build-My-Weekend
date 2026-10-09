@@ -68,6 +68,16 @@ for (const match of formControls) {
 }
 assert(/role=["']radiogroup["'][^>]*aria-label=["'][^"']+["']/.test(html), "Distance radio group must have an accessible group label.");
 
+const linkSource = (html + "\n" + app + "\n" + accommodation + "\n" + camping).replace(/\\(["'])/g, "$1");
+const anchors = [...linkSource.matchAll(/<a\b[^>]*>/gi)].map(match => match[0]);
+assert(!anchors.some(anchor => /href=["']\s*javascript:/i.test(anchor)), "Anchor markup must not use javascript: URLs.");
+for (const anchor of anchors) {
+  if (/target=["']_blank["']/i.test(anchor)) {
+    const rel = anchor.match(/\brel=["']([^"']+)["']/i)?.[1] || "";
+    assert(/\bnoopener\b/i.test(rel) && /\bnoreferrer\b/i.test(rel), "New-tab external links must include rel=noopener noreferrer: " + anchor);
+  }
+}
+
 const requiredScripts = [
   '<script src="./js/fishing.js"></script>',
   '<script src="./js/accommodation.js"></script>',
