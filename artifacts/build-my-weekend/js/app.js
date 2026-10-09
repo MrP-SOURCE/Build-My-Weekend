@@ -715,7 +715,7 @@ function testTripDurationCostScaling() {
   if (fourNights.nights !== 4 || fourNights.durationMultiplier !== 2) throw new Error("Four-night stay should double the weekend non-fuel estimate.");
   if (weekend.additional !== oneNight.additional || weekend.additional !== fourNights.additional) throw new Error("Trip duration must not change the same route's fuel estimate.");
   if (oneNight.accommodation * 2 !== weekend.accommodation || fourNights.accommodation !== weekend.accommodation * 2) throw new Error("Accommodation cost scaling failed.");
-  if (oneNight.spend * 2 !== weekend.spend || fourNights.spend !== weekend.spend * 2) throw new Error("Total estimate scaling failed.");
+  if (round2((oneNight.spend - oneNight.additional) * 2) !== round2(weekend.spend - weekend.additional) || round2(fourNights.spend - fourNights.additional) !== round2((weekend.spend - weekend.additional) * 2)) throw new Error("Non-fuel total estimate scaling failed.");
   const sameDay = calc(destination, { ...base, returnDate: "2026-10-09" });
   if (sameDay.nights !== 1) throw new Error("Same-day trips must use the minimum one-night estimate rather than zero lodging cost.");
   return true;
@@ -830,6 +830,7 @@ function testFishingPriorities() {
 }
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
+  window.testTripDurationCostScaling = testTripDurationCostScaling;
   window.testDateRangeValidation = testDateRangeValidation;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
   window.testSavedSettingsApplication = testSavedSettingsApplication;
