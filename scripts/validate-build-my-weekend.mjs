@@ -121,6 +121,7 @@ assert(appLogic.length > 0, "Could not isolate planner logic for test execution.
 vm.runInContext(appLogic, context);
 assert(context.window.testHermanusCalculation(), "Hermanus budget and fuel calculation failed.");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
+assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
 const plannerScenarios = context.window.testWeekendScenarios();
 assert(plannerScenarios.length >= 8, "Planner scenario coverage is unexpectedly small.");
 assert(plannerScenarios.some(scenario => scenario.scenario.startsWith("Camping")), "Camping Away scenario is missing.");
@@ -128,6 +129,7 @@ const fishingPriorities = context.window.testFishingPriorities();
 assert(fishingPriorities.length === 4, "Fishing priority coverage changed.");
 console.log("Planner calculation tests: PASS");
 console.log("Trip date validation cases: 6 PASS");
+console.log("Saved preference fields: 22 PASS");
 console.log("Planner scenarios:", plannerScenarios.length);
 console.log("Fishing priorities:", fishingPriorities.length);
 
