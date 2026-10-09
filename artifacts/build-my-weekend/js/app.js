@@ -1534,6 +1534,41 @@ function buildPracticalItinerary(destination, settings, cost) {
     ["SUN " + clock(sundayDeparture), "Suggested return departure. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a stop; illustrative arrival back near " + clock(sundayArrival) + ". Leave earlier for longer journeys or if conditions require it."]
   ];
 }
+function activitySuitabilityEvidence(destination, settings) {
+  const type = settings.experience || "Weekend Away";
+  const ideas = (destination.activityIdeas || []).slice(0, 4).join(" · ");
+  const checks = {
+    "Fishing Away": ["Check tide, wind, swell and recent local reports for the exact spot and dates.", "Confirm fishing access, permits and species-specific size, bag and seasonal rules with official sources."],
+    "Hiking Away": ["Verify the named trail, distance, elevation gain, duration and difficulty with the trail operator.", "Confirm trailhead access, fees or permits, weather, daylight and a safe return plan."],
+    "Climbing Away": ["Verify the specific crag and route grade, protection, approach and descent with a trusted route source.", "Confirm landowner permission, current access, equipment requirements and conditions before leaving."],
+    "Camping Away": ["Confirm the exact campsite or glamping property is open and accepts your group on the selected dates.", "Get the full accommodation total, occupancy rules, facilities, check-in/out times and cancellation terms."],
+    "Glamping Away": ["Confirm the exact property's total stay price and availability for your dates and group.", "Check what's included, access road conditions, check-in/out and cancellation terms."],
+    "Beach Away": ["Check current surf, wind, tide, water conditions and any local safety advisories.", "Confirm public access, parking, facilities and whether lifeguards are operating at your chosen beach."],
+    "Cycling Away": ["Verify a suitable route's distance, elevation, surface, traffic exposure and current access.", "Check weather, daylight, bike suitability, repair kit and a safe return option."],
+    "Wildlife Away": ["Confirm reserve opening times, entry fees, booking requirements and current access directly with the operator.", "Wildlife sightings are not guaranteed; check road conditions, permitted activities and gate closing times."],
+    "Family Away": ["Confirm activity age limits, supervision requirements, opening hours and accessibility for your group.", "Check advance booking, total family costs, facilities and a weather alternative."],
+    "Couples Away": ["Confirm accommodation availability, full date-specific pricing and any minimum-stay rules.", "Check activity hours, booking requirements, transport and cancellation terms before paying."],
+    "Road Trip": ["Check road conditions, closures, fuel stops and realistic driving time for the selected dates.", "Allow for rest stops and verify any activity or accommodation that requires advance booking."]
+  };
+  const selectedChecks = checks[type] || ["Compare the listed activity ideas with the group's interests and abilities.", "Confirm opening hours, access, booking requirements and date-specific prices with each provider."];
+  const activityMatch = (destination.categories || []).filter(Boolean).join(", ") || type;
+  const distanceFit = Number(destination.distance) <= Number(settings.maxDistance || Infinity)
+    ? `Listed one-way distance is ${destination.distance} km, within your ${settings.maxDistance || "selected"} km limit.`
+    : `Listed one-way distance is ${destination.distance} km; recheck this against your distance limit.`;
+  const budgetFit = destination.cost && Number.isFinite(Number(destination.cost.remaining))
+    ? (Number(destination.cost.remaining) >= 0 ? `The demonstration estimate leaves ${money(destination.cost.remaining)} from your group budget.` : `The demonstration estimate exceeds your group budget by ${money(Math.abs(destination.cost.remaining))}.`)
+    : "The budget estimate needs confirmation against date-specific prices.";
+  return `<section class="why-matched activity-evidence" aria-labelledby="activity-evidence-title">
+    <h3 id="activity-evidence-title">PRACTICAL SUITABILITY · ${esc(type.toUpperCase())}</h3>
+    <ul>
+      <li><strong>Activity evidence:</strong> this destination is listed for ${esc(activityMatch)}. Ideas currently listed: ${esc(ideas || "No activity-specific ideas listed")}. These are planning cues, not proof of live availability.</li>
+      <li><strong>Distance fit:</strong> ${esc(distanceFit)}</li>
+      <li><strong>Budget fit:</strong> ${esc(budgetFit)} The estimate is illustrative, not a quote.</li>
+      ${selectedChecks.map(item => `<li><strong>Before choosing:</strong> ${esc(item)}</li>`).join("")}
+    </ul>
+    <p class="detail-demo-note">Evidence boundary: the app compares its destination categories, listed activity ideas, distance and demonstration budget. It does not confirm provider availability, live prices, current access, route safety or activity conditions.</p>
+  </section>`;
+}
 function detail(destination, settings) {
   const cost = destination.cost;
   const glampingSelected = settings.experience === "Camping Away" && settings.campingSetup === "Glamping";
@@ -1568,6 +1603,7 @@ function detail(destination, settings) {
       ${glampingSelected ? '<p class="detail-demo-note">Glamping budget warning: the property-specific stay price is not included in this demonstration total. Confirm the full price for your dates and group before deciding affordability.</p>' : ""}
       <div class="detail-range">Typical-cost demonstration range for the group: ${money(cost.lowSpend)}–${money(cost.highSpend)}. No value is a quote.</div>
     </div>
+    ${activitySuitabilityEvidence(destination, settings)}
     <section class="why-matched" aria-labelledby="why-matched-title">
       <h3 id="why-matched-title">WHY THIS MATCHED</h3>
       <ul>${whyMatched(destination, settings).map(reason => `<li>${esc(reason)}</li>`).join("")}</ul>
