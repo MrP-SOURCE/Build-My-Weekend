@@ -392,7 +392,7 @@ function sharedSafetyLinks(destination) {
 
 function sharedTravelCostDisclosure(cost, settings) {
   const creditedFuel = round2(Math.min(cost.consumed, Math.max(0, settings.fuelExisting || 0)));
-  return `TRAVEL COST CHECK — estimated return distance ${cost.returnDistance} km; fuel use ${cost.litres} L at ${settings.consumption} L/100 km; estimated fuel consumed ${money(cost.consumed)}; value of fuel already in tank credited ${money(creditedFuel)}; estimated additional fuel to buy ${money(cost.additional)}. Distance and fuel economy are estimates; confirm your route and vehicle consumption.`;
+  return `TRAVEL COST CHECK — estimated return distance ${cost.returnDistance} km; fuel use ${cost.litres} L at ${settings.consumption} L/100 km; estimated fuel consumed ${money(cost.consumed)}; fuel value already in tank credited ${money(creditedFuel)}; estimated additional fuel to buy ${money(cost.additional)}. Distance and fuel economy are estimates; confirm your route and vehicle consumption.`;
 }
 
 function calc(destination, settings) {
