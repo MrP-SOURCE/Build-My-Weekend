@@ -390,6 +390,11 @@ function sharedSafetyLinks(destination) {
   ].map(([label, kind]) => `${label}: ${localSearchUrl(kind, destination)}`).join("\n");
 }
 
+function sharedTravelCostDisclosure(cost, settings) {
+  const creditedFuel = round2(Math.min(cost.consumed, Math.max(0, settings.fuelExisting || 0)));
+  return `TRAVEL COST CHECK — estimated return distance ${cost.returnDistance} km; fuel use ${cost.litres} L at ${settings.consumption} L/100 km; estimated fuel consumed ${money(cost.consumed)}; value of fuel already in tank credited ${money(creditedFuel)}; estimated additional fuel to buy ${money(cost.additional)}. Distance and fuel economy are estimates; confirm your route and vehicle consumption.`;
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -903,6 +908,13 @@ function testShareSummaryBudgetNextSteps() {
       !overConfidence.includes(`budget ${money(overSettings.budget)}`) ||
       !overConfidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
     throw new Error("Over-budget confidence must disclose the exact budget and estimated range.");
+  }
+  const travelDisclosure = sharedTravelCostDisclosure(cost, { ...base, consumption: 8, fuelExisting: 100 });
+  if (!travelDisclosure.includes(`return distance ${cost.returnDistance} km`) ||
+      !travelDisclosure.includes(`fuel use ${cost.litres} L`) ||
+      !travelDisclosure.includes(`fuel value already in tank credited ${money(Math.min(cost.consumed, 100))}`) ||
+      !travelDisclosure.includes(`additional fuel to buy ${money(cost.additional)}`)) {
+    throw new Error("Shared travel-cost disclosure must show return distance, fuel use, tank credit, and additional fuel spend.");
   }
   const campingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Tent" });
   const glampingNext = shareBudgetNextStep(cost, { ...base, budget: cost.highSpend + 1, experience: "Camping Away", campingSetup: "Glamping" });
@@ -2030,6 +2042,7 @@ function shareText(destination, settings) {
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
     `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.` +
     (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "") +
+    `\n\n${sharedTravelCostDisclosure(cost, settings)}` +
     `\n\nDRIVING ROUTE FROM CAPE TOWN — verify route, traffic and access: ${directionsUrl(destination)}` +
     `\n\nLOCAL SERVICE SEARCHES — map results only; facility availability, opening hours and travel times are not verified:\n${sharedSafetyLinks(destination)}`;
 }
