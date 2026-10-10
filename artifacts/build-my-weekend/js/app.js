@@ -951,10 +951,10 @@ function testShareSummaryBudgetNextSteps() {
   }
   const budgetSplit = sharedBudgetSplit({ ...base, budget: 5000, people: 2 });
   const soloBudgetSplit = sharedBudgetSplit({ ...base, budget: 1500, people: 1 });
-  if (!budgetSplit.includes("R 2,500.00 per person") || !budgetSplit.includes("R 5,000.00 total for 2 people")) {
+  if (!budgetSplit.includes(`${money(2500)} per person`) || !budgetSplit.includes(`${money(5000)} total for 2 people`)) {
     throw new Error("Shared trip must show an even per-person budget split and the full group budget.");
   }
-  if (!soloBudgetSplit.includes("R 1,500.00 per person") || !soloBudgetSplit.includes("for 1 person")) {
+  if (!soloBudgetSplit.includes(`${money(1500)} per person`) || !soloBudgetSplit.includes("for 1 person")) {
     throw new Error("Per-person budget split must handle a solo traveller.");
   }
   const fishingHeading = sharedTripHeading(destination, { ...base, experience: "Fishing Away" }, cost.nights);
