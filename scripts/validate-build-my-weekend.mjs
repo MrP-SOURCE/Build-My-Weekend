@@ -87,9 +87,9 @@ for (const anchor of anchors) {
 }
 
 const requiredScripts = [
-  '<script src="./js/fishing.js"></script>',
-  '<script src="./js/accommodation.js"></script>',
-  '<script src="./js/camping.js"></script>',
+  '<script type="module" src="./js/fishing.js"></script>',
+  '<script type="module" src="./js/accommodation.js"></script>',
+  '<script type="module" src="./js/camping.js"></script>',
   '<script type="module" src="./js/app.js"></script>'
 ];
 for (const scriptTag of requiredScripts) {
