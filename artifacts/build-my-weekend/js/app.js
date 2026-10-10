@@ -395,6 +395,33 @@ function sharedTravelCostDisclosure(cost, settings) {
   return `TRAVEL COST CHECK — estimated return distance ${cost.returnDistance} km; fuel use ${cost.litres} L at ${settings.consumption} L/100 km; estimated fuel consumed ${money(cost.consumed)}; fuel value already in tank credited ${money(creditedFuel)}; estimated additional fuel to buy ${money(cost.additional)}. Distance and fuel economy are estimates; confirm your route and vehicle consumption.`;
 }
 
+function sharedPreDepartureChecks(settings) {
+  const checks = [
+    "Confirm booking, final group price, check-in times and cancellation terms.",
+    "Check the forecast and road conditions again before leaving.",
+    "Save the route offline, confirm phone charge and carry essential documents and prescribed medication."
+  ];
+  const experience = settings.experience || "Any";
+  if (experience === "Fishing Away") {
+    checks.push("Verify current tide, wind, swell, legal access, permits and species limits for the exact fishing spot.");
+  } else if (experience === "Hiking Away" || experience === "Climbing Away") {
+    checks.push("Confirm trail or crag access, difficulty, daylight window, water, suitable footwear and current safety notices.");
+  } else if (experience === "Cycling Away") {
+    checks.push("Check brakes, tyres, helmet, lights, repair kit and route suitability before departure.");
+  } else if (experience === "Camping Away") {
+    checks.push("Confirm campsite or glamping fees, facilities, check-in rules, fire restrictions and required equipment.");
+  } else if (experience === "Beach Away") {
+    checks.push("Check current sea conditions, tides, lifeguard availability and beach access; never assume swimming is safe.");
+  } else if (experience === "Wildlife Away") {
+    checks.push("Confirm gate times, permits or entry fees, road suitability and animal-viewing rules.");
+  } else if (experience === "Family Away") {
+    checks.push("Confirm child-friendly access, age or height restrictions, meal needs and any essential personal supplies.");
+  } else if (experience === "Road Trip Away") {
+    checks.push("Check tyres, spare wheel, fluids, fuel range, roadside assistance and planned rest stops.");
+  }
+  return "PRE-DEPARTURE CHECKS — confirm before travelling:\n- " + checks.join("\n- ");
+}
+
 function calc(destination, settings) {
   const returnDistance = destination.distance * 2;
   const litres = returnDistance * settings.consumption / 100;
@@ -908,6 +935,14 @@ function testShareSummaryBudgetNextSteps() {
       !overConfidence.includes(`budget ${money(overSettings.budget)}`) ||
       !overConfidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
     throw new Error("Over-budget confidence must disclose the exact budget and estimated range.");
+  }
+  const fishingChecks = sharedPreDepartureChecks({ experience: "Fishing Away" });
+  const campingChecks = sharedPreDepartureChecks({ experience: "Camping Away" });
+  if (!fishingChecks.includes("tide, wind, swell") || !fishingChecks.includes("permits and species limits")) {
+    throw new Error("Fishing share checklist must prompt users to verify conditions, access and current rules.");
+  }
+  if (!campingChecks.includes("campsite or glamping fees") || !campingChecks.includes("fire restrictions")) {
+    throw new Error("Camping share checklist must prompt users to confirm fees, facilities and fire rules.");
   }
   const travelDisclosure = sharedTravelCostDisclosure(cost, { ...base, consumption: 8, fuelExisting: 100 });
   if (!travelDisclosure.includes(`return distance ${cost.returnDistance} km`) ||
@@ -2042,6 +2077,7 @@ function shareText(destination, settings) {
     `Fuel consumed ${money(cost.consumed)}; additional fuel to buy ${money(cost.additional)}. Accommodation ${money(cost.accommodation)}, food ${money(cost.food)}, activities ${money(cost.activities)}.\n` +
     `${money(cost.remaining)} ${glampingSelected ? "typical amount left before glamping stay price" : campingSelected ? "typical amount left before campsite/site fee" : "typical amount left in the group budget"}. Distances, costs, routes and facilities are not live or verified.` +
     (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "") +
+    `\n\n${sharedPreDepartureChecks(settings)}` +
     `\n\n${sharedTravelCostDisclosure(cost, settings)}` +
     `\n\nDRIVING ROUTE FROM CAPE TOWN — verify route, traffic and access: ${directionsUrl(destination)}` +
     `\n\nLOCAL SERVICE SEARCHES — map results only; facility availability, opening hours and travel times are not verified:\n${sharedSafetyLinks(destination)}`;
