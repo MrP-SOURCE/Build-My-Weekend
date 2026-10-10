@@ -395,14 +395,17 @@ function sharedTravelCostDisclosure(cost, settings) {
   return `TRAVEL COST CHECK — estimated return distance ${cost.returnDistance} km; fuel use ${cost.litres} L at ${settings.consumption} L/100 km; estimated fuel consumed ${money(cost.consumed)}; fuel value already in tank credited ${money(creditedFuel)}; estimated additional fuel to buy ${money(cost.additional)}. Distance and fuel economy are estimates; confirm your route and vehicle consumption.`;
 }
 
-function sharedTripHeading(destination, settings) {
+function sharedTripHeading(destination, settings, nights) {
   const experience = settings.experience && settings.experience !== "Any" && settings.experience !== "Surprise Me"
     ? settings.experience
     : "Weekend getaway";
   const setup = settings.experience === "Camping Away" && settings.campingSetup
     ? ` — ${settings.campingSetup}`
     : "";
-  return `Weekend idea: ${destination.name} · ${experience}${setup} · ${dateSpan(settings)} · ${settings.people} ${settings.people === 1 ? "person" : "people"}`;
+  const duration = Number.isFinite(nights) && nights > 0
+    ? `${nights} ${nights === 1 ? "night" : "nights"}`
+    : "day trip";
+  return `Weekend idea: ${destination.name} · ${experience}${setup} · ${dateSpan(settings)} · ${duration} · ${settings.people} ${settings.people === 1 ? "person" : "people"}`;
 }
 
 function sharedPreDepartureChecks(settings) {
@@ -946,10 +949,10 @@ function testShareSummaryBudgetNextSteps() {
       !overConfidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
     throw new Error("Over-budget confidence must disclose the exact budget and estimated range.");
   }
-  const fishingHeading = sharedTripHeading(destination, { ...base, experience: "Fishing Away" });
-  const glampingHeading = sharedTripHeading(destination, { ...base, experience: "Camping Away", campingSetup: "Glamping" });
-  if (!fishingHeading.includes("Fishing Away") || !fishingHeading.includes("2 people")) {
-    throw new Error("Shared trip heading must identify the selected experience and group size.");
+  const fishingHeading = sharedTripHeading(destination, { ...base, experience: "Fishing Away" }, cost.nights);
+  const glampingHeading = sharedTripHeading(destination, { ...base, experience: "Camping Away", campingSetup: "Glamping" }, cost.nights);
+  if (!fishingHeading.includes("Fishing Away") || !fishingHeading.includes("2 nights") || !fishingHeading.includes("2 people")) {
+    throw new Error("Shared trip heading must identify the selected experience, duration and group size.");
   }
   if (!glampingHeading.includes("Camping Away — Glamping")) {
     throw new Error("Shared camping trip heading must identify the selected camping setup.");
@@ -2087,7 +2090,7 @@ function shareText(destination, settings) {
   const glampingSelected = campingSelected && settings.campingSetup === "Glamping";
   const budgetConfidence = shareBudgetConfidence(cost, settings);
   const budgetNextStep = shareBudgetNextStep(cost, settings);
-  return `${sharedTripHeading(destination, settings)}\n` +
+  return `${sharedTripHeading(destination, settings, cost.nights)}\n` +
     `${budgetConfidence}\n${budgetNextStep}\n` +
     (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — budget remainder is before the stay price; check the full property price.\n" : campingSelected ? "CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED — budget remainder is before this fee; confirm full cost for the group and dates.\n" : "") +
     (cost.highSpend > settings.budget ? `${glampingSelected || campingSelected ? "UPPER BASE ESTIMATE" : "UPPER DEMONSTRATION ESTIMATE"} EXCEEDS GROUP BUDGET BY ${money(round2(cost.highSpend - settings.budget))}${glampingSelected ? " BEFORE GLAMPING STAY PRICE" : campingSelected ? " BEFORE CAMPSITE/SITE FEE" : ""}.\n` : "") +
