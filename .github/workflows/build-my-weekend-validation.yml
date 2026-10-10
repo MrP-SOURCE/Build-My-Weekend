@@ -53,5 +53,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build production web app
         run: pnpm --filter @workspace/build-my-weekend build
+      - name: Verify production artifact contents
+        run: node scripts/validate-build-my-weekend-production.mjs
       - name: Type-check production web app
         run: pnpm --filter @workspace/build-my-weekend typecheck
