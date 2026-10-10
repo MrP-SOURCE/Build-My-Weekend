@@ -949,6 +949,14 @@ function testShareSummaryBudgetNextSteps() {
       !overConfidence.includes(`range ${money(cost.lowSpend)}–${money(cost.highSpend)}`)) {
     throw new Error("Over-budget confidence must disclose the exact budget and estimated range.");
   }
+  const budgetSplit = sharedBudgetSplit({ ...base, budget: 5000, people: 2 });
+  const soloBudgetSplit = sharedBudgetSplit({ ...base, budget: 1500, people: 1 });
+  if (!budgetSplit.includes(`${money(2500)} per person`) || !budgetSplit.includes(`${money(5000)} total for 2 people`)) {
+    throw new Error("Shared trip must show an even per-person budget split and the full group budget.");
+  }
+  if (!soloBudgetSplit.includes(`${money(1500)} per person`) || !soloBudgetSplit.includes("for 1 person")) {
+    throw new Error("Per-person budget split must handle a solo traveller.");
+  }
   const fishingHeading = sharedTripHeading(destination, { ...base, experience: "Fishing Away" }, cost.nights);
   const glampingHeading = sharedTripHeading(destination, { ...base, experience: "Camping Away", campingSetup: "Glamping" }, cost.nights);
   if (!fishingHeading.includes("Fishing Away") || !fishingHeading.includes("2 nights") || !fishingHeading.includes("2 people")) {
@@ -1239,6 +1247,11 @@ function budgetRangeWarning(cost, settings, campingSelected = false, glampingSel
   return `<p class="card-range-warning">${label} is ${excess} over your group budget${caveat}</p>`;
 }
 
+
+function sharedBudgetSplit(settings) {
+  const people = Math.max(1, Number(settings.people) || 1);
+  return `GROUP BUDGET SPLIT: ${money(round2(settings.budget / people))} per person based on ${money(settings.budget)} total for ${people} ${people === 1 ? "person" : "people"}; actual contributions can differ.`;
+}
 
 function shareBudgetConfidence(cost, settings) {
   const budgetRange = `${money(cost.lowSpend)}–${money(cost.highSpend)}`;
@@ -2091,7 +2104,7 @@ function shareText(destination, settings) {
   const budgetConfidence = shareBudgetConfidence(cost, settings);
   const budgetNextStep = shareBudgetNextStep(cost, settings);
   return `${sharedTripHeading(destination, settings, cost.nights)}\n` +
-    `${budgetConfidence}\n${budgetNextStep}\n` +
+    `${budgetConfidence}\n${sharedBudgetSplit(settings)}\n${budgetNextStep}\n` +
     (glampingSelected ? "GLAMPING STAY PRICE NOT INCLUDED IN ESTIMATE — budget remainder is before the stay price; check the full property price.\n" : campingSelected ? "CAMPSITE/SITE FEE NOT VERIFIED OR INCLUDED — budget remainder is before this fee; confirm full cost for the group and dates.\n" : "") +
     (cost.highSpend > settings.budget ? `${glampingSelected || campingSelected ? "UPPER BASE ESTIMATE" : "UPPER DEMONSTRATION ESTIMATE"} EXCEEDS GROUP BUDGET BY ${money(round2(cost.highSpend - settings.budget))}${glampingSelected ? " BEFORE GLAMPING STAY PRICE" : campingSelected ? " BEFORE CAMPSITE/SITE FEE" : ""}.\n` : "") +
     `Demonstration estimates only — estimated new spend ${money(cost.spend)} (${money(cost.perPerson)} per person), low-to-high group range ${money(cost.lowSpend)}–${money(cost.highSpend)}. This subtracts fuel already in the vehicle from the amount still to buy; confirm real prices and add missing costs.\n` +
