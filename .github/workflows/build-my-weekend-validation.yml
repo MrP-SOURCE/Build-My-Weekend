@@ -34,3 +34,24 @@ jobs:
           node-version: 24
       - name: Run structural smoke test
         run: node scripts/validate-build-my-weekend.mjs
+
+  production-build:
+    runs-on: ubuntu-latest
+    env:
+      PORT: 5000
+      BASE_PATH: /Build-My-Weekend/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build production web app
+        run: pnpm --filter @workspace/build-my-weekend build
+      - name: Type-check production web app
+        run: pnpm --filter @workspace/build-my-weekend typecheck
