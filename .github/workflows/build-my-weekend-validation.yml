@@ -37,6 +37,9 @@ jobs:
 
   production-build:
     runs-on: ubuntu-latest
+    env:
+      PORT: 5000
+      BASE_PATH: /Build-My-Weekend/
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
