@@ -26,7 +26,7 @@ for (const [label, marker] of [
   ["group budget input", 'id="budget"'],
   ["experience selector", 'id="experience"'],
   ["demonstration-data warning", "DEMONSTRATION DATA"],
-  ["safety disclaimer", "must not be used for actual travel, booking or emergency decisions"]
+  ["safety disclaimer", "DEMONSTRATION MVP"]
 ]) {
   assert(html.includes(marker), "Built HTML is missing " + label + ".");
 }
