@@ -93,6 +93,32 @@ const { chromium } = require("playwright");
     await page.locator("#live-weather .weather-day").first().waitFor({ timeout: 10000 });
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
     assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
+
+    // Exercise stay-search focus, external route hand-off and share-summary contents without leaving the test browser.
+    await page.evaluate(() => {
+      window.__bmwSharedPayload = null;
+      window.__bmwOpenedUrl = null;
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async payload => { window.__bmwSharedPayload = payload; }
+      });
+      window.open = url => { window.__bmwOpenedUrl = url; return null; };
+    });
+    await page.locator('[data-testid="availability-button"]').click();
+    const focusedStayLink = await page.evaluate(() => ({
+      href: document.activeElement?.href || "",
+      label: document.activeElement?.innerText || ""
+    }));
+    assert(focusedStayLink.href.includes("booking.com"), "Find Stay Options did not focus the first accommodation search link.");
+    await page.locator('[data-testid="navigate-button"]').click();
+    const openedRoute = await page.evaluate(() => window.__bmwOpenedUrl);
+    assert(openedRoute && openedRoute.includes("google.com/maps/dir"), "Navigate did not hand off to a Google Maps driving route.");
+    await page.locator('[data-testid="detail-share-button"]').click();
+    const sharedPayload = await page.evaluate(() => window.__bmwSharedPayload);
+    assert(sharedPayload && sharedPayload.title.includes("Weekend in"), "Share Trip did not invoke the native share hand-off.");
+    assert(sharedPayload.text.includes("Demonstration estimates only"), "Shared trip summary is missing the estimate disclosure.");
+    assert(sharedPayload.text.includes("STAY SEARCH LINKS"), "Shared trip summary is missing accommodation research links.");
+    assert(sharedPayload.text.toLowerCase().includes("additional fuel to buy"), "Shared trip summary is missing its fuel breakdown.");
     await page.locator("#trip-dialog .dialog-close").click();
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close.");
 
@@ -129,7 +155,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified invalid input rejection, saved planner preferences after reload, successful weather rendering and failure fallback, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
+    console.log("Verified invalid input rejection, saved planner preferences after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
   } finally {
     await browser.close();
   }
