@@ -59,16 +59,43 @@ const { chromium } = require("playwright");
     assert((await page.locator("#results-summary").innerText()).includes("possible destination"), "Submitting the planner did not produce a results summary.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Fishing plan returned no destination cards.");
 
-    // Simulate the live forecast provider being unreachable and verify the safe fallback.
-    await page.route("https://api.open-meteo.com/**", route => route.abort());
+    // Use a deterministic forecast fixture to test the successful weather-rendering path.
+    const forecastDates = [...new Set([
+      await page.locator("#depart").inputValue(),
+      await page.locator("#return").inputValue()
+    ])];
+    await page.route("https://api.open-meteo.com/**", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        daily: {
+          time: forecastDates,
+          weather_code: forecastDates.map(() => 1),
+          temperature_2m_max: forecastDates.map(() => 22),
+          temperature_2m_min: forecastDates.map(() => 14),
+          precipitation_probability_max: forecastDates.map(() => 10),
+          wind_speed_10m_max: forecastDates.map(() => 18)
+        }
+      })
+    }));
     await page.locator('#recommendations button[data-action="view"]').first().click();
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), true, "Destination detail dialog did not open.");
     assert((await page.locator("#dialog-content").innerText()).includes("DEMONSTRATION DATA"), "Destination detail is missing its demonstration-data warning.");
     assert((await page.locator("#dialog-content").innerText()).includes("Additional fuel to buy"), "Destination detail is missing the fuel breakdown.");
+    await page.locator("#live-weather .weather-day").first().waitFor({ timeout: 10000 });
+    assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
+    assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
+    await page.locator("#trip-dialog .dialog-close").click();
+    assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close.");
+
+    // Simulate the forecast provider being unreachable and verify the safe fallback.
+    await page.unroute("https://api.open-meteo.com/**");
+    await page.route("https://api.open-meteo.com/**", route => route.abort());
+    await page.locator('#recommendations button[data-action="view"]').first().click();
     await page.locator("#live-weather").getByText("LIVE WEATHER TEMPORARILY UNAVAILABLE").waitFor({ timeout: 10000 });
     assert((await page.locator("#live-weather").innerText()).includes("Check an official weather service"), "Weather failure did not show safe fallback guidance.");
     await page.locator("#trip-dialog .dialog-close").click();
-    assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close.");
+    assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close after weather failure.");
 
     await page.locator("#experience").selectOption({ label: "Camping Away" });
     assert.equal(await page.locator("#camping-controls").isVisible(), true, "Camping preferences did not appear.");
@@ -94,7 +121,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified invalid input rejection, weather-provider failure fallback, initial render, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
+    console.log("Verified invalid input rejection, successful weather rendering and failure fallback, initial render, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
   } finally {
     await browser.close();
   }
