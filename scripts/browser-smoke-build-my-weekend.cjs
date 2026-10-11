@@ -150,6 +150,18 @@ const { chromium } = require("playwright");
     await page.locator("#trip-form button[type=submit]").click();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Camping plan returned no destination cards.");
 
+    // Verify a restrictive search explains no matches and the recovery action widens the search.
+    await page.locator("#budget").fill("3000");
+    await page.locator("#experience").selectOption({ label: "Hiking Away" });
+    await page.locator('input[name="distance"][value="50"]').check();
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#no-results").isVisible(), true, "An impossible activity/distance combination did not show the no-results guidance.");
+    await page.locator("#reset-filters").click();
+    assert.equal(await page.locator("#experience").inputValue(), "Any", "Widen the Search did not reset the activity filter.");
+    assert.equal(await page.locator('input[name="distance"][value="any"]').isChecked(), true, "Widen the Search did not clear the distance limit.");
+    assert.equal(await page.locator("#no-results").isVisible(), false, "Widen the Search did not restore available destination cards.");
+    assert(await page.locator("#recommendations .trip-card").count() > 0, "Widen the Search returned no destination cards.");
+
     // Re-check the production page at a common phone viewport.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: "networkidle" });
@@ -167,7 +179,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified invalid budget, group size, fuel and date rejection with recovery, saved planner preferences after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, activity switching, camping preferences and mobile layout.");
+    console.log("Verified invalid budget, group size, fuel and date rejection with recovery, saved planner preferences after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, activity switching, camping preferences, no-results recovery and mobile layout.");
   } finally {
     await browser.close();
   }
