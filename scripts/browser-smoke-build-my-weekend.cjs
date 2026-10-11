@@ -42,6 +42,7 @@ const { chromium } = require("playwright");
 
     await page.locator("#consumption").fill("8");
     const validDeparture = await page.locator("#depart").inputValue();
+    const validReturn = await page.locator("#return").inputValue();
     await page.locator("#depart").fill("2020-01-01");
     await page.locator("#trip-form button[type=submit]").click();
     assert.equal(await page.locator("#depart").getAttribute("aria-invalid"), "true", "A past departure date was not rejected.");
@@ -49,6 +50,17 @@ const { chromium } = require("playwright");
     await page.locator("#depart").fill(validDeparture);
     await page.locator("#trip-form button[type=submit]").click();
     assert.equal(await page.locator("#depart").getAttribute("aria-invalid"), null, "A valid departure date did not clear the validation error.");
+
+    // Reject a return date earlier than departure, then recover when the dates are corrected.
+    const invalidReturn = new Date(validDeparture + "T12:00:00Z");
+    invalidReturn.setUTCDate(invalidReturn.getUTCDate() - 1);
+    await page.locator("#return").fill(invalidReturn.toISOString().slice(0, 10));
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#return").getAttribute("aria-invalid"), "true", "A return date before departure was not rejected.");
+    assert((await page.locator("#return-error").innerText()).includes("on or after departure"), "Return-date validation message is missing.");
+    await page.locator("#return").fill(validReturn);
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#return").getAttribute("aria-invalid"), null, "A valid return date did not clear the validation error.");
 
     await page.locator("#budget").fill("3000");
     await page.locator("#people").fill("4");
@@ -155,7 +167,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified invalid input rejection, saved planner preferences after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
+    console.log("Verified invalid budget, group size, fuel and date rejection with recovery, saved planner preferences after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, activity switching, camping preferences and mobile layout.");
   } finally {
     await browser.close();
   }
