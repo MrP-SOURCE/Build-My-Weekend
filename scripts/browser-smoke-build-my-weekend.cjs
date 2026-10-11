@@ -59,6 +59,14 @@ const { chromium } = require("playwright");
     assert((await page.locator("#results-summary").innerText()).includes("possible destination"), "Submitting the planner did not produce a results summary.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Fishing plan returned no destination cards.");
 
+    // Confirm that a successful plan persists the user's planner preferences across reloads.
+    await page.reload({ waitUntil: "networkidle" });
+    assert.equal(await page.locator("#budget").inputValue(), "3000", "Budget preference was not restored after reload.");
+    assert.equal(await page.locator("#people").inputValue(), "4", "Group size was not restored after reload.");
+    assert.equal(await page.locator("#experience").inputValue(), "Fishing Away", "Weekend type was not restored after reload.");
+    assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Restored fishing preference did not restore its controls.");
+    assert(await page.locator("#recommendations .trip-card").count() > 0, "Restored planner settings did not produce destination cards.");
+
     // Use a deterministic forecast fixture to test the successful weather-rendering path.
     const forecastDates = [...new Set([
       await page.locator("#depart").inputValue(),
@@ -121,7 +129,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified invalid input rejection, successful weather rendering and failure fallback, initial render, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
+    console.log("Verified invalid input rejection, saved planner preferences after reload, successful weather rendering and failure fallback, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
   } finally {
     await browser.close();
   }
