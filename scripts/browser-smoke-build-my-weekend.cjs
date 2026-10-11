@@ -45,10 +45,24 @@ const { chromium } = require("playwright");
     await page.locator("#trip-form button[type=submit]").click();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Camping plan returned no destination cards.");
 
+    // Re-check the production page at a common phone viewport.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator("#trip-form").waitFor();
+    assert(await page.locator("#budget").isVisible(), "Budget input is not visible on mobile.");
+    assert(await page.locator("#experience").isVisible(), "Weekend type selector is not visible on mobile.");
+    assert(await page.locator("#recommendations .trip-card").count() > 0, "Destination cards did not render on mobile.");
+    const mobileLayout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth
+    }));
+    assert(mobileLayout.documentWidth <= mobileLayout.viewportWidth + 1,
+      "Mobile layout has horizontal overflow: " + JSON.stringify(mobileLayout));
+
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified initial render, budget/group input, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching and camping preferences.");
+    console.log("Verified initial render, budget/group input, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
   } finally {
     await browser.close();
   }
