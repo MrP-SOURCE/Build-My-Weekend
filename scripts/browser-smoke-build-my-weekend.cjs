@@ -22,6 +22,34 @@ const { chromium } = require("playwright");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
 
+    // Reject invalid inputs in the real browser before producing a plan.
+    await page.locator("#budget").fill("0");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#budget").getAttribute("aria-invalid"), "true", "Zero budget was not rejected.");
+    assert((await page.locator("#budget-error").innerText()).includes("greater than R0"), "Budget validation message is missing.");
+
+    await page.locator("#budget").fill("3000");
+    await page.locator("#people").fill("11");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#people").getAttribute("aria-invalid"), "true", "Group size above 10 was not rejected.");
+    assert((await page.locator("#people-error").innerText()).includes("between 1 and 10"), "Group-size validation message is missing.");
+
+    await page.locator("#people").fill("4");
+    await page.locator("#consumption").fill("0");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#consumption").getAttribute("aria-invalid"), "true", "Zero fuel consumption was not rejected.");
+    assert((await page.locator("#consumption-error").innerText()).includes("greater than 0"), "Fuel-consumption validation message is missing.");
+
+    await page.locator("#consumption").fill("8");
+    const validDeparture = await page.locator("#depart").inputValue();
+    await page.locator("#depart").fill("2020-01-01");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#depart").getAttribute("aria-invalid"), "true", "A past departure date was not rejected.");
+    assert((await page.locator("#depart-error").innerText()).includes("today or a future"), "Departure-date validation message is missing.");
+    await page.locator("#depart").fill(validDeparture);
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#depart").getAttribute("aria-invalid"), null, "A valid departure date did not clear the validation error.");
+
     await page.locator("#budget").fill("3000");
     await page.locator("#people").fill("4");
     await page.locator("#experience").selectOption({ label: "Fishing Away" });
@@ -62,7 +90,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified initial render, budget/group input, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
+    console.log("Verified invalid budget, group size, fuel consumption and past-date rejection; initial render, fishing controls, recommendations, detail dialog, fuel breakdown, activity switching, camping preferences and mobile layout.");
   } finally {
     await browser.close();
   }
