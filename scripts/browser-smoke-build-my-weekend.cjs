@@ -152,8 +152,8 @@ const { chromium } = require("playwright");
 
     // Verify a restrictive search explains no matches and the recovery action widens the search.
     await page.locator("#budget").fill("3000");
-    await page.locator("#experience").selectOption({ label: "Hiking Away" });
-    await page.locator('input[name="distance"][value="50"]').check();
+    await page.locator("#experience").selectOption({ label: "Climbing Away" });
+    await page.locator('input[name="distance"][value="100"]').check();
     await page.locator("#trip-form button[type=submit]").click();
     assert.equal(await page.locator("#no-results").isVisible(), true, "An impossible activity/distance combination did not show the no-results guidance.");
     await page.locator("#reset-filters").click();
