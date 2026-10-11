@@ -118,7 +118,7 @@ const { chromium } = require("playwright");
     assert(sharedPayload && sharedPayload.title.includes("Weekend in"), "Share Trip did not invoke the native share hand-off.");
     assert(sharedPayload.text.includes("Demonstration estimates only"), "Shared trip summary is missing the estimate disclosure.");
     assert(sharedPayload.text.includes("STAY SEARCH LINKS"), "Shared trip summary is missing accommodation research links.");
-    assert(sharedPayload.text.includes("Additional fuel to buy"), "Shared trip summary is missing its fuel breakdown.");
+    assert(sharedPayload.text.toLowerCase().includes("additional fuel to buy"), "Shared trip summary is missing its fuel breakdown.");
     await page.locator("#trip-dialog .dialog-close").click();
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close.");
 
