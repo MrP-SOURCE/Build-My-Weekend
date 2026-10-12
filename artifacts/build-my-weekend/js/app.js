@@ -2378,6 +2378,7 @@ function resetPlannerToDefaults() {
   document.querySelector("#result-count").textContent = "READY TO PLAN";
   document.querySelector("#results-summary").textContent =
     "Your planner has been reset. Choose your preferences and build a new weekend.";
+  render();
 }
 document.querySelector("#reset-filters").addEventListener("click", resetPlannerToDefaults);
 
