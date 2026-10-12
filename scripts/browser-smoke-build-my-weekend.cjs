@@ -8,6 +8,33 @@ const { chromium } = require("playwright");
   const failedLocalAssets = [];
 
   page.on("pageerror", error => pageErrors.push(error.message));
+  // Keep CI deterministic while exercising the real planner's route-response handling.
+  await page.route("https://go.build-my-weekend.workers.dev/**", async route => {
+    if (route.request().method() === "OPTIONS") {
+      return route.fulfill({ status: 204, headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, POST, OPTIONS",
+        "access-control-allow-headers": "Content-Type"
+      }});
+    }
+    if (new URL(route.request().url()).pathname === "/api/route") {
+      const body = route.request().postDataJSON();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: JSON.stringify({
+          origin: body.origin,
+          destination: body.destination,
+          distanceKmOneWay: 45,
+          driveMinutesOneWay: 39,
+          source: "TomTom Routing API",
+          disclaimer: "Deterministic route fixture for browser testing."
+        })
+      });
+    }
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "ok" }) });
+  });
   page.on("requestfailed", request => {
     if (new URL(request.url()).origin === new URL(process.env.BMW_BASE_URL).origin) {
       failedLocalAssets.push(request.url() + " — " + (request.failure()?.errorText || "request failed"));
@@ -21,7 +48,8 @@ const { chromium } = require("playwright");
     await page.locator("#trip-form").waitFor();
     const originScope = page.locator('.origin-scope-note');
     assert(await originScope.isVisible(), "Cape Town pilot origin limitation is not visible before planning.");
-    assert((await originScope.innerText()).includes("cannot yet be changed"), "Origin disclosure does not explain that other departure areas are unsupported.");
+    assert((await originScope.innerText()).includes("not a nationwide destination directory"), "Origin disclosure does not explain the Western Cape destination-catalogue limit.");
+    assert(await page.locator("#origin").inputValue() === "Cape Town, South Africa", "Default departure location is missing.");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
 
@@ -71,7 +99,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Fishing controls did not appear.");
     await page.locator("#trip-form button[type=submit]").click();
     await page.locator("#results-summary").waitFor();
-    assert((await page.locator("#results-summary").innerText()).includes("possible destination"), "Submitting the planner did not produce a results summary.");
+    assert((await page.locator("#results-summary").innerText()).includes("route-verified destination"), "Submitting the planner did not produce a route-verified results summary.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Fishing plan returned no destination cards.");
 
     // Confirm that a successful plan persists the user's planner preferences across reloads.
@@ -122,7 +150,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), true, "Destination detail dialog did not open.");
     assert((await page.locator("#dialog-content").innerText()).includes("DEMONSTRATION DATA"), "Destination detail is missing its demonstration-data warning.");
     assert((await page.locator("#dialog-content").innerText()).includes("Additional fuel to buy"), "Destination detail is missing the fuel breakdown.");
-    assert((await page.locator("#dialog-content").innerText()).includes("km one way from Cape Town"), "Destination detail does not disclose the Cape Town basis for distance.");
+    assert((await page.locator("#dialog-content").innerText()).includes("km one way from Cape Town, South Africa"), "Destination detail does not show the selected departure origin.");
     await page.locator("#live-weather .weather-day").first().waitFor({ timeout: 10000 });
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
     assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
