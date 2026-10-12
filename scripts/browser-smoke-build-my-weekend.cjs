@@ -126,6 +126,10 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fresh planner load should not retain the previous fishing selection.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Restored planner settings did not produce destination cards.");
 
+    // Specialist controls are hidden for the default activity; switch to Fishing Away before testing them.
+    await page.locator("#experience").selectOption({ label: "Fishing Away" });
+    assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Fishing controls did not appear after selecting Fishing Away.");
+
     // Incompatible fishing requirements must not fall back to a misleading spot.
     await page.locator("#fishing-style").selectOption("Estuary");
     await page.locator("#target-species").selectOption("Galjoen");
