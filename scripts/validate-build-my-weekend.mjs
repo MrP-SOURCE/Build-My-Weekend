@@ -124,7 +124,7 @@ for (const marker of [
   "accommodationSummary(destination, settings)",
   'fishingStyle: settings.fishingStyle',
   '["fishingStyle", "fishing-style"]',
-  'form.elements.experience.dispatchEvent(new Event("change"',
+  'field.dispatchEvent(new Event("change", { bubbles: true }))',
   "Check tide times",
   "wind swell forecast",
   "recent fishing reports",
