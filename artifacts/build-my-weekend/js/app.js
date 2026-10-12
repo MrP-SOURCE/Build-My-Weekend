@@ -500,7 +500,7 @@ function valueScore(destination, settings) {
   return budgetShareLeft * 0.42 + experienceFit * 0.38 + distanceFit * 0.20;
 }
 
-function findCandidates(settings) {
+function findCandidates(settings, options = {}) {
   const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
   return destinations
     .map(destination => {
@@ -514,8 +514,8 @@ function findCandidates(settings) {
       return candidate;
     })
     .filter(destination =>
-      destination.cost.remaining >= 0 &&
-      destination.distance <= distanceLimit &&
+      (options.preRoute || destination.cost.remaining >= 0) &&
+      (options.preRoute || destination.distance <= distanceLimit) &&
       (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
       (settings.experience !== "Beach Away" || destination.categories.includes("Beach")) &&
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
@@ -1858,7 +1858,7 @@ async function render() {
   document.querySelector("#results-summary").textContent =
     "Checking real driving routes for a limited shortlist. The destination catalogue is still a Western Cape pilot.";
   document.querySelector("#result-count").textContent = "CHECKING ROUTES…";
-  const preliminary = findCandidates({ ...settings, distance: "any" });
+  const preliminary = findCandidates({ ...settings, distance: "any" }, { preRoute: true });
   const candidates = await addVerifiedRoutes(preliminary, settings);
   latestRoutedCandidates = candidates;
   const shortlist = buildShortlist(candidates, settings);
