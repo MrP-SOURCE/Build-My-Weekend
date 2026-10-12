@@ -18,7 +18,8 @@ const { chromium } = require("playwright");
         "access-control-allow-headers": "Content-Type"
       }});
     }
-    if (new URL(route.request().url()).pathname === "/api/route") {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/api/route") {
       if (simulateRoutingOutage) {
         return route.fulfill({
           status: 503,
@@ -39,6 +40,25 @@ const { chromium } = require("playwright");
           driveMinutesOneWay: 39,
           source: "TomTom Routing API",
           disclaimer: "Deterministic route fixture for browser testing."
+        })
+      });
+    }
+    if (pathname === "/api/shoreline-topography") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: JSON.stringify({
+          schema_version: "1.0", count: 1, disclaimer: "Demo data only.",
+          regions: [{
+            id: "false-bay", destination: "False Bay", province: "Western Cape",
+            shoreline_length_km: 120, data_status: "DEMO_REGIONAL_REFERENCE",
+            bounding_box: { min_lat: -34.35, max_lat: -33.95, min_lon: 18.35, max_lon: 19.15 },
+            topography_description: "Fixture topography description.",
+            hotspot_features: [{ name: "Rocky points", feature: "reef edge", status: "not verified" }],
+            map_reading_instruction: "Read official chart contours and restrictions.",
+            accumulating_fish: [{ species: "Yellowtail", habitat: "offshore", evidence: "illustrative only" }]
+          }]
         })
       });
     }
@@ -348,9 +368,23 @@ const { chromium } = require("playwright");
     assert(mobileLayout.documentWidth <= mobileLayout.viewportWidth + 1,
       "Mobile layout has horizontal overflow: " + JSON.stringify(mobileLayout));
 
+    // Exercise the standalone shoreline topography page with a deterministic API fixture.
+    const explorerUrl = new URL("shoreline-explorer.html", process.env.BMW_BASE_URL || "http://127.0.0.1:4173/Build-My-Weekend/").toString();
+    const explorerResponse = await page.goto(explorerUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    assert(explorerResponse && explorerResponse.ok(), "Shoreline Explorer page did not return a successful HTTP response.");
+    await page.locator("#search-form").waitFor();
+    await page.locator(".region-card").waitFor({ timeout: 10000 });
+    assert((await page.locator(".region-card").innerText()).includes("False Bay"), "Shoreline Explorer did not render the region card.");
+    assert((await page.locator(".region-card").innerText()).includes("Yellowtail"), "Shoreline Explorer did not render the fish-habitat reference.");
+    assert((await page.locator(".region-card").innerText()).includes("Fixture topography description."), "Shoreline Explorer did not render topography details.");
+    await page.locator("#shoreline-length").fill("200");
+    await page.locator("#search-form button[type=submit]").click();
+    await page.locator("#status").waitFor();
+    assert((await page.locator("#status").innerText()).includes("1 regional reference card"), "Shoreline Explorer filter interaction did not run.");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
+    console.log("Verified planner recovery, saved fuel settings, mobile layout and shoreline explorer map cards/filter interaction.");
     console.log("Verified invalid budget, group size, fuel and date rejection with recovery, clean default planner state after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, activity switching, camping preferences, no-results recovery and mobile layout.");
   } finally {
     await browser.close();
