@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>South African Shoreline Explorer — Build My Weekend</title>
+  <meta name="description" content="Explore regional shoreline topography reference cards for False Bay, Algoa Bay and the Wild Coast.">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    :root{color-scheme:light;--ink:#24352d;--muted:#64736b;--paper:#f5f5ef;--card:#fff;--line:#dce2d8;--accent:#50755d;--warning:#7c5627}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "DM Sans",system-ui,sans-serif}
+    header{padding:1.2rem clamp(1rem,4vw,3rem);background:#20392e;color:white;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    header a{color:white}main{max-width:1150px;margin:0 auto;padding:clamp(1rem,3vw,2rem)}
+    h1,h2,h3,p{margin-top:0}h1{font-size:clamp(1.8rem,4vw,3rem);line-height:1.1;margin-bottom:.6rem}
+    .intro{max-width:760px;color:var(--muted)}.controls,.region-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1rem;margin:1rem 0}
+    .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.9rem;align-items:end}
+    label{display:block;font-weight:700;font-size:.88rem;margin-bottom:.35rem}input,select,button{font:inherit;width:100%;padding:.7rem;border:1px solid #bdc9be;border-radius:9px;background:white;color:var(--ink)}
+    button{background:var(--accent);color:white;font-weight:800;border:0;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e5a85c;outline-offset:2px}
+    .hint,.status,.disclaimer,.meta{font-size:.9rem;color:var(--muted)}.disclaimer{padding:.8rem 1rem;background:#fff6e8;border-left:4px solid #c48b43;border-radius:8px;color:var(--warning)}
+    #results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:1rem}.region-card{margin:0;overflow:hidden}
+    .region-card h2{margin-bottom:.25rem}.map{height:280px;border-radius:10px;border:1px solid var(--line);margin:.8rem 0;overflow:hidden}.map iframe{width:100%;height:100%;border:0}
+    .region-card h3{font-size:1rem;margin:.9rem 0 .25rem}.region-card ul{padding-left:1.25rem;margin:.35rem 0}.fish-item{padding:.6rem 0;border-bottom:1px solid var(--line)}.fish-item:last-child{border:0}
+    .tag{display:inline-block;background:#eaf0e8;color:#3d6048;border-radius:100px;padding:.15rem .55rem;font-size:.76rem;font-weight:800;letter-spacing:.03em}
+    .error{color:#a52f2f;font-weight:700}.empty{padding:1rem;border:1px dashed #b8c5b8;border-radius:12px}
+    footer{padding:1.5rem;text-align:center;color:var(--muted);font-size:.85rem}
+  </style>
+</head>
+<body>
+  <header><strong>BUILD MY WEEKEND · SHORELINE EXPLORER</strong><a href="./index.html">Back to Weekend Planner</a></header>
+  <main>
+    <p class="tag">REGIONAL REFERENCE · NOT LIVE MARINE INTELLIGENCE</p>
+    <h1>Read the shoreline before you go.</h1>
+    <p class="intro">Explore broad regional topography notes, bounding boxes and illustrative fish-habitat references for False Bay, Algoa Bay and the Wild Coast. Use this as a planning aid—not as a navigation chart, verified fishing mark or catch forecast.</p>
+    <p class="disclaimer">The current records are demo references. Shoreline lengths and bounding boxes are approximate; species notes are not live sightings or bite predictions. Exact hotspot GPS coordinates, live marine conditions and nautical-chart overlays are not connected. Confirm official charts, local access, weather, swell, permits and regulations before travelling or fishing.</p>
+    <form class="controls" id="search-form">
+      <div><label for="destination">Region</label><select id="destination" required><option value="False Bay">False Bay</option><option value="Algoa Bay">Algoa Bay</option><option value="Wild Coast">Wild Coast</option></select></div>
+      <div><label for="shoreline-length">Minimum shoreline length (km)</label><input id="shoreline-length" type="number" min="0" max="10000" step="1" value="0"></div>
+      <div><label for="latitude">Latitude (optional)</label><input id="latitude" type="number" min="-90" max="90" step="any" placeholder="-34.1"></div>
+      <div><label for="longitude">Longitude (optional)</label><input id="longitude" type="number" min="-180" max="180" step="any" placeholder="18.7"></div>
+      <div><button type="submit">Find shoreline reference</button></div>
+    </form>
+    <p class="hint">Optional latitude and longitude must be entered together. The coordinate is checked against each region's broad bounding box.</p>
+    <p class="status" id="status" role="status" aria-live="polite">Loading regional reference data…</p>
+    <section id="results" aria-label="Shoreline topography cards"></section>
+  </main>
+  <footer>Build My Weekend · South African pilot reference data · Confirm all conditions independently.</footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const API = "https://go.build-my-weekend.workers.dev/api/shoreline-topography";
+    const form = document.querySelector("#search-form");
+    const results = document.querySelector("#results");
+    const status = document.querySelector("#status");
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    let maps = [];
+    function mapCard(region, element) {
+      const box = region.bounding_box;
+      if (!window.L) {
+        const bbox = [box.min_lon,box.min_lat,box.max_lon,box.max_lat].join("%2C");
+        const marker = ((box.min_lat+box.max_lat)/2)+ "%2C" + ((box.min_lon+box.max_lon)/2);
+        element.innerHTML = '<iframe loading="lazy" title="Approximate OpenStreetMap view for '+escapeHtml(region.destination)+'" src="https://www.openstreetmap.org/export/embed.html?bbox='+bbox+'&layer=mapnik&marker='+marker+'"></iframe>';
+        return;
+      }
+      const map = L.map(element, {scrollWheelZoom:false}).setView([(box.min_lat+box.max_lat)/2,(box.min_lon+box.max_lon)/2], 8);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18, attribution:'© OpenStreetMap contributors'}).addTo(map);
+      L.rectangle([[box.min_lat,box.min_lon],[box.max_lat,box.max_lon]], {color:"#50755d",weight:2,fillOpacity:.08}).addTo(map);
+      L.marker([(box.min_lat+box.max_lat)/2,(box.min_lon+box.max_lon)/2]).addTo(map).bindPopup(escapeHtml(region.destination)+" · approximate regional centre");
+      maps.push(map);
+    }
+    function card(region, index) {
+      const features = region.hotspot_features.map(f => '<li><strong>'+escapeHtml(f.name)+'</strong> — '+escapeHtml(f.feature)+'<br><span class="meta">'+escapeHtml(f.status)+'</span></li>').join("");
+      const fish = region.accumulating_fish.map(f => '<div class="fish-item"><strong>'+escapeHtml(f.species)+'</strong><br>'+escapeHtml(f.habitat)+'<br><span class="meta">'+escapeHtml(f.evidence)+'</span></div>').join("");
+      const box = region.bounding_box;
+      return '<article class="region-card"><span class="tag">'+escapeHtml(region.data_status)+'</span><h2>'+escapeHtml(region.destination)+'</h2><p class="meta">'+escapeHtml(region.province)+' · Approx. shoreline length: '+escapeHtml(region.shoreline_length_km)+' km</p><div class="map" id="map-'+index+'" role="img" aria-label="Map showing approximate bounding box for '+escapeHtml(region.destination)+'"></div><p>'+escapeHtml(region.topography_description)+'</p><h3>Regional features</h3><ul>'+features+'</ul><h3>How to read the map</h3><p>'+escapeHtml(region.map_reading_instruction)+'</p><h3>Illustrative fish-habitat references</h3>'+fish+'<p class="meta">Approximate bounding box: '+[box.min_lat,box.max_lat,box.min_lon,box.max_lon].join(" · ")+'</p></article>';
+    }
+    async function search(event) {
+      if (event) event.preventDefault();
+      maps.forEach(map => map.remove()); maps = []; results.replaceChildren();
+      const destination = document.querySelector("#destination").value;
+      const length = document.querySelector("#shoreline-length").value;
+      const lat = document.querySelector("#latitude").value.trim();
+      const lon = document.querySelector("#longitude").value.trim();
+      if (Boolean(lat) !== Boolean(lon)) { status.textContent = "Enter both latitude and longitude, or leave both blank."; status.className = "status error"; return; }
+      const params = new URLSearchParams({destination, shoreline_length_km:length});
+      if (lat && lon) { params.set("lat",lat); params.set("lon",lon); }
+      status.textContent = "Searching regional reference data…"; status.className = "status";
+      try {
+        const response = await fetch(API+"?"+params.toString(), {headers:{Accept:"application/json"}});
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "The shoreline service is unavailable.");
+        if (!data.regions.length) { status.textContent = "No region matched these filters. Reduce the minimum shoreline length or check the coordinate."; results.innerHTML = '<div class="empty">No matching regional card.</div>'; return; }
+        results.innerHTML = data.regions.map(card).join("");
+        data.regions.forEach((region,index) => mapCard(region,document.querySelector("#map-"+index)));
+        status.textContent = data.count+" regional reference card"+(data.count===1?"":"s")+" returned. "+data.disclaimer;
+      } catch (error) {
+        status.textContent = error.message+" Check the connection and try again."; status.className = "status error";
+      }
+    }
+    form.addEventListener("submit",search);
+    search();
+  </script>
+</body>
+</html>
