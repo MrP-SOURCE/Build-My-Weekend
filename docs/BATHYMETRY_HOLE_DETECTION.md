@@ -39,3 +39,14 @@ Use friendly wording such as **“Potential seabed structure area”** or **“D
 
 Do not use these polygons as navigation charts or safety aids. Check authoritative nautical charts, weather and sea conditions, local rules, and access. Results are sensitive to raster resolution, interpolation, survey noise, datum, and threshold. They should be field-tested and reviewed before appearing as real-world recommendations.
 
+## Practical baseline source: GEBCO
+
+A practical first test source is the current **GEBCO_2026 Grid**. GEBCO provides a user-defined-area download in GeoTIFF, Esri ASCII raster, or NetCDF format. Its public-domain terms permit reuse with source attribution, but the grid is a global compilation and may be too coarse or interpolated to resolve nearshore features reliably. Treat it as a workflow test and broad regional context, not as a verified local fishing-structure dataset.
+
+- Data description and terms: https://www.gebco.net/data-products/gridded-bathymetry-data
+- User-defined area download tool: https://betadownload.gebco.net/
+- Attribution requested by GEBCO for the 2026 grid: GEBCO Bathymetric Compilation Group (2026), *The GEBCO_2026 Grid*, DOI: https://doi.org/10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa
+- Regional South African marine mapping context: https://www.geoscience.org.za/project/marine-mapping-project/
+
+Before accepting a subset, record its exact download date, selected bounds, grid version, cell spacing, and any available Type Identifier (TID) information. The TID layer can help distinguish areas based on different source-data types; do not treat all cells as equally measured or equally reliable. GEBCO explicitly warns that its grid is not for navigation or other safety-at-sea purposes. For detailed nearshore work, seek higher-resolution local survey data and permission from the relevant data custodian.
+
