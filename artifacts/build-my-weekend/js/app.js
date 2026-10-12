@@ -1145,7 +1145,6 @@ if (typeof window !== "undefined") {
   window.testShareSummaryBudgetNextSteps = testShareSummaryBudgetNextSteps;
   window.testBudgetRangeDisclosure = testBudgetRangeDisclosure;
   window.testDateRangeValidation = testDateRangeValidation;
-  window.testPracticalItineraryDateCoverage = testPracticalItineraryDateCoverage;
   window.testSavedSettingsCoverage = testSavedSettingsCoverage;
   window.testSavedSettingsApplication = testSavedSettingsApplication;
   window.testActivityPanelState = testActivityPanelState;
@@ -2008,6 +2007,7 @@ function testPracticalItineraryDateCoverage() {
   }
   return 3;
 }
+if (typeof window !== "undefined") window.testPracticalItineraryDateCoverage = testPracticalItineraryDateCoverage;
 function activitySuitabilityEvidence(destination, settings) {
   const type = settings.experience || "Weekend Away";
   const ideas = (destination.activityIdeas || []).slice(0, 4).join(" · ");
