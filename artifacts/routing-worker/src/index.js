@@ -180,7 +180,16 @@ export default {
 
     try {
       const from = await geocode(body.origin, env.TOMTOM_API_KEY);
-      const to = await geocode(body.destination, env.TOMTOM_API_KEY);
+      const supplied = body.destinationCoordinates;
+      const hasValidDestinationCoordinates = supplied &&
+        Number.isFinite(supplied.lat) && Number.isFinite(supplied.lon) &&
+        supplied.lat >= -35 && supplied.lat <= -22 && supplied.lon >= 16 && supplied.lon <= 34;
+      if (supplied && !hasValidDestinationCoordinates) {
+        return json({ error: "Destination coordinates are invalid for the Western Cape pilot." }, 400, cors);
+      }
+      const to = hasValidDestinationCoordinates
+        ? { lat: supplied.lat, lon: supplied.lon }
+        : await geocode(body.destination, env.TOMTOM_API_KEY);
       const route = await calculateRoute(from, to, env.TOMTOM_API_KEY);
       return json({
         origin: body.origin.trim(),
