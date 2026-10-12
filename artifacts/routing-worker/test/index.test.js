@@ -126,3 +126,33 @@ test("rejects ambiguous geocoding instead of routing to an unrelated result", as
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("rejects a route shorter than the straight-line distance between matched places", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async input => {
+    const url = new URL(input);
+    if (url.pathname.includes("/geocode/")) {
+      const query = decodeURIComponent(url.pathname.split("/").pop().replace(/\\.json$/, ""));
+      if (query.startsWith("Stellenbosch")) {
+        return Response.json({ results: [
+          { position: { lat: -33.93, lon: 18.86 }, address: { freeformAddress: "Stellenbosch, Western Cape" } }
+        ] });
+      }
+      return Response.json({ results: [
+        { position: { lat: -34.20, lon: 18.86 }, address: { freeformAddress: "Kogel Bay, Western Cape" } }
+      ] });
+    }
+    return Response.json({ routes: [{ summary: { lengthInMeters: 16000, travelTimeInSeconds: 1260 } }] });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://worker.example/api/route", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.14" },
+      body: JSON.stringify({ origin: "Stellenbosch, South Africa", destination: "Kogel Bay, Cape Helderberg, Western Cape, South Africa" })
+    }), env);
+    assert.equal(response.status, 422);
+    assert.match((await response.json()).error, /inconsistent with the matched places/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
