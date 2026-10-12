@@ -146,3 +146,7 @@
 .origin-scope-note{display:grid;gap:5px;margin:0 0 18px;padding:13px 15px;border:1px solid #d8c7a8;border-left:4px solid #c58a4c;background:#fbf5e9;color:#554b3d;font-size:12px;line-height:1.55}
 .origin-scope-note strong{font-size:9px;letter-spacing:.12em;color:#805a31}
 .origin-scope-note span{max-width:75ch}
+
+/* Keep the primary planner actions visible and usable on desktop and mobile. */
+.planner-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+@media(max-width:560px){.planner-actions{width:100%;flex-direction:column-reverse;align-items:stretch}.planner-actions .button{width:100%}}
