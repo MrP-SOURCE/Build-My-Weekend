@@ -258,7 +258,10 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#outdoor-controls").isVisible(), false, "Outdoor specialist controls remained visible for Family Away.");
     assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fishing specialist controls remained visible for Family Away.");
 
-    // Verify a restrictive search explains no matches and the recovery action widens the search.
+    // Reset must remain visible even when recommendations are present.
+    assert.equal(await page.locator("#reset-filters").isVisible(), true, "Reset button is hidden when normal recommendations are displayed.");
+
+    // Verify a restrictive search explains no matches and reset remains available.
     await page.locator("#budget").fill("1");
     await page.locator("#experience").selectOption({ label: "Wildlife Away" });
     await page.locator('label:has(input[name="distance"][value="100"]) span').click();
