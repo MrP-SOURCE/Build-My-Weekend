@@ -82,6 +82,23 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Restored fishing preference did not restore its controls.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Restored planner settings did not produce destination cards.");
 
+    // Incompatible fishing requirements must not fall back to a misleading spot.
+    await page.locator("#fishing-style").selectOption("Estuary");
+    await page.locator("#target-species").selectOption("Galjoen");
+    await page.locator("#spot-preference").selectOption("River Mouth");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert.equal(await page.locator("#no-results").isVisible(), true,
+      "An incompatible estuary + Galjoen + river-mouth request did not explain that no matching destination exists.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
+      "Fishing planner returned destinations that do not meet all selected fishing requirements.");
+
+    await page.locator("#fishing-style").selectOption("Any");
+    await page.locator("#target-species").selectOption("Any");
+    await page.locator("#spot-preference").selectOption("Let the app choose");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert(await page.locator("#recommendations .trip-card").count() > 0,
+      "Fishing planner did not recover after clearing incompatible requirements.");
+
     // Use a deterministic forecast fixture to test the successful weather-rendering path.
     const forecastDates = [...new Set([
       await page.locator("#depart").inputValue(),
