@@ -1,0 +1,8 @@
+{
+  "name": "build-my-weekend-routing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
