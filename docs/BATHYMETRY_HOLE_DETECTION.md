@@ -38,3 +38,4 @@ The script does not automatically fetch data. Obtain bathymetry from a source wi
 Use friendly wording such as **“Potential seabed structure area”** or **“Deeper-water feature to investigate.”** These areas can help a recreational fisherman understand where depth changes may influence fish movement or feeding. They are not precise science and do not predict fish presence or species. Later enrichment could combine verified local catch reports, species seasons, tides, swell, wind, and access information, with each source and its freshness clearly labelled.
 
 Do not use these polygons as navigation charts or safety aids. Check authoritative nautical charts, weather and sea conditions, local rules, and access. Results are sensitive to raster resolution, interpolation, survey noise, datum, and threshold. They should be field-tested and reviewed before appearing as real-world recommendations.
+
