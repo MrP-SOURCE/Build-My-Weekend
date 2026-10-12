@@ -2402,9 +2402,32 @@ function resetPlannerToDefaults() {
 }
 document.querySelector("#reset-filters").addEventListener("click", resetPlannerToDefaults);
 
+const FUEL_SETTINGS_KEY = "buildMyWeekendFuelSettings";
+function restoreSavedFuelSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FUEL_SETTINGS_KEY) || "null");
+    if (!saved) return;
+    const price = Number(saved.fuelPrice);
+    const consumption = Number(saved.consumption);
+    if (Number.isFinite(price) && price > 0) form.elements.fuelPrice.value = String(price);
+    if (Number.isFinite(consumption) && consumption > 0) form.elements.consumption.value = String(consumption);
+  } catch {}
+}
+function saveFuelSettings() {
+  try {
+    localStorage.setItem(FUEL_SETTINGS_KEY, JSON.stringify({
+      fuelPrice: form.elements.fuelPrice.value,
+      consumption: form.elements.consumption.value
+    }));
+  } catch {}
+}
+form.elements.fuelPrice.addEventListener("change", saveFuelSettings);
+form.elements.consumption.addEventListener("change", saveFuelSettings);
+
 initDates();
-// Start every page visit with clean HTML defaults; never restore stale planner inputs.
+// Start every page visit with clean trip criteria, while retaining user-managed fuel settings.
 try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
+restoreSavedFuelSettings();
 setupFishingControls();
 if (window.BMWCamping) window.BMWCamping.setupCampingControls();
 form.elements.return.min = form.elements.depart.value || localDate(new Date());
