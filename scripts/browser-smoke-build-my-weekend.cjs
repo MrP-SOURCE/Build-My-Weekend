@@ -174,6 +174,18 @@ const { chromium } = require("playwright");
     await page.locator("#trip-form button[type=submit]").click();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Camping plan returned no destination cards.");
 
+    // Verify specialist outdoor controls appear only for relevant trip types.
+    await page.locator("#experience").selectOption({ label: "Hiking Away" });
+    assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Hiking preferences did not appear.");
+    await page.locator("#hiking-difficulty").selectOption("Easy");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert(await page.locator("#recommendations .trip-card").count() > 0, "Hiking plan returned no destination cards.");
+    await page.locator("#experience").selectOption({ label: "Climbing Away" });
+    assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Climbing preferences did not appear.");
+    await page.locator("#experience").selectOption({ label: "Family Away" });
+    assert.equal(await page.locator("#outdoor-controls").isVisible(), false, "Outdoor specialist controls remained visible for Family Away.");
+    assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fishing specialist controls remained visible for Family Away.");
+
     // Verify a restrictive search explains no matches and the recovery action widens the search.
     await page.locator("#budget").fill("3000");
     await page.locator("#experience").selectOption({ label: "Wildlife Away" });
