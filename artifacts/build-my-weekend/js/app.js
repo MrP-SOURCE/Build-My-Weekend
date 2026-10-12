@@ -370,7 +370,7 @@ function localSearchUrl(kind, destination) {
   return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query);
 }
 
-function directionsUrl(destination, settings = getSettings()) {
+function directionsUrl(destination, settings = {}) {
   const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa");
   const target = encodeURIComponent(destination.name + ", " + destination.region + ", Western Cape, South Africa");
   return "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + target + "&travelmode=driving";
