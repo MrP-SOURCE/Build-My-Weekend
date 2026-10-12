@@ -55,10 +55,16 @@
         </div>
         <form id="trip-form" novalidate>
           <aside class="origin-scope-note" role="note" aria-label="Current planning coverage">
-            <strong>CAPE TOWN PILOT AREA</strong>
-            <span>Distances, drive times and fuel estimates use Cape Town as the starting point. The departure area cannot yet be changed, so results should not be treated as accurate for trips starting elsewhere.</span>
+            <strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>
+            <span>Enter your departure area to check actual driving distance and time for up to eight shortlisted destinations. The destination catalogue is still a Western Cape pilot, not a nationwide destination directory. Cost, accommodation and activity figures remain estimates.</span>
           </aside>
           <div class="form-grid">
+            <div class="field field-wide">
+              <label for="origin">Where will you start your trip?</label>
+              <div class="input-wrap"><input id="origin" name="origin" type="text" value="Cape Town, South Africa" maxlength="120" autocomplete="street-address" placeholder="Town, suburb or address" required data-testid="origin-input"></div>
+              <small class="field-hint">Use a town, suburb or address in South Africa. The app checks routes through its secure routing service.</small>
+              <small class="field-error" id="origin-error"></small>
+            </div>
             <div class="field field-budget">
               <label for="budget">Total trip budget <span class="unit">ZAR</span></label>
               <div class="input-wrap money-input"><span aria-hidden="true">R</span><input id="budget" name="budget" type="number" min="1" step="1" value="3000" inputmode="decimal" required data-testid="budget-input"></div>
@@ -154,7 +160,7 @@
 
       <section class="results-section" id="results" aria-labelledby="results-heading" aria-live="polite">
         <div class="results-heading">
-          <div><span class="step-badge">02 <i>—</i> THE SHORTLIST</span><h2 id="results-heading">YOUR WEEKEND OPTIONS</h2><p id="results-summary">Enter your trip details and we’ll compare every destination using typical demonstration estimates.</p><p class="results-context">Typical costs are per person for the weekend. Distances and drive times are illustrative estimates from Cape Town.</p></div>
+          <div><span class="step-badge">02 <i>—</i> THE SHORTLIST</span><h2 id="results-heading">YOUR WEEKEND OPTIONS</h2><p id="results-summary">Enter your trip details and we’ll compare every destination using typical demonstration estimates.</p><p class="results-context">Route distance and drive time are checked live for up to eight shortlisted destinations. Cost, accommodation and activity figures are estimates. The destination catalogue is still a Western Cape pilot.</p></div>
           <div class="result-count" id="result-count" data-testid="result-count"></div>
         </div>
         <aside class="evidence-legend" aria-label="How to read trip information" data-testid="evidence-legend">

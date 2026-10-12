@@ -18,12 +18,12 @@ function idsFromHtml(source) {
 
 assert(app.includes("No destination matches all your current filters (weekend type, distance and budget)."), "No-results guidance must describe the combined filters accurately.");
 assert(app.includes("choosing a broader weekend type"), "No-results guidance must suggest practical ways to recover.");
-assert(html.includes("<strong>CAPE TOWN PILOT AREA</strong>") && html.includes("The departure area cannot yet be changed"), "The planner must disclose that its fixed distance and fuel dataset only supports the Cape Town pilot.");
-assert(app.includes('const origin = encodeURIComponent("Cape Town, South Africa")'), "Google Maps directions must use the same explicitly disclosed Cape Town pilot origin.");
+assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
+assert(app.includes('const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa")'), "Google Maps directions must use the departure location entered in the planner.");
 assert(app.includes("const returnDistance = destination.distance * 2"), "Fuel estimates must remain visibly tied to the maintained Cape Town destination-distance dataset until routing data supports other origins.");
-assert(app.includes("km one way from Cape Town") && app.includes("km return · approximately"), "Destination detail must disclose the Cape Town basis of distance and return-distance estimates.");
-assert(app.includes("Suggested day-trip departure from Cape Town.") && app.includes("Suggested departure from Cape Town."), "Day-trip and overnight itinerary copy must disclose the Cape Town pilot departure origin.");
-assert(app.includes("Accommodation, food, activities, routes and drive times are illustrative estimates from Cape Town"), "Shared trip summaries must retain the Cape Town estimate limitation when copied or shared.");
+assert(app.includes('km one way from ${esc(settings.origin || "Cape Town, South Africa")}') && app.includes("km return · approximately"), "Destination detail must show the selected departure origin and return distance.");
+assert(app.includes('Suggested day-trip departure from ${settings.origin || "Cape Town, South Africa"}') && app.includes('Suggested departure from ${settings.origin || "Cape Town, South Africa"}'), "Day-trip and overnight itinerary copy must use the selected departure origin.");
+assert(app.includes('DRIVING ROUTE FROM ${settings.origin || "Cape Town, South Africa"} — route distance/time checked by ${destination.routeSource || "TomTom Routing API"}'), "Shared trip summaries must identify the selected origin and the live route-data source.");
 assert(app.includes("estimated new spend ${money(cost.spend)}"), "Shared trip summary must label the budget figure as estimated new spend.");
 assert(app.includes("This subtracts fuel already in the vehicle from the amount still to buy"), "Shared trip summary must explain how existing fuel affects the estimate.");
 assert((app.match(/budgetRangeWarning\(cost, settings, campingSelected, glampingSelected\)/g) || []).length >= 2, "Upper-range budget warnings must appear on recommendation cards and trip details.");
@@ -268,7 +268,7 @@ console.log("Budget range disclosure regression checks: PASS");
 console.log("Fuel and group-size scaling regression checks: PASS");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
 assert(context.window.testPracticalItineraryDateCoverage() === 3, "Date-matched itinerary regression checks failed.");
-assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
+assert(context.window.testSavedSettingsCoverage() === 23, "Saved preference coverage regression checks failed.");
 assert(context.window.testSavedSettingsApplication() === 22, "Saved preference application regression checks failed.");
 const restoreControlIds = [
   "fishing-style", "target-species", "spot-preference", "fishing-priority",

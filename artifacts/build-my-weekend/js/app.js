@@ -370,8 +370,8 @@ function localSearchUrl(kind, destination) {
   return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query);
 }
 
-function directionsUrl(destination) {
-  const origin = encodeURIComponent("Cape Town, South Africa");
+function directionsUrl(destination, settings = {}) {
+  const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa");
   const target = encodeURIComponent(destination.name + ", " + destination.region + ", Western Cape, South Africa");
   return "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + target + "&travelmode=driving";
 }
@@ -500,7 +500,7 @@ function valueScore(destination, settings) {
   return budgetShareLeft * 0.42 + experienceFit * 0.38 + distanceFit * 0.20;
 }
 
-function findCandidates(settings) {
+function findCandidates(settings, options = {}) {
   const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
   return destinations
     .map(destination => {
@@ -514,8 +514,8 @@ function findCandidates(settings) {
       return candidate;
     })
     .filter(destination =>
-      destination.cost.remaining >= 0 &&
-      destination.distance <= distanceLimit &&
+      (options.preRoute || destination.cost.remaining >= 0) &&
+      (options.preRoute || destination.distance <= distanceLimit) &&
       (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
       (settings.experience !== "Beach Away" || destination.categories.includes("Beach")) &&
       (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
@@ -670,6 +670,7 @@ function testActivityPanelState() {
 
 function settingsForStorage(settings) {
   return {
+    origin: settings.origin || "Cape Town, South Africa",
     budget: settings.budget,
     people: settings.people,
     experience: settings.experience,
@@ -696,7 +697,7 @@ function settingsForStorage(settings) {
 }
 
 function savedSettingsRestorePlan(saved) {
-  const fields = ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
+  const fields = ["origin", "budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
   const selects = [
     ["fishingStyle", "fishing-style"],
     ["targetSpecies", "target-species"],
@@ -717,7 +718,7 @@ function savedSettingsRestorePlan(saved) {
 
 function testSavedSettingsCoverage() {
   const sample = {
-    budget: 3200, people: 3, experience: "Camping Away", distance: "200",
+    origin: "Cape Town, South Africa", budget: 3200, people: 3, experience: "Camping Away", distance: "200",
     depart: "2026-10-10", returnDate: "2026-10-12", consumption: 7.5,
     fuelExisting: 100, fuelPrice: 24.5, fishingStyle: "Shore",
     targetSpecies: "Galjoen", spotPreference: "Rocks", fishingPriority: "Lowest Cost",
@@ -741,7 +742,7 @@ function testSavedSettingsCoverage() {
     throw new Error("Saved preference restore mapping contains duplicates or unexpected fields.");
   }
 
-  const expectedFields = ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
+  const expectedFields = ["origin", "budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
   if (JSON.stringify(plan.fields) !== JSON.stringify(expectedFields)) {
     throw new Error("Saved preference field restore targets changed unexpectedly.");
   }
@@ -1184,7 +1185,7 @@ function restoreSettingsFromStorage(storage, targetForm, getElementById) {
 
 function testSavedSettingsApplication() {
   const saved = {
-    budget: "3200", people: "3", experience: "Camping Away", distance: "200",
+    origin: "Cape Town, South Africa", budget: "3200", people: "3", experience: "Camping Away", distance: "200",
     depart: "2026-10-10", returnDate: "2026-10-12", consumption: "7.5",
     fuelExisting: "100", fuelPrice: "24.5", fishingStyle: "Shore",
     targetSpecies: "Galjoen", spotPreference: "Rocks", fishingPriority: "Lowest Cost",
@@ -1194,7 +1195,7 @@ function testSavedSettingsApplication() {
   };
   const persisted = JSON.parse(JSON.stringify(settingsForStorage(saved)));
   const elements = {};
-  for (const key of ["budget", "people", "experience", "depart", "return", "consumption", "fuelExisting", "fuelPrice"]) {
+  for (const key of ["origin", "budget", "people", "experience", "depart", "return", "consumption", "fuelExisting", "fuelPrice"]) {
     elements[key] = { value: "" };
   }
   const distanceRadio = { checked: false };
@@ -1211,7 +1212,7 @@ function testSavedSettingsApplication() {
   };
   const fakeStorage = { getItem: key => key === "buildMyWeekendTrip" ? JSON.stringify(settingsForStorage(persisted)) : null };
   if (!restoreSettingsFromStorage(fakeStorage, mockForm, id => controls[id])) throw new Error("Saved settings were not restored from storage.");
-  for (const key of ["budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
+  for (const key of ["origin", "budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
     if (elements[key].value !== persisted[key]) throw new Error("Saved field not restored: " + key);
   }
   if (elements.return.value !== persisted.returnDate) throw new Error("Return date not restored.");
@@ -1558,6 +1559,7 @@ function fishingFineTuneAdvice(destination, settings) {
 function getSettings() {
   const values = new FormData(form);
   return {
+    origin: String(values.get("origin") || "Cape Town, South Africa").trim(),
     budget: Number(values.get("budget")),
     people: Number(values.get("people")),
     experience: values.get("experience"),
@@ -1583,6 +1585,7 @@ function getSettings() {
 function valid(settings) {
   let good = true;
   const checks = [
+    ["origin", typeof settings.origin === "string" && settings.origin.trim().length >= 2 && settings.origin.trim().length <= 120, "Enter a South African starting town, suburb or address."],
     ["budget", Number.isFinite(settings.budget) && settings.budget > 0, "Enter a budget greater than R0."],
     ["people", Number.isInteger(settings.people) && settings.people >= 1 && settings.people <= 10, "Choose between 1 and 10 people."],
     ["depart", Boolean(settings.depart) && settings.depart >= localDate(new Date()), "Choose today or a future departure date."],
@@ -1660,6 +1663,7 @@ function card(destination, settings, badges) {
         ).join("")}</div>
       </div>
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
+      <p class="detail-demo-note" style="margin:.35rem 0;font-size:.75rem">ROUTE CHECKED · ${esc(destination.routeSource || "TomTom Routing API")} · from ${esc(settings.origin || "Cape Town, South Africa")}</p>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
         <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : campingSelected ? `BASE TRIP ESTIMATE · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"} · CAMPSITE FEE NOT VERIFIED` : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : campingSelected ? '<p class="detail-demo-note">The accommodation figure is a generic demonstration allowance, not a campsite tariff. The actual pitch/site fee is not mapped or included as a verified price. Confirm the total for your dates and group before deciding affordability.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div><div class="card-budget-confidence" data-testid="budget-confidence-${destination.id}" data-confidence="${budgetConfidence.level}" aria-describedby="${budgetConfidenceId}"><strong>${budgetConfidence.label}</strong> — ${budgetConfidence.detail}<p id="${budgetConfidenceId}" class="field-hint">${budgetConfidenceHelp}</p><p class="budget-next-step" data-testid="budget-next-step-${destination.id}">${budgetNextStep}</p></div>${budgetRangeWarning(cost, settings, campingSelected, glampingSelected)}</div>
@@ -1771,22 +1775,100 @@ function budgetTradeoffPanel(candidates, settings) {
   </section>`;
 }
 
-function render() {
+const ROUTING_WORKER_URL = "https://go.build-my-weekend.workers.dev";
+const ROUTE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+let latestRoutedCandidates = [];
+
+async function routeForDestination(origin, destination) {
+  const key = "bmwRoute:" + origin.trim().toLowerCase() + "::" + destination.id;
+  try {
+    const cached = JSON.parse(localStorage.getItem(key) || "null");
+    if (cached && Number.isFinite(cached.distanceKmOneWay) &&
+        Number.isFinite(cached.driveMinutesOneWay) &&
+        Date.now() - cached.savedAt < ROUTE_CACHE_TTL_MS) return cached;
+  } catch {}
+  const response = await fetch(ROUTING_WORKER_URL + "/api/route", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({
+      origin,
+      destination: destination.name + ", " + destination.region + ", Western Cape, South Africa"
+    })
+  });
+  if (!response.ok) throw new Error("Route service returned HTTP " + response.status);
+  const route = await response.json();
+  if (!Number.isFinite(Number(route.distanceKmOneWay)) ||
+      !Number.isFinite(Number(route.driveMinutesOneWay)) ||
+      Number(route.distanceKmOneWay) <= 0 || Number(route.driveMinutesOneWay) <= 0) {
+    throw new Error("Route service returned incomplete distance/time data");
+  }
+  const saved = {
+    origin,
+    destinationId: destination.id,
+    distanceKmOneWay: Number(route.distanceKmOneWay),
+    driveMinutesOneWay: Number(route.driveMinutesOneWay),
+    source: String(route.source || "TomTom Routing API"),
+    savedAt: Date.now()
+  };
+  try { localStorage.setItem(key, JSON.stringify(saved)); } catch {}
+  return saved;
+}
+
+async function addVerifiedRoutes(candidates, settings) {
+  // Cap live lookups to eight per planner run. Cache successful results for seven days.
+  const ranked = [...candidates].sort((a, b) =>
+    b.valueScore - a.valueScore || a.cost.spend - b.cost.spend
+  ).slice(0, 8);
+  const routed = [];
+  for (const candidate of ranked) {
+    try {
+      const route = await routeForDestination(settings.origin, candidate);
+      const withRoute = {
+        ...candidate,
+        distance: Math.round(route.distanceKmOneWay),
+        driveTime: Math.round(route.driveMinutesOneWay),
+        routeVerified: true,
+        routeSource: route.source,
+        routeOrigin: settings.origin
+      };
+      withRoute.cost = calc(withRoute, settings);
+      withRoute.valueScore = valueScore(withRoute, settings) +
+        (settings.experience === "Fishing Away" ? (withRoute.fishingScore || 0) * 0.08 : 0);
+      if (withRoute.cost.remaining >= 0 &&
+          (settings.distance === "any" || withRoute.distance <= Number(settings.distance))) {
+        routed.push(withRoute);
+      }
+    } catch (error) {
+      console.warn("Route check failed for " + candidate.name + ":", error);
+    }
+  }
+  return routed;
+}
+
+async function render() {
   const settings = getSettings();
   if (!valid(settings)) return;
   try {
     localStorage.setItem("buildMyWeekendTrip", JSON.stringify(settingsForStorage(settings)));
   } catch {}
 
-  const candidates = findCandidates(settings);
-  const shortlist = buildShortlist(candidates, settings);
   const noResults = document.querySelector("#no-results");
-  document.querySelector("#results-summary").textContent =
-    `We found ${candidates.length} possible destination${candidates.length === 1 ? "" : "s"}. Here are the strongest matches for you.`;
-  document.querySelector("#result-count").textContent =
-    `${shortlist.length} SHORTLISTED · ${candidates.length} POSSIBLE`;
-  document.querySelector("#no-results-copy").textContent = noResultsMessage(settings);
   results.replaceChildren();
+  noResults.hidden = true;
+  document.querySelector("#results-summary").textContent =
+    "Checking real driving routes for a limited shortlist. The destination catalogue is still a Western Cape pilot.";
+  document.querySelector("#result-count").textContent = "CHECKING ROUTES…";
+  const preliminary = findCandidates({ ...settings, distance: "any" }, { preRoute: true });
+  const candidates = await addVerifiedRoutes(preliminary, settings);
+  latestRoutedCandidates = candidates;
+  const shortlist = buildShortlist(candidates, settings);
+  document.querySelector("#results-summary").textContent =
+    `${candidates.length} route-verified destination${candidates.length === 1 ? "" : "s"} passed your distance and budget filters. Routes are live; costs, accommodation and activities remain estimates.`;
+  document.querySelector("#result-count").textContent =
+    `${shortlist.length} SHORTLISTED · ${candidates.length} ROUTE-CHECKED`;
+  document.querySelector("#no-results-copy").textContent = candidates.length
+    ? noResultsMessage(settings)
+    : "No route-verified destination passed your current filters. Check the starting place, widen the distance or budget, and try again. If every route lookup failed, the routing service may be temporarily unavailable. No Cape Town distance estimate is substituted for a failed live route.";
   noResults.hidden = candidates.length > 0;
   if (!candidates.length) return;
   const comparison = document.createElement("div");
@@ -1959,7 +2041,7 @@ function buildPracticalItinerary(destination, settings, cost) {
     const returnDeparture = 15 * 60;
     const returnArrival = returnDeparture + driveMinutes + stopBuffer;
     return [
-      ["DAY 08:00", "Suggested day-trip departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."],
+      ["DAY 08:00", `Suggested day-trip departure from ${settings.origin || "Cape Town, South Africa"}. Allow approximately ${driveLabel(driveMinutes)} driving plus ${stopBuffer} minutes for a comfort stop; traffic and route conditions can change.`],
       ["DAY " + clock(arrival), "Illustrative arrival near " + destination.name + ". Check access, opening hours and any fees before leaving."],
       ["DAY 11:00", mainActivity + ". Keep the plan flexible and verify local conditions first. Activity allowance: about " + money(activityMain) + " for the group."],
       ["DAY 12:30", "Lunch and rest break. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
@@ -1970,7 +2052,7 @@ function buildPracticalItinerary(destination, settings, cost) {
   const firstLabel = label(days[0]);
   const lastLabel = label(days[days.length - 1]);
   const firstArrival = 14 * 60 + driveMinutes + stopBuffer;
-  itinerary.push([firstLabel + " 14:00", "Suggested departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."]);
+  itinerary.push([firstLabel + " 14:00", `Suggested departure from ${settings.origin || "Cape Town, South Africa"}. Allow approximately ${driveLabel(driveMinutes)} driving plus ${stopBuffer} minutes for a comfort stop; traffic and route conditions can change.`]);
   itinerary.push([firstLabel + " " + clock(firstArrival), "Illustrative arrival in " + destination.name + ". Check the property's actual check-in time, access instructions and parking before leaving."]);
   itinerary.push([firstLabel + " 19:00", "Dinner / self-catered meal. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."]);
   for (let index = 1; index < days.length - 1; index++) {
@@ -2067,7 +2149,7 @@ function detail(destination, settings) {
     ${campingSelected ? `<p class="detail-demo-note">${glampingSelected ? "The property-specific glamping stay price is excluded." : "The accommodation amount is a generic demonstration allowance, not a campsite tariff; the actual campsite/site fee is not verified or included."} The displayed remainder is only before that stay/site fee. Confirm the complete price for your selected dates and ${settings.people} ${settings.people === 1 ? "person" : "people"} before deciding whether this trip fits your budget.</p>` : ""}
     <h2 id="detail-title" class="detail-title">${esc(destination.name)}</h2>
     <p class="detail-sub">${esc(destination.region)} · ${esc(destination.province)} · ${esc(categories)}</p>
-    <p class="detail-sub">${destination.distance} km one way from Cape Town · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving</p>
+    <p class="detail-sub">${destination.distance} km one way from ${esc(settings.origin || "Cape Town, South Africa")} · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving</p>
     <p class="detail-sub">${esc(destination.description)} Suitable for: ${esc(suitability)}.</p>
     <section id="live-weather" class="live-weather" aria-live="polite"><strong>LIVE WEATHER FORECAST</strong><p>Loading the latest available forecast…</p></section>
     ${outdoorMapPreview(destination, settings)}
@@ -2129,19 +2211,19 @@ function detail(destination, settings) {
         ).join("")}</ol>
       </section>
     </div>
-    <div class="practical-box"><strong>GOOD TO KNOW · DEMONSTRATION NOTE</strong><br>${esc(destination.practicalInfo)}<br><br>Accommodation, food, activities, routes and drive times are illustrative estimates from Cape Town, not verified information. Fuel already in your tank is not charged to the budget again.</div>
+    <div class="practical-box"><strong>GOOD TO KNOW · ROUTE / COST EVIDENCE</strong><br>${esc(destination.practicalInfo)}<br><br>Driving distance and time above were checked by ${esc(destination.routeSource || "the routing service")} from ${esc(settings.origin || "Cape Town, South Africa")}. Accommodation, food, activities, facilities and availability remain unverified estimates. Fuel already in your tank is not charged to the budget again.</div>
     <div class="access-details" aria-label="Unverified local access notes">
       <div><strong>HOSPITAL ACCESS · UNVERIFIED</strong>${esc(destination.hospitalAccess)}<a class="access-search-link" href="${esc(localSearchUrl('hospital', destination))}" target="_blank" rel="noopener noreferrer">SEARCH HOSPITALS ON MAP ↗</a></div>
       <div><strong>PHARMACY ACCESS · UNVERIFIED</strong>${esc(destination.pharmacyAccess)}<a class="access-search-link" href="${esc(localSearchUrl('pharmacy', destination))}" target="_blank" rel="noopener noreferrer">SEARCH PHARMACIES ON MAP ↗</a></div>
       <div><strong>FUEL ACCESS · UNVERIFIED</strong>${esc(destination.fuelAccess)}<a class="access-search-link" href="${esc(localSearchUrl('fuel stations', destination))}" target="_blank" rel="noopener noreferrer">SEARCH FUEL STATIONS ON MAP ↗</a></div>
     </div>
-    <p class="detail-demo-note">DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED. Do not use this information for actual travel, booking or emergency decisions.</p>
+    <p class="detail-demo-note">ROUTE STATUS: driving distance/time were checked by the routing service for the displayed starting point and destination. Destination costs, facilities, access, booking availability and emergency-service information are not verified. Confirm road conditions and providers before travel.</p>
     <div class="detail-actions">
       <button class="button button-primary" type="button" data-action="availability" data-testid="availability-button">FIND STAY OPTIONS</button>
       <button class="button demo-button" type="button" data-action="navigate" data-destination="${destination.id}" data-testid="navigate-button">NAVIGATE</button>
       <button class="button demo-button" type="button" data-action="share" data-destination="${destination.id}" data-testid="detail-share-button">SHARE TRIP</button>
     </div>
-    <p class="field-hint">NAVIGATE opens a Google Maps driving-route search from Cape Town. Confirm the route, traffic, access and conditions before travelling; this is not live safety guidance.</p>`;
+    <p class="field-hint">NAVIGATE opens a Google Maps driving route from your entered starting point. Confirm traffic, access and conditions before travelling; this is not live safety guidance.</p>`;
   dialog.showModal();
   loadDestinationWeather(destination, settings);
 }
@@ -2163,7 +2245,7 @@ function shareText(destination, settings) {
     (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "") +
     `\n\n${sharedPreDepartureChecks(settings)}` +
     `\n\n${sharedTravelCostDisclosure(cost, settings)}` +
-    `\n\nDRIVING ROUTE FROM CAPE TOWN — verify route, traffic and access: ${directionsUrl(destination)}` +
+    `\n\nDRIVING ROUTE FROM ${settings.origin || "Cape Town, South Africa"} — route distance/time checked by ${destination.routeSource || "TomTom Routing API"}; verify traffic, road conditions and access: ${directionsUrl(destination, settings)}` +
     `\n\nLOCAL SERVICE SEARCHES — map results only; facility availability, opening hours and travel times are not verified:\n${sharedSafetyLinks(destination)}`;
 }
 
@@ -2249,9 +2331,9 @@ results.addEventListener("click", event => {
   const destination = findDestination(button.dataset.destination);
   if (!destination) return;
   const settings = getSettings();
-  const candidate = findCandidates(settings).find(item => item.id === destination.id);
+  const candidate = latestRoutedCandidates.find(item => item.id === destination.id);
   if (button.dataset.action === "view" && candidate) detail(candidate, settings);
-  if (button.dataset.action === "share") share(destination, settings);
+  if (button.dataset.action === "share") share(candidate || destination, settings);
 });
 
 dialog.addEventListener("click", event => {
@@ -2269,12 +2351,12 @@ dialog.addEventListener("click", event => {
     }
   }
   if (button.dataset.action === "navigate") {
-    const destination = findDestination(button.dataset.destination);
-    if (destination) window.open(directionsUrl(destination), "_blank", "noopener,noreferrer");
+    const destination = latestRoutedCandidates.find(item => item.id === button.dataset.destination) || findDestination(button.dataset.destination);
+    if (destination) window.open(directionsUrl(destination, getSettings()), "_blank", "noopener,noreferrer");
     else toastMessage("Could not find the selected destination.");
   }
   if (button.dataset.action === "share") {
-    const destination = findDestination(button.dataset.destination);
+    const destination = latestRoutedCandidates.find(item => item.id === button.dataset.destination) || findDestination(button.dataset.destination);
     if (destination) share(destination, getSettings());
   }
 });
