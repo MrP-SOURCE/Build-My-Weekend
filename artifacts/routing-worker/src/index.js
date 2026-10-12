@@ -101,6 +101,21 @@ export default {
     if (originHeader && !cors["access-control-allow-origin"]) return json({ error: "Origin not allowed" }, 403);
     if (!env.TOMTOM_API_KEY) return json({ error: "Routing service is not configured yet." }, 503, cors);
 
+    // Fail closed if the Cloudflare Rate Limiting binding has not been configured.
+    if (!env.ROUTE_RATE_LIMITER || typeof env.ROUTE_RATE_LIMITER.limit !== "function") {
+      return json({ error: "Routing protection is not configured yet." }, 503, cors);
+    }
+    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
+    let rateLimit;
+    try {
+      rateLimit = await env.ROUTE_RATE_LIMITER.limit({ key: clientIp });
+    } catch {
+      return json({ error: "Routing protection is temporarily unavailable." }, 503, cors);
+    }
+    if (!rateLimit?.success) {
+      return json({ error: "Too many route requests. Please wait a minute and try again." }, 429, { ...cors, "retry-after": "60" });
+    }
+
     const declaredLength = Number(request.headers.get("Content-Length") || 0);
     if (declaredLength > MAX_BODY_BYTES) return json({ error: "Request body is too large." }, 413, cors);
 
