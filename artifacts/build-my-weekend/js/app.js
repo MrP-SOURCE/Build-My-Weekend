@@ -34,6 +34,7 @@ function makeDestination(data, index) {
     categories: data.categories,
     distance: data.distance,
     driveTime: data.driveTime,
+    routePosition: data.routePosition || null,
     accommodationLow,
     accommodationTypical,
     accommodationHigh,
@@ -236,6 +237,8 @@ const destinations = [
   }, 0),
   makeDestination({
     name: "Kogel Bay", region: "Cape Helderberg", distance: 70, driveTime: 62,
+    // Canonical beach-area coordinate prevents ambiguous place-name geocoding.
+    routePosition: { lat: -34.20, lon: 18.86 },
     categories: ["Camping", "Outdoors", "Beach", "Family", "Fishing"],
     accommodation: [150, 200, 430], food: [120, 180, 320], activities: [20, 70, 200],
     description: "A close-to-Cape-Town coastal camping idea with sea views and outdoor time.",
@@ -1781,7 +1784,7 @@ let latestRoutedCandidates = [];
 
 async function routeForDestination(origin, destination) {
   // Versioned key invalidates routes cached before the coordinate-distance sanity check.
-  const key = "bmwRoute:v2:" + origin.trim().toLowerCase() + "::" + destination.id;
+  const key = "bmwRoute:v3:" + origin.trim().toLowerCase() + "::" + destination.id;
   try {
     const cached = JSON.parse(localStorage.getItem(key) || "null");
     if (cached && Number.isFinite(cached.distanceKmOneWay) &&
@@ -1793,7 +1796,8 @@ async function routeForDestination(origin, destination) {
     headers: { "Content-Type": "application/json", "Accept": "application/json" },
     body: JSON.stringify({
       origin,
-      destination: destination.name + ", " + destination.region + ", Western Cape, South Africa"
+      destination: destination.name + ", " + destination.region + ", Western Cape, South Africa",
+      destinationCoordinates: destination.routePosition || undefined
     })
   });
   if (!response.ok) throw new Error("Route service returned HTTP " + response.status);
