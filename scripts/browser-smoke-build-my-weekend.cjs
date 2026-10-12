@@ -147,6 +147,32 @@ const { chromium } = require("playwright");
     assert((await page.locator("#results-summary").innerText()).includes("route-verified destination"), "Submitting the planner did not produce a route-verified results summary.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Fishing plan returned no destination cards.");
 
+    // Fishing constraints are requirements, not soft ranking hints. A rock-style
+    // Galjoen search must not be satisfied by an estuary-only spot.
+    await page.locator("#fishing-style").selectOption("Rock");
+    await page.locator("#target-species").selectOption("Galjoen");
+    await page.locator("#spot-preference").selectOption("Estuary");
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert.equal(await page.locator("#no-results").isVisible(), true,
+      "An incompatible fishing style/species/spot combination should show no-results guidance.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
+      "An incompatible fishing search returned destination cards.");
+
+    // A compatible combination must recover without a reload and return a relevant match.
+    await page.locator("#fishing-style").selectOption("Shore");
+    await page.locator("#target-species").selectOption("Galjoen");
+    await page.locator("#spot-preference").selectOption("Bay");
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert.equal(await page.locator("#no-results").isVisible(), false,
+      "A compatible fishing search did not recover from no-results.");
+    assert(await page.locator("#recommendations .trip-card").count() > 0,
+      "A compatible fishing search returned no destination cards.");
+    const fishingCards = await page.locator("#recommendations .trip-card").allInnerTexts();
+    assert(fishingCards.some(text => /Gordon.?s Bay/i.test(text)),
+      "A Shore/Galjoen/Bay search did not include the expected compatible Gordon's Bay result.");
+
     // Each fresh page visit starts with clean defaults, not the previous trip's inputs.
     await page.reload({ waitUntil: "networkidle" });
     assert.equal(await page.locator("#budget").inputValue(), "3000", "Default budget was not restored after reload.");
