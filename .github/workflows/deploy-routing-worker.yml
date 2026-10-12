@@ -2,6 +2,12 @@ name: Deploy BUILD MY WEEKEND routing Worker
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "artifacts/routing-worker/**"
+      - ".github/workflows/deploy-routing-worker.yml"
 
 permissions:
   contents: read
