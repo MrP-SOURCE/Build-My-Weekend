@@ -40,6 +40,11 @@ const { chromium } = require("playwright");
       failedLocalAssets.push(request.url() + " — " + (request.failure()?.errorText || "request failed"));
     }
   });
+  const waitForRouteResults = async () => page.waitForFunction(() => {
+    const summary = document.querySelector("#results-summary")?.innerText || "";
+    return !summary.includes("Checking real driving routes") &&
+      (summary.includes("route-verified destination") || summary.includes("No route-verified destination passed"));
+  }, null, { timeout: 15000 });
 
   try {
     const baseUrl = process.env.BMW_BASE_URL || "http://127.0.0.1:4173/Build-My-Weekend/";
@@ -56,18 +61,21 @@ const { chromium } = require("playwright");
     // Reject invalid inputs in the real browser before producing a plan.
     await page.locator("#budget").fill("0");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#budget").getAttribute("aria-invalid"), "true", "Zero budget was not rejected.");
     assert((await page.locator("#budget-error").innerText()).includes("greater than R0"), "Budget validation message is missing.");
 
     await page.locator("#budget").fill("3000");
     await page.locator("#people").fill("11");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#people").getAttribute("aria-invalid"), "true", "Group size above 10 was not rejected.");
     assert((await page.locator("#people-error").innerText()).includes("between 1 and 10"), "Group-size validation message is missing.");
 
     await page.locator("#people").fill("4");
     await page.locator("#consumption").fill("0");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#consumption").getAttribute("aria-invalid"), "true", "Zero fuel consumption was not rejected.");
     assert((await page.locator("#consumption-error").innerText()).includes("greater than 0"), "Fuel-consumption validation message is missing.");
 
@@ -76,10 +84,12 @@ const { chromium } = require("playwright");
     const validReturn = await page.locator("#return").inputValue();
     await page.locator("#depart").fill("2020-01-01");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#depart").getAttribute("aria-invalid"), "true", "A past departure date was not rejected.");
     assert((await page.locator("#depart-error").innerText()).includes("today or a future"), "Departure-date validation message is missing.");
     await page.locator("#depart").fill(validDeparture);
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#depart").getAttribute("aria-invalid"), null, "A valid departure date did not clear the validation error.");
 
     // Reject a return date earlier than departure, then recover when the dates are corrected.
@@ -87,10 +97,12 @@ const { chromium } = require("playwright");
     invalidReturn.setUTCDate(invalidReturn.getUTCDate() - 1);
     await page.locator("#return").fill(invalidReturn.toISOString().slice(0, 10));
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#return").getAttribute("aria-invalid"), "true", "A return date before departure was not rejected.");
     assert((await page.locator("#return-error").innerText()).includes("on or after departure"), "Return-date validation message is missing.");
     await page.locator("#return").fill(validReturn);
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#return").getAttribute("aria-invalid"), null, "A valid return date did not clear the validation error.");
 
     await page.locator("#budget").fill("3000");
@@ -98,6 +110,7 @@ const { chromium } = require("playwright");
     await page.locator("#experience").selectOption({ label: "Fishing Away" });
     assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Fishing controls did not appear.");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     await page.locator("#results-summary").waitFor();
     assert((await page.locator("#results-summary").innerText()).includes("route-verified destination"), "Submitting the planner did not produce a route-verified results summary.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Fishing plan returned no destination cards.");
@@ -115,6 +128,7 @@ const { chromium } = require("playwright");
     await page.locator("#target-species").selectOption("Galjoen");
     await page.locator("#spot-preference").selectOption("River Mouth");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#no-results").isVisible(), true,
       "An incompatible estuary + Galjoen + river-mouth request did not explain that no matching destination exists.");
     assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
@@ -124,6 +138,7 @@ const { chromium } = require("playwright");
     await page.locator("#target-species").selectOption("Any");
     await page.locator("#spot-preference").selectOption("Let the app choose");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert(await page.locator("#recommendations .trip-card").count() > 0,
       "Fishing planner did not recover after clearing incompatible requirements.");
 
@@ -167,6 +182,7 @@ const { chromium } = require("playwright");
     await page.locator("#trip-dialog .dialog-close").click();
     await page.locator("#fuel-existing").fill("0");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     await page.locator('#recommendations button[data-action="view"]').first().click();
     const additionalFuelWithoutTankCredit = await readAdditionalFuelLine();
     assert(additionalFuelWithoutTankCredit.includes("Additional fuel to buy"), "Additional-fuel cost row disappeared after recalculation.");
@@ -219,6 +235,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fishing controls remained visible after switching activity.");
     await page.locator("#camping-setup").selectOption("Glamping");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Camping plan returned no destination cards.");
 
     // Verify specialist outdoor controls appear only for relevant trip types.
@@ -226,6 +243,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Hiking preferences did not appear.");
     await page.locator("#hiking-difficulty").selectOption("Easy");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Hiking plan returned no destination cards.");
     await page.locator("#experience").selectOption({ label: "Climbing Away" });
     assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Climbing preferences did not appear.");
@@ -239,9 +257,11 @@ const { chromium } = require("playwright");
     await page.locator('label:has(input[name="distance"][value="100"]) span').click();
     assert.equal(await page.locator('input[name="distance"][value="100"]').isChecked(), true, "The 100 km distance filter was not selected.");
     await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#no-results").isVisible(), true, "An impossible activity/distance combination did not show the no-results guidance.");
     await page.locator("#budget").fill("3000");
     await page.locator("#reset-filters").click();
+    await waitForRouteResults();
     assert.equal(await page.locator("#experience").inputValue(), "Any", "Widen the Search did not reset the activity filter.");
     assert.equal(await page.locator('input[name="distance"][value="any"]').isChecked(), true, "Widen the Search did not clear the distance limit.");
     assert.equal(await page.locator("#no-results").isVisible(), false, "Widen the Search did not restore available destination cards.");
