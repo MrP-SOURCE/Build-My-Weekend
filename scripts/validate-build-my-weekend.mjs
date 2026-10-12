@@ -21,6 +21,9 @@ assert(app.includes("choosing a broader weekend type"), "No-results guidance mus
 assert(html.includes("<strong>CAPE TOWN PILOT AREA</strong>") && html.includes("The departure area cannot yet be changed"), "The planner must disclose that its fixed distance and fuel dataset only supports the Cape Town pilot.");
 assert(app.includes('const origin = encodeURIComponent("Cape Town, South Africa")'), "Google Maps directions must use the same explicitly disclosed Cape Town pilot origin.");
 assert(app.includes("const returnDistance = destination.distance * 2"), "Fuel estimates must remain visibly tied to the maintained Cape Town destination-distance dataset until routing data supports other origins.");
+assert(app.includes("km one way from Cape Town") && app.includes("km return · approximately"), "Destination detail must disclose the Cape Town basis of distance and return-distance estimates.");
+assert(app.includes("Suggested day-trip departure from Cape Town.") && app.includes("Suggested departure from Cape Town."), "Day-trip and overnight itinerary copy must disclose the Cape Town pilot departure origin.");
+assert(app.includes("Accommodation, food, activities, routes and drive times are illustrative estimates from Cape Town"), "Shared trip summaries must retain the Cape Town estimate limitation when copied or shared.");
 assert(app.includes("estimated new spend ${money(cost.spend)}"), "Shared trip summary must label the budget figure as estimated new spend.");
 assert(app.includes("This subtracts fuel already in the vehicle from the amount still to buy"), "Shared trip summary must explain how existing fuel affects the estimate.");
 assert((app.match(/budgetRangeWarning\(cost, settings, campingSelected, glampingSelected\)/g) || []).length >= 2, "Upper-range budget warnings must appear on recommendation cards and trip details.");
