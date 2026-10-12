@@ -1656,7 +1656,7 @@ function card(destination, settings, badges) {
     <div class="card-landscape" style="--card-bg:${destination.colors[0]};--card-hill:${destination.colors[1]};--card-hill2:${destination.colors[2]}">
       <span class="landscape-sun"></span><span class="landscape-hill"></span><span class="landscape-hill second"></span>
       <span class="card-tag">${esc(destination.categories.slice(0, 2).join(" · ").toUpperCase())}</span>
-      <span class="card-km">${destination.distance} KM ONE WAY</span>
+      <span class="card-km">${destination.routeVerified === false ? "≈ " : ""}${destination.distance} KM ONE WAY</span>
     </div>
     <div class="card-content">
       <div class="card-topline">
@@ -1666,7 +1666,7 @@ function card(destination, settings, badges) {
         ).join("")}</div>
       </div>
       <div class="trip-facts"><span>${settings.people} ${settings.people === 1 ? "person" : "people"}</span><span>·</span><span>≈ ${driveLabel(destination.driveTime)} drive</span><span>·</span><span>${dateSpan(settings)}</span></div>
-      <p class="detail-demo-note" style="margin:.35rem 0;font-size:.75rem">ROUTE CHECKED · ${esc(destination.routeSource || "TomTom Routing API")} · from ${esc(settings.origin || "Cape Town, South Africa")}</p>
+      <p class="detail-demo-note" style="margin:.35rem 0;font-size:.75rem">${destination.routeVerified === false ? "ROUTE NOT VERIFIED · catalogue distance and drive time are rough Cape Town-basis estimates; your distance filter was not checked" : "ROUTE CHECKED · " + esc(destination.routeSource || "TomTom Routing API") + " · from " + esc(settings.origin || "Cape Town, South Africa")}</p>
       <p class="destination-description">${esc(destination.description)}</p>${fishingSpotSummary(destination, settings)}${campingCardSummary(destination, settings)}${accommodationSummary(destination, settings)}
       <div class="card-budget-row">
         <div><div class="spend-number">${money(cost.spend)}</div><div class="spend-caption">${glampingSelected ? "BASE TRIP ESTIMATE · GLAMPING STAY PRICE NOT INCLUDED" : campingSelected ? `BASE TRIP ESTIMATE · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"} · CAMPSITE FEE NOT VERIFIED` : `ESTIMATED NEW SPEND · ${settings.people} ${settings.people === 1 ? "PERSON" : "PEOPLE"}`}</div>${glampingSelected ? '<p class="detail-demo-note">The property-specific glamping stay price is not included in this estimate. Check the full stay total before treating the trip as within budget.</p>' : campingSelected ? '<p class="detail-demo-note">The accommodation figure is a generic demonstration allowance, not a campsite tariff. The actual pitch/site fee is not mapped or included as a verified price. Confirm the total for your dates and group before deciding affordability.</p>' : ""}<div class="card-per-person">${money(cost.perPerson)} per person</div><div class="card-demo-range">${money(cost.lowSpend)}–${money(cost.highSpend)} demonstration range · ${cost.nights === 0 ? "day trip" : `${cost.nights} night${cost.nights === 1 ? "" : "s"}`}</div><div class="card-budget-confidence" data-testid="budget-confidence-${destination.id}" data-confidence="${budgetConfidence.level}" aria-describedby="${budgetConfidenceId}"><strong>${budgetConfidence.label}</strong> — ${budgetConfidence.detail}<p id="${budgetConfidenceId}" class="field-hint">${budgetConfidenceHelp}</p><p class="budget-next-step" data-testid="budget-next-step-${destination.id}">${budgetNextStep}</p></div>${budgetRangeWarning(cost, settings, campingSelected, glampingSelected)}</div>
@@ -1825,6 +1825,7 @@ async function addVerifiedRoutes(candidates, settings) {
     b.valueScore - a.valueScore || a.cost.spend - b.cost.spend
   ).slice(0, 8);
   const routed = [];
+  let failedLookups = 0;
   for (const candidate of ranked) {
     try {
       const route = await routeForDestination(settings.origin, candidate);
@@ -1844,10 +1845,11 @@ async function addVerifiedRoutes(candidates, settings) {
         routed.push(withRoute);
       }
     } catch (error) {
+      failedLookups += 1;
       console.warn("Route check failed for " + candidate.name + ":", error);
     }
   }
-  return routed;
+  return { routed, attempted: ranked.length, failedLookups };
 }
 
 async function render() {
@@ -1861,16 +1863,29 @@ async function render() {
     "Checking real driving routes for a limited shortlist. The destination catalogue is still a Western Cape pilot.";
   document.querySelector("#result-count").textContent = "CHECKING ROUTES…";
   const preliminary = findCandidates({ ...settings, distance: "any" }, { preRoute: true });
-  const candidates = await addVerifiedRoutes(preliminary, settings);
+  const routeCheck = await addVerifiedRoutes(preliminary, settings);
+  let candidates = routeCheck.routed;
+  const routeFallback = candidates.length === 0 && routeCheck.attempted > 0 &&
+    routeCheck.failedLookups === routeCheck.attempted && preliminary.length > 0;
+  if (routeFallback) {
+    // Keep the planner useful during a temporary routing outage, without representing
+    // catalogue defaults as live routes or pretending the user's distance filter was checked.
+    candidates = [...preliminary]
+      .sort((a, b) => b.valueScore - a.valueScore || a.cost.spend - b.cost.spend)
+      .slice(0, 8)
+      .map(candidate => ({ ...candidate, routeVerified: false, routeSource: "" }));
+  }
   latestRoutedCandidates = candidates;
   const shortlist = buildShortlist(candidates, settings);
-  document.querySelector("#results-summary").textContent =
-    `${candidates.length} route-verified destination${candidates.length === 1 ? "" : "s"} passed your distance and budget filters. Routes are live; costs, accommodation and activities remain estimates.`;
-  document.querySelector("#result-count").textContent =
-    `${shortlist.length} SHORTLISTED · ${candidates.length} ROUTE-CHECKED`;
+  document.querySelector("#results-summary").textContent = routeFallback
+    ? "The live routing service is temporarily unavailable. Showing unverified Western Cape trip ideas; catalogue distance and drive-time estimates use a Cape Town basis, and your distance limit has not been route-checked. Confirm routes in Maps before deciding."
+    : `${candidates.length} route-verified destination${candidates.length === 1 ? "" : "s"} passed your distance and budget filters. Routes are live; costs, accommodation and activities remain estimates.`;
+  document.querySelector("#result-count").textContent = routeFallback
+    ? `${shortlist.length} IDEAS · ROUTE CHECK UNAVAILABLE`
+    : `${shortlist.length} SHORTLISTED · ${candidates.length} ROUTE-CHECKED`;
   document.querySelector("#no-results-copy").textContent = candidates.length
     ? noResultsMessage(settings)
-    : "No route-verified destination passed your current filters. Check the starting place, widen the distance or budget, and try again. If every route lookup failed, the routing service may be temporarily unavailable. No Cape Town distance estimate is substituted for a failed live route.";
+    : "No destination passed the current budget filters. Increase the budget or adjust trip criteria and try again. No route distance is invented when the routing service is unavailable.";
   noResults.hidden = candidates.length > 0;
   if (!candidates.length) return;
   const comparison = document.createElement("div");
@@ -2213,13 +2228,13 @@ function detail(destination, settings) {
         ).join("")}</ol>
       </section>
     </div>
-    <div class="practical-box"><strong>GOOD TO KNOW · ROUTE / COST EVIDENCE</strong><br>${esc(destination.practicalInfo)}<br><br>Driving distance and time above were checked by ${esc(destination.routeSource || "the routing service")} from ${esc(settings.origin || "Cape Town, South Africa")}. Accommodation, food, activities, facilities and availability remain unverified estimates. Fuel already in your tank is not charged to the budget again.</div>
+    <div class="practical-box"><strong>GOOD TO KNOW · ROUTE / COST EVIDENCE</strong><br>${esc(destination.practicalInfo)}<br><br>${destination.routeVerified === false ? "Driving distance and time are catalogue estimates based on a Cape Town starting point; no live route was verified and your distance limit was not checked. Confirm the route and recalculate travel costs before relying on the budget." : "Driving distance and time above were checked by " + esc(destination.routeSource || "the routing service") + " from " + esc(settings.origin || "Cape Town, South Africa") + "."} Accommodation, food, activities, facilities and availability remain unverified estimates. Fuel already in your tank is not charged to the budget again.</div>
     <div class="access-details" aria-label="Unverified local access notes">
       <div><strong>HOSPITAL ACCESS · UNVERIFIED</strong>${esc(destination.hospitalAccess)}<a class="access-search-link" href="${esc(localSearchUrl('hospital', destination))}" target="_blank" rel="noopener noreferrer">SEARCH HOSPITALS ON MAP ↗</a></div>
       <div><strong>PHARMACY ACCESS · UNVERIFIED</strong>${esc(destination.pharmacyAccess)}<a class="access-search-link" href="${esc(localSearchUrl('pharmacy', destination))}" target="_blank" rel="noopener noreferrer">SEARCH PHARMACIES ON MAP ↗</a></div>
       <div><strong>FUEL ACCESS · UNVERIFIED</strong>${esc(destination.fuelAccess)}<a class="access-search-link" href="${esc(localSearchUrl('fuel stations', destination))}" target="_blank" rel="noopener noreferrer">SEARCH FUEL STATIONS ON MAP ↗</a></div>
     </div>
-    <p class="detail-demo-note">ROUTE STATUS: driving distance/time were checked by the routing service for the displayed starting point and destination. Destination costs, facilities, access, booking availability and emergency-service information are not verified. Confirm road conditions and providers before travel.</p>
+    <p class="detail-demo-note">${destination.routeVerified === false ? "ROUTE STATUS: NOT VERIFIED. Catalogue distance, drive time and related fuel costs are rough Cape Town-basis estimates. Confirm the actual route and adjust costs before travel." : "ROUTE STATUS: driving distance/time were checked by the routing service for the displayed starting point and destination."} Destination costs, facilities, access, booking availability and emergency-service information are not verified. Confirm road conditions and providers before travel.</p>
     <div class="detail-actions">
       <button class="button button-primary" type="button" data-action="availability" data-testid="availability-button">FIND STAY OPTIONS</button>
       <button class="button demo-button" type="button" data-action="navigate" data-destination="${destination.id}" data-testid="navigate-button">NAVIGATE</button>
@@ -2247,7 +2262,7 @@ function shareText(destination, settings) {
     (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "") +
     `\n\n${sharedPreDepartureChecks(settings)}` +
     `\n\n${sharedTravelCostDisclosure(cost, settings)}` +
-    `\n\nDRIVING ROUTE FROM ${settings.origin || "Cape Town, South Africa"} — route distance/time checked by ${destination.routeSource || "TomTom Routing API"}; verify traffic, road conditions and access: ${directionsUrl(destination, settings)}` +
+    `\n\nDRIVING ROUTE FROM ${settings.origin || "Cape Town, South Africa"} — ${destination.routeVerified === false ? "live distance/time NOT checked; open the map and confirm the route before relying on distance or fuel estimates" : "route distance/time checked by " + (destination.routeSource || "TomTom Routing API")}; verify traffic, road conditions and access: ${directionsUrl(destination, settings)}` +
     `\n\nLOCAL SERVICE SEARCHES — map results only; facility availability, opening hours and travel times are not verified:\n${sharedSafetyLinks(destination)}`;
 }
 
