@@ -312,6 +312,11 @@ const { chromium } = require("playwright");
 
     // Simulate a temporary route-service outage. Trip ideas must remain visible,
     // with clear labels that the route, distance filter and origin-based costs are unverified.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("bmwRoute:v3:")) localStorage.removeItem(key);
+      }
+    });
     simulateRoutingOutage = true;
     await page.locator("#trip-form button[type=submit]").click();
     await waitForRouteResults();
