@@ -84,6 +84,17 @@ async function geocode(place, key) {
   return position;
 }
 
+function straightLineDistanceKm(a, b) {
+  const radians = degrees => degrees * Math.PI / 180;
+  const lat1 = radians(a.lat);
+  const lat2 = radians(b.lat);
+  const deltaLat = lat2 - lat1;
+  const deltaLon = radians(b.lon - a.lon);
+  const h = Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(Math.max(0, 1 - h)));
+}
+
 async function calculateRoute(origin, destination, key) {
   const coords = `${origin.lat},${origin.lon}:${destination.lat},${destination.lon}`;
   const url = new URL("https://api.tomtom.com/routing/1/calculateRoute/" + coords + "/json");
@@ -102,6 +113,14 @@ async function calculateRoute(origin, destination, key) {
   if (!summary || !Number.isFinite(summary.lengthInMeters) || !Number.isFinite(summary.travelTimeInSeconds)) {
     const error = new Error("TomTom did not return a usable driving route.");
     error.status = 502;
+    throw error;
+  }
+  const straightLineKm = straightLineDistanceKm(origin, destination);
+  // A drivable route cannot be materially shorter than the straight-line distance.
+  // Reject suspicious results rather than displaying a confident but incorrect route.
+  if (summary.lengthInMeters < straightLineKm * 1000 * 0.9) {
+    const error = new Error("TomTom returned a route inconsistent with the matched places. Try a more specific destination name or address.");
+    error.status = 422;
     throw error;
   }
   return {
