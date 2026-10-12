@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from import_osm_campsites import normalize, read_records
+from import_osm_campsites import normalize, read_records, validate_source_metadata
 
 
 class OSMCampsiteImportTests(unittest.TestCase):
@@ -17,6 +17,31 @@ class OSMCampsiteImportTests(unittest.TestCase):
             "source_updated_at": "2026-10-01",
             "imported_at": "2026-10-12",
         }
+
+    def test_rejects_blank_required_provenance(self):
+        with self.assertRaisesRegex(ValueError, "source URL"):
+            validate_source_metadata(
+                source_id="source", source_url="", licence_id="reviewed",
+                attribution_text="Attribution",
+            )
+        with self.assertRaisesRegex(ValueError, "attribution text"):
+            validate_source_metadata(
+                source_id="source", source_url=self.meta["source_url"],
+                licence_id="reviewed", attribution_text="  ",
+            )
+
+    def test_rejects_non_http_source_url(self):
+        with self.assertRaisesRegex(ValueError, "HTTP\(S\)"):
+            validate_source_metadata(
+                source_id="source", source_url="file:///tmp/dataset.csv",
+                licence_id="reviewed", attribution_text="Attribution",
+            )
+
+    def test_accepts_complete_source_provenance(self):
+        validate_source_metadata(
+            source_id=self.meta["source_id"], source_url=self.meta["source_url"],
+            licence_id=self.meta["licence_id"], attribution_text=self.meta["attribution_text"],
+        )
 
     def test_normalizes_campsite_with_provenance(self):
         record = {
