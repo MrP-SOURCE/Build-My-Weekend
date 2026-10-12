@@ -109,6 +109,8 @@ jobs:
           cache: pnpm
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build production web app for isolated browser runner
+        run: pnpm --filter @workspace/build-my-weekend build
       - name: Install Playwright and Chromium
         run: |
           npm install --prefix /tmp/bmw-browser playwright
