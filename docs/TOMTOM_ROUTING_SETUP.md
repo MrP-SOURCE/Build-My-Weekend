@@ -30,11 +30,15 @@ Open [https://go.build-my-weekend.workers.dev/healthz](https://go.build-my-weeke
 
 Official Cloudflare secret instructions: https://developers.cloudflare.com/workers/configuration/secrets/
 
-## 3. Browser origin and abuse protection
+## 3. Browser origin and rate limiting
 
 The default allowed browser origin is `https://mrp-source.github.io`. If the app is served from another domain, update `ALLOWED_ORIGIN` in `wrangler.toml` to the exact origin (scheme and hostname only), then redeploy.
 
-CORS is a browser control, not authentication or quota protection. Before opening this endpoint to public traffic, configure a Cloudflare rate-limiting rule for `/api/route` and set a usage alert in TomTom. Do not consider the endpoint launch-ready until abuse protection is configured.
+The Worker now expects a Cloudflare Workers Rate Limiting binding named `ROUTE_RATE_LIMITER`. The supplied `wrangler.toml` configures a limit of 20 route requests per client IP per 60 seconds. The Worker deliberately returns HTTP 503 for route requests if this binding is missing or its limiter errors, rather than silently making unprotected paid API calls. Excess requests return HTTP 429.
+
+Before deploying this code, configure the Rate Limiting binding for Worker `go` in Cloudflare Workers & Pages > `go` > Settings > Bindings, using the binding name `ROUTE_RATE_LIMITER` and a rate limit of 20 requests over 60 seconds keyed by the incoming client IP. If your dashboard presents the Workers Rate Limiting API as a binding type, use that binding and the same limit. Then deploy the updated Worker code and verify both a normal route and the 503/429 behaviour. Do not deploy the fail-closed code before configuring the binding, or route lookups will return 503.
+
+CORS is a browser control, not authentication or quota protection. The per-IP limit is an abuse-reduction measure, not a hard billing cap: Cloudflare rate limits are approximate and may be applied locally. Set a usage alert or budget threshold in TomTom as an additional safeguard before public promotion.
 
 ## 4. Test a route
 
