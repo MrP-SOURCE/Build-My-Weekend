@@ -18,6 +18,9 @@ function idsFromHtml(source) {
 
 assert(app.includes("No destination matches all your current filters (weekend type, distance and budget)."), "No-results guidance must describe the combined filters accurately.");
 assert(app.includes("choosing a broader weekend type"), "No-results guidance must suggest practical ways to recover.");
+assert(html.includes("<strong>CAPE TOWN PILOT AREA</strong>") && html.includes("The departure area cannot yet be changed"), "The planner must disclose that its fixed distance and fuel dataset only supports the Cape Town pilot.");
+assert(app.includes('const origin = encodeURIComponent("Cape Town, South Africa")'), "Google Maps directions must use the same explicitly disclosed Cape Town pilot origin.");
+assert(app.includes("const returnDistance = destination.distance * 2"), "Fuel estimates must remain visibly tied to the maintained Cape Town destination-distance dataset until routing data supports other origins.");
 assert(app.includes("estimated new spend ${money(cost.spend)}"), "Shared trip summary must label the budget figure as estimated new spend.");
 assert(app.includes("This subtracts fuel already in the vehicle from the amount still to buy"), "Shared trip summary must explain how existing fuel affects the estimate.");
 assert((app.match(/budgetRangeWarning\(cost, settings, campingSelected, glampingSelected\)/g) || []).length >= 2, "Upper-range budget warnings must appear on recommendation cards and trip details.");
