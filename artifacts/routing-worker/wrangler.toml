@@ -4,4 +4,12 @@ compatibility_date = "2026-10-12"
 
 [vars]
 ALLOWED_ORIGIN = "https://mrp-source.github.io"
-MAX_REQUESTS_PER_MINUTE = "20"
+
+
+# Enforced by the Worker before any paid TomTom API calls.
+[[ratelimits]]
+name = "ROUTE_RATE_LIMITER"
+namespace_id = "1001"
+  [ratelimits.simple]
+  limit = 20
+  period = 60
