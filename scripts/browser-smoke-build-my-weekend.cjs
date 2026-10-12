@@ -265,10 +265,10 @@ const { chromium } = require("playwright");
     await page.locator("#budget").fill("3000");
     await page.locator("#reset-filters").click();
     await waitForRouteResults();
-    assert.equal(await page.locator("#experience").inputValue(), "Any", "Widen the Search did not reset the activity filter.");
-    assert.equal(await page.locator('input[name="distance"][value="any"]').isChecked(), true, "Widen the Search did not clear the distance limit.");
-    assert.equal(await page.locator("#no-results").isVisible(), false, "Widen the Search did not restore available destination cards.");
-    assert(await page.locator("#recommendations .trip-card").count() > 0, "Widen the Search returned no destination cards.");
+    assert.equal(await page.locator("#experience").inputValue(), "Any", "Reset did not restore the default activity filter.");
+    assert.equal(await page.locator('input[name="distance"][value="200"]').isChecked(), true, "Reset did not restore the default distance limit.");
+    assert.equal(await page.locator("#no-results").isVisible(), false, "Reset did not restore the default result state.");
+    assert(await page.locator("#recommendations .trip-card").count() > 0, "Reset returned no destination cards.");
 
     // Re-check the production page at a common phone viewport.
     await page.setViewportSize({ width: 390, height: 844 });
