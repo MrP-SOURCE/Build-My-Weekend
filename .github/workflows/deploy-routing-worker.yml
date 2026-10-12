@@ -18,7 +18,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.9.2
+          version: 10.34.6
 
       - name: Deploy Worker with Wrangler
         uses: cloudflare/wrangler-action@v3
