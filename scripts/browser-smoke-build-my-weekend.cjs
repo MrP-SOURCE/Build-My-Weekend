@@ -106,6 +106,24 @@ const { chromium } = require("playwright");
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
     assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
 
+    // Verify that fuel already paid for reduces only the remaining cash spend.
+    const readAdditionalFuelLine = async () => page.locator("#dialog-content").evaluate(root => {
+      const label = [...root.querySelectorAll("*")].find(element =>
+        element.children.length === 0 && element.textContent.trim() === "Additional fuel to buy"
+      );
+      return label?.parentElement?.innerText.trim() || "";
+    });
+    const additionalFuelWithTankCredit = await readAdditionalFuelLine();
+    assert(additionalFuelWithTankCredit.includes("Additional fuel to buy"), "Could not read the additional-fuel cost row.");
+    await page.locator("#trip-dialog .dialog-close").click();
+    await page.locator("#fuel-existing").fill("0");
+    await page.locator("#trip-form button[type=submit]").click();
+    await page.locator('#recommendations button[data-action="view"]').first().click();
+    const additionalFuelWithoutTankCredit = await readAdditionalFuelLine();
+    assert(additionalFuelWithoutTankCredit.includes("Additional fuel to buy"), "Additional-fuel cost row disappeared after recalculation.");
+    assert.notEqual(additionalFuelWithoutTankCredit, additionalFuelWithTankCredit,
+      "Setting fuel already in the tank to zero did not recalculate additional fuel spend.");
+
     // Exercise stay-search focus, external route hand-off and share-summary contents without leaving the test browser.
     await page.evaluate(() => {
       window.__bmwSharedPayload = null;
