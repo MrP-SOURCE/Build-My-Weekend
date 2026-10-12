@@ -382,7 +382,7 @@ const { chromium } = require("playwright");
     assert((await page.locator(".region-card").innerText()).includes("Fixture topography description."), "Shoreline Explorer did not render topography details.");
     await page.locator("#shoreline-length").fill("200");
     await page.locator("#search-form button[type=submit]").click();
-    await page.locator("#status").waitFor();
+    await page.locator("#status").getByText("No region matched", { exact: false }).waitFor({ state: "visible" });
     assert((await page.locator("#status").innerText()).includes("No region matched"), "Shoreline Explorer did not apply the shoreline-length filter.");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
