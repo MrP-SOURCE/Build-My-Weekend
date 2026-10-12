@@ -1,0 +1,7 @@
+name = "build-my-weekend-routing"
+main = "src/index.js"
+compatibility_date = "2026-10-12"
+
+[vars]
+ALLOWED_ORIGIN = "https://mrp-source.github.io"
+MAX_REQUESTS_PER_MINUTE = "20"
