@@ -22,6 +22,8 @@ jobs:
 
       - name: Deploy Worker with Wrangler
         uses: cloudflare/wrangler-action@v3
+        env:
+          npm_config_ignore_workspace_root_check: "true"
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
