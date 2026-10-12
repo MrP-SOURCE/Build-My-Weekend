@@ -156,3 +156,30 @@ test("rejects a route shorter than the straight-line distance between matched pl
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("uses canonical destination coordinates and rejects a suspicious Kogel Bay route", async () => {
+  const originalFetch = globalThis.fetch;
+  const called = [];
+  globalThis.fetch = async input => {
+    const url = new URL(input);
+    called.push(url.pathname);
+    if (url.pathname.includes("/geocode/")) {
+      return Response.json({ results: [
+        { position: { lat: -33.93, lon: 18.86 }, address: { freeformAddress: "Stellenbosch, Western Cape" } }
+      ] });
+    }
+    return Response.json({ routes: [{ summary: { lengthInMeters: 16000, travelTimeInSeconds: 1260 } }] });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://worker.example/api/route", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.15" },
+      body: JSON.stringify({ origin: "Stellenbosch, South Africa", destination: "Kogel Bay, Cape Helderberg, Western Cape, South Africa", destinationCoordinates: { lat: -34.20, lon: 18.86 } })
+    }), env);
+    assert.equal(response.status, 422);
+    assert.match((await response.json()).error, /inconsistent with the matched places/i);
+    assert.equal(called.filter(path => path.includes("/geocode/")).length, 1, "destination must use the canonical coordinates");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
