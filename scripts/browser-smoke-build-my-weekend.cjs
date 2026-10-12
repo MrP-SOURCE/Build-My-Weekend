@@ -172,6 +172,8 @@ const { chromium } = require("playwright");
     assert(sharedPayload.text.includes("Demonstration estimates only"), "Shared trip summary is missing the estimate disclosure.");
     assert(sharedPayload.text.includes("STAY SEARCH LINKS"), "Shared trip summary is missing accommodation research links.");
     assert(sharedPayload.text.toLowerCase().includes("additional fuel to buy"), "Shared trip summary is missing its fuel breakdown.");
+    assert(sharedPayload.text.includes("DRIVING ROUTE FROM CAPE TOWN"), "Shared trip summary is missing its declared Cape Town departure origin.");
+    assert(sharedPayload.text.includes("Cape Town, South Africa"), "Shared trip summary route hand-off does not identify the same Cape Town origin as the planner disclosure.");
     await page.locator("#trip-dialog .dialog-close").click();
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close.");
 
