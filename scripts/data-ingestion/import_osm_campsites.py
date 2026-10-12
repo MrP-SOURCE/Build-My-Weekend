@@ -13,6 +13,7 @@ import math
 import sys
 from pathlib import Path
 from typing import Any, Iterable, Iterator
+from urllib.parse import urlparse
 
 OUTPUT_FIELDS = [
     "id", "name", "category", "latitude", "longitude", "tags_json",
@@ -109,6 +110,22 @@ def read_records(path: Path) -> Iterable[dict[str, Any]]:
     raise ValueError("Input must be a .csv, .geojson, or GeoJSON .json file.")
 
 
+def validate_source_metadata(*, source_id: str, source_url: str, licence_id: str, attribution_text: str) -> None:
+    """Reject blank provenance and non-absolute/non-HTTP source URLs."""
+    required = {
+        "source ID": source_id,
+        "source URL": source_url,
+        "licence ID/review status": licence_id,
+        "attribution text": attribution_text,
+    }
+    missing = [label for label, value in required.items() if not _text(value)]
+    if missing:
+        raise ValueError("Required provenance field(s) are blank: " + ", ".join(missing) + ".")
+    parsed = urlparse(_text(source_url))
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("Source URL must be an absolute HTTP(S) URL.")
+
+
 def normalize(
     record: dict[str, Any], *, source_id: str, source_url: str,
     licence_id: str, attribution_text: str, source_updated_at: str,
@@ -168,6 +185,10 @@ def main() -> int:
         parser.error("Input and output paths must be different.")
 
     try:
+        validate_source_metadata(
+            source_id=args.source_id, source_url=args.source_url,
+            licence_id=args.licence_id, attribution_text=args.attribution,
+        )
         accepted = 0
         rejected = 0
         args.output.parent.mkdir(parents=True, exist_ok=True)
