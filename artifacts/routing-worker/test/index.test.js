@@ -65,3 +65,64 @@ test("returns 429 before routing when the rate limit is exceeded", async () => {
   assert.equal(response.status, 429);
   assert.equal(response.headers.get("retry-after"), "60");
 });
+
+
+test("chooses matching TomTom place results instead of an unrelated first result", async () => {
+  const originalFetch = globalThis.fetch;
+  const routeCalls = [];
+  globalThis.fetch = async input => {
+    const url = new URL(input);
+    if (url.pathname.includes("/geocode/")) {
+      const query = decodeURIComponent(url.pathname.split("/").pop().replace(/\\.json$/, ""));
+      if (query.startsWith("Stellenbosch")) {
+        return Response.json({ results: [
+          { position: { lat: -34.08, lon: 18.85 }, address: { freeformAddress: "Somerset West, Western Cape" } },
+          { position: { lat: -33.93, lon: 18.86 }, address: { freeformAddress: "Stellenbosch, Western Cape" } }
+        ] });
+      }
+      return Response.json({ results: [
+        { position: { lat: -34.15, lon: 18.87 }, address: { freeformAddress: "Gordon's Bay, Western Cape" } },
+        { position: { lat: -34.20, lon: 18.86 }, address: { freeformAddress: "Kogel Bay, Western Cape" } }
+      ] });
+    }
+    routeCalls.push(url.pathname);
+    return Response.json({ routes: [{ summary: { lengthInMeters: 34000, travelTimeInSeconds: 2160 } }] });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://worker.example/api/route", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.12" },
+      body: JSON.stringify({ origin: "Stellenbosch, South Africa", destination: "Kogel Bay, Cape Helderberg, Western Cape, South Africa" })
+    }), env);
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.distanceKmOneWay, 34);
+    assert.equal(body.driveMinutesOneWay, 36);
+    assert.equal(routeCalls.length, 1);
+    assert.match(routeCalls[0], /-33.93,18.86:-34.2,18.86/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("rejects ambiguous geocoding instead of routing to an unrelated result", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async input => {
+    const url = new URL(input);
+    if (url.pathname.includes("/geocode/")) {
+      return Response.json({ results: [
+        { position: { lat: -34.15, lon: 18.87 }, address: { freeformAddress: "Gordon's Bay, Western Cape" } }
+      ] });
+    }
+    throw new Error("Routing should not be called after a place mismatch");
+  };
+  try {
+    const response = await worker.fetch(new Request("https://worker.example/api/route", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.13" },
+      body: JSON.stringify({ origin: "Kogel Bay, Western Cape, South Africa", destination: "Hermanus, Western Cape, South Africa" })
+    }), env);
+    assert.equal(response.status, 422);
+    assert.match((await response.json()).error, /confidently match/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
