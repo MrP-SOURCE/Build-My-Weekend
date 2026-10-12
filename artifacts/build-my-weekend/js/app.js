@@ -2041,7 +2041,7 @@ function buildPracticalItinerary(destination, settings, cost) {
     const returnDeparture = 15 * 60;
     const returnArrival = returnDeparture + driveMinutes + stopBuffer;
     return [
-      ["DAY 08:00", "Suggested day-trip departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."],
+      ["DAY 08:00", `Suggested day-trip departure from ${settings.origin || "Cape Town, South Africa"}. Allow approximately ${driveLabel(driveMinutes)} driving plus ${stopBuffer} minutes for a comfort stop; traffic and route conditions can change.`],
       ["DAY " + clock(arrival), "Illustrative arrival near " + destination.name + ". Check access, opening hours and any fees before leaving."],
       ["DAY 11:00", mainActivity + ". Keep the plan flexible and verify local conditions first. Activity allowance: about " + money(activityMain) + " for the group."],
       ["DAY 12:30", "Lunch and rest break. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
@@ -2052,7 +2052,7 @@ function buildPracticalItinerary(destination, settings, cost) {
   const firstLabel = label(days[0]);
   const lastLabel = label(days[days.length - 1]);
   const firstArrival = 14 * 60 + driveMinutes + stopBuffer;
-  itinerary.push([firstLabel + " 14:00", "Suggested departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."]);
+  itinerary.push([firstLabel + " 14:00", `Suggested departure from ${settings.origin || "Cape Town, South Africa"}. Allow approximately ${driveLabel(driveMinutes)} driving plus ${stopBuffer} minutes for a comfort stop; traffic and route conditions can change.`]);
   itinerary.push([firstLabel + " " + clock(firstArrival), "Illustrative arrival in " + destination.name + ". Check the property's actual check-in time, access instructions and parking before leaving."]);
   itinerary.push([firstLabel + " 19:00", "Dinner / self-catered meal. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."]);
   for (let index = 1; index < days.length - 1; index++) {
