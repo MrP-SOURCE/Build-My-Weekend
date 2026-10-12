@@ -44,21 +44,24 @@ const { chromium } = require("playwright");
       });
     }
     if (pathname === "/api/shoreline-topography") {
+      const params = new URL(route.request().url()).searchParams;
+      const region = {
+        id: "false-bay", destination: "False Bay", province: "Western Cape",
+        shoreline_length_km: 120, data_status: "DEMO_REGIONAL_REFERENCE",
+        bounding_box: { min_lat: -34.35, max_lat: -33.95, min_lon: 18.35, max_lon: 19.15 },
+        topography_description: "Fixture topography description.",
+        hotspot_features: [{ name: "Rocky points", feature: "reef edge", status: "not verified" }],
+        map_reading_instruction: "Read official chart contours and restrictions.",
+        accumulating_fish: [{ species: "Yellowtail", habitat: "offshore", evidence: "illustrative only" }]
+      };
+      const matchesLength = region.shoreline_length_km >= Number(params.get("shoreline_length_km") || 0);
       return route.fulfill({
         status: 200,
         contentType: "application/json",
         headers: { "access-control-allow-origin": "*" },
         body: JSON.stringify({
-          schema_version: "1.0", count: 1, disclaimer: "Demo data only.",
-          regions: [{
-            id: "false-bay", destination: "False Bay", province: "Western Cape",
-            shoreline_length_km: 120, data_status: "DEMO_REGIONAL_REFERENCE",
-            bounding_box: { min_lat: -34.35, max_lat: -33.95, min_lon: 18.35, max_lon: 19.15 },
-            topography_description: "Fixture topography description.",
-            hotspot_features: [{ name: "Rocky points", feature: "reef edge", status: "not verified" }],
-            map_reading_instruction: "Read official chart contours and restrictions.",
-            accumulating_fish: [{ species: "Yellowtail", habitat: "offshore", evidence: "illustrative only" }]
-          }]
+          schema_version: "1.0", count: matchesLength ? 1 : 0, disclaimer: "Demo data only.",
+          regions: matchesLength ? [region] : []
         })
       });
     }
@@ -380,7 +383,7 @@ const { chromium } = require("playwright");
     await page.locator("#shoreline-length").fill("200");
     await page.locator("#search-form button[type=submit]").click();
     await page.locator("#status").waitFor();
-    assert((await page.locator("#status").innerText()).includes("1 regional reference card"), "Shoreline Explorer filter interaction did not run.");
+    assert((await page.locator("#status").innerText()).includes("No region matched"), "Shoreline Explorer did not apply the shoreline-length filter.");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
