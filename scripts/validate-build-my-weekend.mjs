@@ -268,7 +268,7 @@ console.log("Budget range disclosure regression checks: PASS");
 console.log("Fuel and group-size scaling regression checks: PASS");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
 assert(context.window.testPracticalItineraryDateCoverage() === 3, "Date-matched itinerary regression checks failed.");
-assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
+assert(context.window.testSavedSettingsCoverage() === 23, "Saved preference coverage regression checks failed.");
 assert(context.window.testSavedSettingsApplication() === 22, "Saved preference application regression checks failed.");
 const restoreControlIds = [
   "fishing-style", "target-species", "spot-preference", "fishing-priority",
