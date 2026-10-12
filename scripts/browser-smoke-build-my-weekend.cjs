@@ -267,10 +267,16 @@ const { chromium } = require("playwright");
     await waitForRouteResults();
     assert.equal(await page.locator("#no-results").isVisible(), true, "An impossible activity/distance combination did not show the no-results guidance.");
     await page.locator("#budget").fill("3000");
+    await page.locator("#fuel-price").fill("27.15");
+    await page.locator("#consumption").fill("6.5");
+    await page.locator("#origin").fill("Stellenbosch, South Africa");
     await page.locator("#reset-filters").click();
     await waitForRouteResults();
     assert.equal(await page.locator("#experience").inputValue(), "Any", "Reset did not restore the default activity filter.");
     assert.equal(await page.locator('input[name="distance"][value="200"]').isChecked(), true, "Reset did not restore the default distance limit.");
+    assert.equal(await page.locator("#origin").inputValue(), "Cape Town, South Africa", "Reset did not restore the default starting location.");
+    assert.equal(await page.locator("#fuel-price").inputValue(), "27.15", "Reset overwrote the manually set fuel price.");
+    assert.equal(await page.locator("#consumption").inputValue(), "6.5", "Reset overwrote the manually set fuel consumption.");
     assert.equal(await page.locator("#no-results").isVisible(), false, "Reset did not restore the default result state.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Reset returned no destination cards.");
 
