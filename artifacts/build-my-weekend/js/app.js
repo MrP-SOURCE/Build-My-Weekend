@@ -2364,6 +2364,8 @@ dialog.addEventListener("click", event => {
 });
 
 function resetPlannerToDefaults() {
+  // Reset every planner criterion together: origin, destination preferences,
+  // dates, group size, budget, distance, fuel assumptions and specialist options.
   try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
   form.reset();
   initDates();
@@ -2371,13 +2373,23 @@ function resetPlannerToDefaults() {
   if (form.elements.return.value < form.elements.depart.value) {
     form.elements.return.value = form.elements.depart.value;
   }
-  form.elements.experience.dispatchEvent(new Event("change", { bubbles: true }));
+
+  // Clear validation left by the previous attempt and notify dependent controls
+  // so Fishing Away, camping and other conditional settings return to their defaults.
+  form.querySelectorAll("[aria-invalid]").forEach(field => field.removeAttribute("aria-invalid"));
+  form.querySelectorAll(".field-error").forEach(error => { error.textContent = ""; });
+  Array.from(form.elements).forEach(field => {
+    if (field.name && field.type !== "submit" && field.type !== "button" && field.type !== "reset") {
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+
   latestRoutedCandidates = [];
   results.replaceChildren();
   document.querySelector("#no-results").hidden = true;
   document.querySelector("#result-count").textContent = "READY TO PLAN";
   document.querySelector("#results-summary").textContent =
-    "Your planner has been reset. Choose your preferences and build a new weekend.";
+    "All trip criteria and cost assumptions are back to defaults. Choose your preferences and build a new weekend.";
   render();
 }
 document.querySelector("#reset-filters").addEventListener("click", resetPlannerToDefaults);
