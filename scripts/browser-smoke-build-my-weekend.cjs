@@ -234,12 +234,13 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fishing specialist controls remained visible for Family Away.");
 
     // Verify a restrictive search explains no matches and the recovery action widens the search.
-    await page.locator("#budget").fill("3000");
+    await page.locator("#budget").fill("1");
     await page.locator("#experience").selectOption({ label: "Wildlife Away" });
     await page.locator('label:has(input[name="distance"][value="100"]) span').click();
     assert.equal(await page.locator('input[name="distance"][value="100"]').isChecked(), true, "The 100 km distance filter was not selected.");
     await page.locator("#trip-form button[type=submit]").click();
     assert.equal(await page.locator("#no-results").isVisible(), true, "An impossible activity/distance combination did not show the no-results guidance.");
+    await page.locator("#budget").fill("3000");
     await page.locator("#reset-filters").click();
     assert.equal(await page.locator("#experience").inputValue(), "Any", "Widen the Search did not reset the activity filter.");
     assert.equal(await page.locator('input[name="distance"][value="any"]').isChecked(), true, "Widen the Search did not clear the distance limit.");
