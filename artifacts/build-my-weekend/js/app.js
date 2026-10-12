@@ -1780,7 +1780,8 @@ const ROUTE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 let latestRoutedCandidates = [];
 
 async function routeForDestination(origin, destination) {
-  const key = "bmwRoute:" + origin.trim().toLowerCase() + "::" + destination.id;
+  // Versioned key invalidates routes cached before the coordinate-distance sanity check.
+  const key = "bmwRoute:v2:" + origin.trim().toLowerCase() + "::" + destination.id;
   try {
     const cached = JSON.parse(localStorage.getItem(key) || "null");
     if (cached && Number.isFinite(cached.distanceKmOneWay) &&
