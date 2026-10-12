@@ -742,7 +742,7 @@ function testSavedSettingsCoverage() {
     throw new Error("Saved preference restore mapping contains duplicates or unexpected fields.");
   }
 
-  const expectedFields = ["budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
+  const expectedFields = ["origin", "budget", "people", "experience", "depart", "consumption", "fuelPrice", "fuelExisting"];
   if (JSON.stringify(plan.fields) !== JSON.stringify(expectedFields)) {
     throw new Error("Saved preference field restore targets changed unexpectedly.");
   }
@@ -1195,7 +1195,7 @@ function testSavedSettingsApplication() {
   };
   const persisted = JSON.parse(JSON.stringify(settingsForStorage(saved)));
   const elements = {};
-  for (const key of ["budget", "people", "experience", "depart", "return", "consumption", "fuelExisting", "fuelPrice"]) {
+  for (const key of ["origin", "budget", "people", "experience", "depart", "return", "consumption", "fuelExisting", "fuelPrice"]) {
     elements[key] = { value: "" };
   }
   const distanceRadio = { checked: false };
@@ -1212,7 +1212,7 @@ function testSavedSettingsApplication() {
   };
   const fakeStorage = { getItem: key => key === "buildMyWeekendTrip" ? JSON.stringify(settingsForStorage(persisted)) : null };
   if (!restoreSettingsFromStorage(fakeStorage, mockForm, id => controls[id])) throw new Error("Saved settings were not restored from storage.");
-  for (const key of ["budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
+  for (const key of ["origin", "budget", "people", "experience", "depart", "consumption", "fuelExisting", "fuelPrice"]) {
     if (elements[key].value !== persisted[key]) throw new Error("Saved field not restored: " + key);
   }
   if (elements.return.value !== persisted.returnDate) throw new Error("Return date not restored.");
