@@ -115,11 +115,14 @@ const { chromium } = require("playwright");
     assert((await page.locator("#results-summary").innerText()).includes("route-verified destination"), "Submitting the planner did not produce a route-verified results summary.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Fishing plan returned no destination cards.");
 
-    // Confirm that a successful plan persists the user's planner preferences across reloads.
+    // Each fresh page visit starts with clean defaults, not the previous trip's inputs.
     await page.reload({ waitUntil: "networkidle" });
-    assert.equal(await page.locator("#budget").inputValue(), "3000", "Budget preference was not restored after reload.");
-    assert.equal(await page.locator("#people").inputValue(), "4", "Group size was not restored after reload.");
-    assert.equal(await page.locator("#experience").inputValue(), "Fishing Away", "Weekend type was not restored after reload.");
+    assert.equal(await page.locator("#budget").inputValue(), "3000", "Default budget was not restored after reload.");
+    assert.equal(await page.locator("#people").inputValue(), "4", "Default group size was not restored after reload.");
+    assert.equal(await page.locator("#experience").inputValue(), "Any", "Previous weekend type leaked across reload.");
+    assert.equal(await page.locator("#origin").inputValue(), "Cape Town, South Africa", "Previous origin leaked across reload.");
+    assert.equal(await page.locator('input[name="distance"]:checked').inputValue(), "200", "Default distance was not restored after reload.");
+    assert.equal(await page.locator("#camping-setup").inputValue(), "Any", "Previous camping preference leaked across reload.");
     assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Restored fishing preference did not restore its controls.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Restored planner settings did not produce destination cards.");
 
@@ -284,7 +287,7 @@ const { chromium } = require("playwright");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
-    console.log("Verified invalid budget, group size, fuel and date rejection with recovery, saved planner preferences after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, activity switching, camping preferences, no-results recovery and mobile layout.");
+    console.log("Verified invalid budget, group size, fuel and date rejection with recovery, clean default planner state after reload, successful weather rendering and failure fallback, stay-search focus, route hand-off, share-summary contents, recommendations, detail dialog, activity switching, camping preferences, no-results recovery and mobile layout.");
   } finally {
     await browser.close();
   }
