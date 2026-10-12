@@ -53,16 +53,30 @@
     const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     let maps = [];
     function mapCard(region, element) {
-      const box = region.bounding_box;
+      const box = region.bounding_box || {};
+      const values = [box.min_lat, box.max_lat, box.min_lon, box.max_lon].map(Number);
+      const validSouthAfricanBounds = values.every(Number.isFinite) &&
+        box.min_lat >= -36 && box.max_lat <= -21 &&
+        box.min_lon >= 15 && box.max_lon <= 35 &&
+        box.min_lat < box.max_lat && box.min_lon < box.max_lon;
+      // This pilot is South African only: fail closed rather than displaying a world map
+      // if an API response accidentally contains coordinates from another country.
+      if (!validSouthAfricanBounds) {
+        element.textContent = "Map withheld: this result does not contain valid South African regional coordinates.";
+        element.setAttribute("role", "status");
+        return;
+      }
       if (!window.L) {
         const bbox = [box.min_lon,box.min_lat,box.max_lon,box.max_lat].join("%2C");
         const marker = ((box.min_lat+box.max_lat)/2)+ "%2C" + ((box.min_lon+box.max_lon)/2);
         element.innerHTML = '<iframe loading="lazy" title="Approximate OpenStreetMap view for '+escapeHtml(region.destination)+'" src="https://www.openstreetmap.org/export/embed.html?bbox='+bbox+'&layer=mapnik&marker='+marker+'"></iframe>';
         return;
       }
-      const map = L.map(element, {scrollWheelZoom:false}).setView([(box.min_lat+box.max_lat)/2,(box.min_lon+box.max_lon)/2], 8);
+      const bounds = [[box.min_lat,box.min_lon],[box.max_lat,box.max_lon]];
+      const map = L.map(element, {scrollWheelZoom:false, minZoom:5, maxZoom:13});
+      map.fitBounds(bounds, {padding:[12,12], maxZoom:8});
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18, attribution:'© OpenStreetMap contributors'}).addTo(map);
-      L.rectangle([[box.min_lat,box.min_lon],[box.max_lat,box.max_lon]], {color:"#50755d",weight:2,fillOpacity:.08}).addTo(map);
+      L.rectangle(bounds, {color:"#50755d",weight:2,fillOpacity:.08}).addTo(map);
       L.marker([(box.min_lat+box.max_lat)/2,(box.min_lon+box.max_lon)/2]).addTo(map).bindPopup(escapeHtml(region.destination)+" · approximate regional centre");
       maps.push(map);
     }
