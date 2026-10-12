@@ -227,6 +227,8 @@ const destinations = [
   }, 5),
   makeDestination({
     name: "Algeria", region: "Cederberg", distance: 260, driveTime: 210,
+    // Pin the Western Cape locality explicitly; the bare name also matches the North African country.
+    routePosition: { lat: -32.3750, lon: 19.0660 },
     categories: ["Camping", "Outdoors", "Nature", "Hiking", "Road Trip"],
     accommodation: [160, 210, 440], food: [120, 190, 330], activities: [25, 70, 200],
     description: "A Cederberg base for rugged mountain landscapes and a slower camping weekend.",
