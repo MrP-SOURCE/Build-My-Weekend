@@ -36,6 +36,14 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 - [ ] Try **SHARE TRIP** and confirm the summary includes the group budget, estimated cost range, fuel calculation and important caveats.
 - [ ] Use the hospital, pharmacy and fuel-station map searches as search starting points only; verify the actual service and opening hours independently.
 
+## Release-readiness gates — before public or commercial launch
+
+- [ ] **Weather API licence:** the current forecast calls use Open-Meteo. Its free API is limited to non-commercial use; an app integrated into a commercial product or promotional activity needs an appropriate paid API plan or a different provider. Do not launch commercially on the free endpoint without resolving this. Review the [Open-Meteo terms](https://open-meteo.com/en/terms).
+- [ ] **Data attribution:** retain the provider attribution required by the chosen weather data licence. If marine forecasts are added, review the marine API's separate data-source attribution requirements first.
+- [ ] **Real-world validation:** verify route distances and times, accommodation prices and availability, campsite facilities, fishing access and regulations, and nearby health services with authoritative sources before presenting them as verified.
+- [ ] **Fishing forecast boundary:** the current app's weather display is not a marine forecast. Do not describe it as a fishing-day predictor until wave/swell data and the limits of those forecasts have been implemented and tested.
+- [ ] **Commercial data review:** confirm the licence, attribution, refresh rate and permitted use of each external source before integrating it into a commercial product.
+
 ## Report a problem
 
 When reporting a problem, include:
