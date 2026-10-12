@@ -284,6 +284,8 @@ const { chromium } = require("playwright");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: "networkidle" });
     await page.locator("#trip-form").waitFor();
+    assert.equal(await page.locator("#fuel-price").inputValue(), "27.15", "Manual fuel price did not persist after reload.");
+    assert.equal(await page.locator("#consumption").inputValue(), "6.5", "Manual fuel consumption did not persist after reload.");
     assert(await page.locator("#budget").isVisible(), "Budget input is not visible on mobile.");
     assert(await page.locator("#experience").isVisible(), "Weekend type selector is not visible on mobile.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Destination cards did not render on mobile.");
