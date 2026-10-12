@@ -28,6 +28,7 @@ assert(app.includes("UPPER DEMONSTRATION ESTIMATE") && app.includes("UPPER BASE 
 assert(app.includes("TYPICAL LEFT IN BUDGET") && app.includes("typical amount left in the group budget"), "Budget remainder labels must identify typical estimates rather than guaranteed leftovers.");
 assert(app.includes('${money(cost.perPerson)} per person'), "Recommendation cards must show the typical cost per person before opening trip details.");
 assert(app.includes("two-night weekend per person"), "Cost estimates must disclose their two-night baseline and scale with the selected duration.");
+assert(app.includes("function testPracticalItineraryDateCoverage()") && app.includes("buildPracticalItinerary(destination, settings, cost)"), "Itinerary must be generated from the selected dates.");
 assert(app.includes("day trip") && app.includes("accommodationMultiplier = nights / 2"), "Same-day trips must be identified as day trips and exclude overnight accommodation cost.");
 assert(app.includes("GLAMPING STAY PRICE NOT INCLUDED"), "Glamping recommendation cards and shared trip summaries must disclose that the property stay price is excluded.");
 assert(app.includes("LEFT BEFORE GLAMPING STAY"), "Glamping recommendation cards must not present the pre-accommodation remainder as confirmed money left in budget.");
@@ -256,6 +257,7 @@ assert(context.window.testBudgetRangeDisclosure(), "Budget range disclosure regr
 console.log("Budget range disclosure regression checks: PASS");
 console.log("Fuel and group-size scaling regression checks: PASS");
 assert(context.window.testDateRangeValidation() === 6, "Trip date validation regression checks failed.");
+assert(context.window.testPracticalItineraryDateCoverage() === 3, "Date-matched itinerary regression checks failed.");
 assert(context.window.testSavedSettingsCoverage() === 22, "Saved preference coverage regression checks failed.");
 assert(context.window.testSavedSettingsApplication() === 22, "Saved preference application regression checks failed.");
 const restoreControlIds = [
