@@ -25,27 +25,59 @@ function validPlace(value) {
   return typeof value === "string" && value.trim().length > 1 && value.trim().length <= MAX_TEXT_LENGTH;
 }
 
-function parsePosition(data) {
-  const p = data?.results?.[0]?.position;
-  if (!p || !Number.isFinite(p.lat) || !Number.isFinite(p.lon)) return null;
-  if (p.lat < -35 || p.lat > -22 || p.lon < 16 || p.lon > 34) return null;
-  return { lat: p.lat, lon: p.lon };
+function normalizePlace(value) {
+  return String(value || "").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function candidateText(result) {
+  const address = result?.address || {};
+  return normalizePlace([
+    result?.poi?.name,
+    address.freeformAddress,
+    address.municipality,
+    address.municipalitySubdivision,
+    address.countrySecondarySubdivision,
+    address.countrySubdivisionName,
+    address.streetName,
+    address.streetNumber
+  ].filter(Boolean).join(" "));
+}
+
+function parsePosition(data, place) {
+  const results = Array.isArray(data?.results) ? data.results : [];
+  const requestedLabel = normalizePlace(String(place).split(",")[0]);
+  const requestedTokens = requestedLabel.split(" ").filter(token => token.length > 1);
+  const candidates = results.map(result => {
+    const p = result?.position;
+    if (!p || !Number.isFinite(p.lat) || !Number.isFinite(p.lon) ||
+        p.lat < -35 || p.lat > -22 || p.lon < 16 || p.lon > 34) return null;
+    const text = candidateText(result);
+    const exact = requestedLabel.length > 0 && text.includes(requestedLabel);
+    const matchedTokens = requestedTokens.filter(token => text.includes(token)).length;
+    return { position: { lat: p.lat, lon: p.lon }, exact, matchedTokens, score: matchedTokens / Math.max(1, requestedTokens.length) };
+  }).filter(Boolean);
+  // Prefer an explicit match to the requested town/place/address. Never silently route
+  // to an unrelated first result merely because it is geographically inside South Africa.
+  const match = candidates.find(candidate => candidate.exact) ||
+    candidates.filter(candidate => candidate.score >= 0.8).sort((a, b) => b.score - a.score)[0];
+  return match?.position || null;
 }
 
 async function geocode(place, key) {
   const url = new URL("https://api.tomtom.com/search/2/geocode/" + encodeURIComponent(place.trim()) + ".json");
   url.searchParams.set("key", key);
   url.searchParams.set("countrySet", "ZAF");
-  url.searchParams.set("limit", "1");
+  url.searchParams.set("limit", "5");
   const response = await fetch(url, { headers: { accept: "application/json" } });
   if (!response.ok) {
     const error = new Error("TomTom geocoding request failed");
     error.status = response.status === 429 ? 503 : 502;
     throw error;
   }
-  const position = parsePosition(await response.json());
+  const position = parsePosition(await response.json(), place);
   if (!position) {
-    const error = new Error("Could not find a suitable South African location for one of the places.");
+    const error = new Error("TomTom could not confidently match the requested South African place. Try a more specific town, suburb, or address.");
     error.status = 422;
     throw error;
   }
