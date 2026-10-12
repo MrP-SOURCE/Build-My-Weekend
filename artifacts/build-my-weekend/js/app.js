@@ -2211,13 +2211,13 @@ function detail(destination, settings) {
         ).join("")}</ol>
       </section>
     </div>
-    <div class="practical-box"><strong>GOOD TO KNOW · DEMONSTRATION NOTE</strong><br>${esc(destination.practicalInfo)}<br><br>Accommodation, food, activities, routes and drive times are illustrative estimates from Cape Town, not verified information. Fuel already in your tank is not charged to the budget again.</div>
+    <div class="practical-box"><strong>GOOD TO KNOW · ROUTE / COST EVIDENCE</strong><br>${esc(destination.practicalInfo)}<br><br>Driving distance and time above were checked by ${esc(destination.routeSource || "the routing service")} from ${esc(settings.origin || "Cape Town, South Africa")}. Accommodation, food, activities, facilities and availability remain unverified estimates. Fuel already in your tank is not charged to the budget again.</div>
     <div class="access-details" aria-label="Unverified local access notes">
       <div><strong>HOSPITAL ACCESS · UNVERIFIED</strong>${esc(destination.hospitalAccess)}<a class="access-search-link" href="${esc(localSearchUrl('hospital', destination))}" target="_blank" rel="noopener noreferrer">SEARCH HOSPITALS ON MAP ↗</a></div>
       <div><strong>PHARMACY ACCESS · UNVERIFIED</strong>${esc(destination.pharmacyAccess)}<a class="access-search-link" href="${esc(localSearchUrl('pharmacy', destination))}" target="_blank" rel="noopener noreferrer">SEARCH PHARMACIES ON MAP ↗</a></div>
       <div><strong>FUEL ACCESS · UNVERIFIED</strong>${esc(destination.fuelAccess)}<a class="access-search-link" href="${esc(localSearchUrl('fuel stations', destination))}" target="_blank" rel="noopener noreferrer">SEARCH FUEL STATIONS ON MAP ↗</a></div>
     </div>
-    <p class="detail-demo-note">DEMONSTRATION DATA — DESTINATION COSTS, FACILITIES, ROUTES AND OTHER INFORMATION ARE NOT LIVE OR VERIFIED. Do not use this information for actual travel, booking or emergency decisions.</p>
+    <p class="detail-demo-note">ROUTE STATUS: driving distance/time were checked by the routing service for the displayed starting point and destination. Destination costs, facilities, access, booking availability and emergency-service information are not verified. Confirm road conditions and providers before travel.</p>
     <div class="detail-actions">
       <button class="button button-primary" type="button" data-action="availability" data-testid="availability-button">FIND STAY OPTIONS</button>
       <button class="button demo-button" type="button" data-action="navigate" data-destination="${destination.id}" data-testid="navigate-button">NAVIGATE</button>
@@ -2245,7 +2245,7 @@ function shareText(destination, settings) {
     (stayLinks ? `\n\nSTAY SEARCH LINKS — search pages only; prices and availability are not confirmed:\n${stayLinks}` : "") +
     `\n\n${sharedPreDepartureChecks(settings)}` +
     `\n\n${sharedTravelCostDisclosure(cost, settings)}` +
-    `\n\nDRIVING ROUTE FROM ${settings.origin || "Cape Town, South Africa"} — verify route, traffic and access: ${directionsUrl(destination, settings)}` +
+    `\n\nDRIVING ROUTE FROM ${settings.origin || "Cape Town, South Africa"} — route distance/time checked by ${destination.routeSource || "TomTom Routing API"}; verify traffic, road conditions and access: ${directionsUrl(destination, settings)}` +
     `\n\nLOCAL SERVICE SEARCHES — map results only; facility availability, opening hours and travel times are not verified:\n${sharedSafetyLinks(destination)}`;
 }
 
