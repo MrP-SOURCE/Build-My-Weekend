@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.js";
 
-const env = { TOMTOM_API_KEY: "test-key", ALLOWED_ORIGIN: "https://mrp-source.github.io" };
+const allowLimiter = { limit: async () => ({ success: true }) };
+const env = { TOMTOM_API_KEY: "test-key", ALLOWED_ORIGIN: "https://mrp-source.github.io", ROUTE_RATE_LIMITER: allowLimiter };
 const origin = "https://mrp-source.github.io";
 
 test("health check does not expose the API key", async () => {
@@ -41,4 +42,26 @@ test("returns a clear configuration error when no API key is set", async () => {
 test("does not route unsupported paths", async () => {
   const response = await worker.fetch(new Request("https://worker.example/api/routes", { method: "POST" }), env);
   assert.equal(response.status, 404);
+});
+
+
+test("rejects route requests when rate limiting is not configured", async () => {
+  const response = await worker.fetch(new Request("https://worker.example/api/route", {
+    method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.10" },
+    body: JSON.stringify({ origin: "Cape Town", destination: "Hermanus" })
+  }), { TOMTOM_API_KEY: "test-key", ALLOWED_ORIGIN: origin });
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /protection is not configured/i);
+});
+
+test("returns 429 before routing when the rate limit is exceeded", async () => {
+  const response = await worker.fetch(new Request("https://worker.example/api/route", {
+    method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.11" },
+    body: JSON.stringify({ origin: "Cape Town", destination: "Hermanus" })
+  }), {
+    ...env,
+    ROUTE_RATE_LIMITER: { limit: async ({ key }) => ({ success: key !== "203.0.113.11" }) }
+  });
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get("retry-after"), "60");
 });
