@@ -1932,10 +1932,6 @@ function itineraryTime(hour, minute = 0) {
 function buildPracticalItinerary(destination, settings, cost) {
   const driveMinutes = Math.max(0, Number(destination.driveTime) || 0);
   const stopBuffer = driveMinutes >= 150 ? 30 : driveMinutes >= 75 ? 20 : 10;
-  const fridayDeparture = 14 * 60;
-  const fridayArrival = fridayDeparture + driveMinutes + stopBuffer;
-  const sundayDeparture = 13 * 60;
-  const sundayArrival = sundayDeparture + driveMinutes + stopBuffer;
   const mealBudget = cost.food / 5;
   const activityMain = cost.activities * 0.6;
   const activityExtra = cost.activities * 0.4;
@@ -1944,20 +1940,74 @@ function buildPracticalItinerary(destination, settings, cost) {
   const secondActivity = ideas[1] || "Take a relaxed local walk";
   const finalActivity = ideas[2] || "Enjoy a final viewpoint or short stop";
   const clock = minutes => itineraryTime(Math.floor(minutes / 60), minutes % 60);
-  return [
-    ["FRI 14:00", "Suggested departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."],
-    ["FRI " + clock(fridayArrival), "Illustrative arrival in " + destination.name + ". Check the property's actual check-in time, access instructions and parking before leaving."],
-    ["FRI 19:00", "Dinner / self-catered meal. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
-    ["SAT 09:00", mainActivity + ". Keep the morning flexible and check local access, weather and any fees first. Activity allowance: about " + money(activityMain) + " for the group."],
-    ["SAT 12:30", "Lunch and rest break. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
-    ["SAT 14:00", secondActivity + ". Choose a shorter or free alternative if the weather, access or budget requires it. Remaining activity allowance: about " + money(activityExtra) + " for the group."],
-    ["SAT 18:30", "Dinner and downtime. Planning allowance: about " + money(mealBudget) + " for the group; confirm actual menu prices or bring groceries."],
-    ["SUN 08:30", "Breakfast, pack and check the property's confirmed check-out time. Meal planning allowance: about " + money(mealBudget) + " for the group."],
-    ["SUN 10:00", finalActivity + ". Keep this stop short enough to leave a buffer for the return journey."],
-    ["SUN 12:00", "Check out at the property's confirmed time; consider lunch before driving. Planning allowance: about " + money(mealBudget) + " for the group."],
-    ["SUN " + clock(sundayDeparture), "Suggested return departure. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a stop; illustrative arrival back near " + clock(sundayArrival) + ". Leave earlier for longer journeys or if conditions require it."]
-  ];
+  const start = new Date(String(settings.depart || "") + "T12:00:00");
+  const end = new Date(String(settings.returnDate || settings.depart || "") + "T12:00:00");
+  const validDates = Number.isFinite(start.getTime()) && Number.isFinite(end.getTime()) && end >= start;
+  const days = [];
+  if (validDates) {
+    for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+      days.push(new Date(cursor));
+      if (days.length > 31) break;
+    }
+  }
+  if (!validDates || !days.length || days.length > 31) {
+    return [["SCHEDULE TO CONFIRM", "Select valid departure and return dates to generate a date-matched illustrative itinerary."]];
+  }
+  const label = date => date.toLocaleDateString("en-ZA", { weekday: "short" }).toUpperCase();
+  if (days.length === 1) {
+    const arrival = 8 * 60 + driveMinutes + stopBuffer;
+    const returnDeparture = 15 * 60;
+    const returnArrival = returnDeparture + driveMinutes + stopBuffer;
+    return [
+      ["DAY 08:00", "Suggested day-trip departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."],
+      ["DAY " + clock(arrival), "Illustrative arrival near " + destination.name + ". Check access, opening hours and any fees before leaving."],
+      ["DAY 11:00", mainActivity + ". Keep the plan flexible and verify local conditions first. Activity allowance: about " + money(activityMain) + " for the group."],
+      ["DAY 12:30", "Lunch and rest break. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."],
+      ["DAY " + clock(returnDeparture), "Suggested return departure. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a stop; estimated arrival back near " + clock(returnArrival) + "."]
+    ];
+  }
+  const itinerary = [];
+  const firstLabel = label(days[0]);
+  const lastLabel = label(days[days.length - 1]);
+  const firstArrival = 14 * 60 + driveMinutes + stopBuffer;
+  itinerary.push([firstLabel + " 14:00", "Suggested departure from Cape Town. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a comfort stop; traffic and route conditions can change."]);
+  itinerary.push([firstLabel + " " + clock(firstArrival), "Illustrative arrival in " + destination.name + ". Check the property's actual check-in time, access instructions and parking before leaving."]);
+  itinerary.push([firstLabel + " 19:00", "Dinner / self-catered meal. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."]);
+  for (let index = 1; index < days.length - 1; index++) {
+    const dayLabel = label(days[index]);
+    itinerary.push([dayLabel + " 09:00", mainActivity + ". Keep the morning flexible and check local access, weather and any fees first. Activity allowance: about " + money(activityMain) + " for the group."]);
+    itinerary.push([dayLabel + " 12:30", "Lunch and rest break. Planning allowance: about " + money(mealBudget) + " for the group, included within the total food estimate."]);
+    itinerary.push([dayLabel + " 14:00", secondActivity + ". Choose a shorter or free alternative if weather, access or budget requires it. Remaining activity allowance: about " + money(activityExtra) + " for the group."]);
+    itinerary.push([dayLabel + " 18:30", "Dinner and downtime. Confirm actual menu prices or bring groceries."]);
+  }
+  itinerary.push([lastLabel + " 08:30", "Breakfast, pack and check the property's confirmed check-out time. Meal planning allowance: about " + money(mealBudget) + " for the group."]);
+  itinerary.push([lastLabel + " 10:00", finalActivity + ". Keep this stop short enough to leave a buffer for the return journey."]);
+  itinerary.push([lastLabel + " 12:00", "Check out at the property's confirmed time; consider lunch before driving."]);
+  const returnDeparture = 13 * 60;
+  const returnArrival = returnDeparture + driveMinutes + stopBuffer;
+  itinerary.push([lastLabel + " " + clock(returnDeparture), "Suggested return departure. Allow approximately " + driveLabel(driveMinutes) + " driving plus " + stopBuffer + " minutes for a stop; illustrative arrival back near " + clock(returnArrival) + ". Leave earlier for longer journeys or if conditions require it."]);
+  return itinerary;
 }
+function testPracticalItineraryDateCoverage() {
+  const destination = { name: "Test Destination", driveTime: 60, food: 500, activities: 200, activityIdeas: ["Walk", "Visit a viewpoint", "Short local stop"], weekendIdea: "Explore" };
+  const cost = { food: 500, activities: 200 };
+  const multiDay = buildPracticalItinerary(destination, { depart: "2026-10-14", returnDate: "2026-10-16" }, cost);
+  if (!multiDay.some(item => item[0].startsWith("WED ")) ||
+      !multiDay.some(item => item[0].startsWith("THU ")) ||
+      !multiDay.some(item => item[0].startsWith("FRI "))) {
+    throw new Error("Multi-day itinerary must match the selected Wednesday-to-Friday dates.");
+  }
+  const dayTrip = buildPracticalItinerary(destination, { depart: "2026-10-14", returnDate: "2026-10-14" }, cost);
+  if (dayTrip.length !== 5 || !dayTrip.every(item => item[0].startsWith("DAY "))) {
+    throw new Error("Same-day itinerary must use the day-trip schedule.");
+  }
+  const invalid = buildPracticalItinerary(destination, { depart: "2026-10-16", returnDate: "2026-10-14" }, cost);
+  if (invalid.length !== 1 || !invalid[0][0].includes("SCHEDULE TO CONFIRM")) {
+    throw new Error("Invalid date ranges must not receive a misleading itinerary.");
+  }
+  return 3;
+}
+if (typeof window !== "undefined") window.testPracticalItineraryDateCoverage = testPracticalItineraryDateCoverage;
 function activitySuitabilityEvidence(destination, settings) {
   const type = settings.experience || "Weekend Away";
   const ideas = (destination.activityIdeas || []).slice(0, 4).join(" · ");
