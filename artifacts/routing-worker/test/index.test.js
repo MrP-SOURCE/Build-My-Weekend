@@ -183,3 +183,60 @@ test("uses canonical destination coordinates and rejects a suspicious Kogel Bay 
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("shoreline topography endpoint returns False Bay regional reference data", async () => {
+  const response = await worker.fetch(new Request(
+    "https://worker.example/api/shoreline-topography?destination=False%20Bay",
+    { headers: { Origin: origin } }
+  ), env);
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.count, 1);
+  assert.equal(body.regions[0].destination, "False Bay");
+  assert.equal(body.regions[0].data_status, "DEMO_REGIONAL_REFERENCE");
+  assert.ok(body.regions[0].topography_description);
+  assert.ok(body.regions[0].map_reading_instruction);
+  assert.ok(Array.isArray(body.regions[0].accumulating_fish));
+  assert.ok(body.disclaimer.includes("not live reports"));
+});
+
+test("shoreline endpoint applies length threshold and coordinate bounding-box filters", async () => {
+  const response = await worker.fetch(new Request(
+    "https://worker.example/api/shoreline-topography?destination=Bay&shoreline_length_km=110&lat=-34.1&lon=18.7",
+    { headers: { Origin: origin } }
+  ), env);
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.count, 1);
+  assert.equal(body.regions[0].destination, "False Bay");
+  assert.equal(body.filters.coordinate_bounding_box_match, true);
+  const outside = await worker.fetch(new Request(
+    "https://worker.example/api/shoreline-topography?destination=False%20Bay&lat=-30&lon=25",
+    { headers: { Origin: origin } }
+  ), env);
+  assert.equal((await outside.json()).count, 0);
+});
+
+test("shoreline endpoint validates missing destinations, invalid length filters and incomplete coordinates", async () => {
+  const missing = await worker.fetch(new Request("https://worker.example/api/shoreline-topography", { headers: { Origin: origin } }), env);
+  assert.equal(missing.status, 400);
+  const length = await worker.fetch(new Request(
+    "https://worker.example/api/shoreline-topography?destination=False%20Bay&shoreline_length_km=-1",
+    { headers: { Origin: origin } }
+  ), env);
+  assert.equal(length.status, 400);
+  const coords = await worker.fetch(new Request(
+    "https://worker.example/api/shoreline-topography?destination=False%20Bay&lat=-34",
+    { headers: { Origin: origin } }
+  ), env);
+  assert.equal(coords.status, 400);
+});
+
+test("shoreline endpoint rejects unapproved browser origins", async () => {
+  const response = await worker.fetch(new Request(
+    "https://worker.example/api/shoreline-topography?destination=False%20Bay",
+    { headers: { Origin: "https://evil.example" } }
+  ), env);
+  assert.equal(response.status, 403);
+});
