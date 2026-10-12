@@ -10,8 +10,8 @@ from rasterio.transform import from_origin
 from detect_bathymetry_holes import detect_candidates, run
 
 
-class BathymetryHoleDetectionTests(unittest.TestCase):
-    def test_detects_prominent_depression_and_ignores_nodata(self):
+class BathymetryStructureZoneTests(unittest.TestCase):
+    def test_detects_relative_depression_and_ignores_nodata(self):
         depth = np.array([
             [12, 12, 13, 14, 13],
             [13, 11, 12, 13, 14],
@@ -25,10 +25,10 @@ class BathymetryHoleDetectionTests(unittest.TestCase):
         self.assertGreaterEqual(prominence[2, 2], 6)
         self.assertFalse(candidates[0, 0])
 
-    def test_exports_geojson_with_wgs84_coordinates_and_disclosure(self):
+    def test_exports_area_polygon_not_single_pin_and_discloses_uncertainty(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "fixture.tif"
-            output = Path(tmp) / "holes.geojson"
+            output = Path(tmp) / "zones.geojson"
             matrix = np.array([
                 [-12, -12, -13, -14, -13],
                 [-13, -11, -12, -13, -14],
@@ -43,18 +43,27 @@ class BathymetryHoleDetectionTests(unittest.TestCase):
             ) as dataset:
                 dataset.write(matrix, 1)
 
-            count = run(source, output, 6, "negative", 1, 100)
+            count = run(source, output, 6, "negative", 1, 1, 100)
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(count, 1)
             self.assertEqual(payload["type"], "FeatureCollection")
             feature = payload["features"][0]
-            self.assertEqual(feature["geometry"]["type"], "Point")
-            self.assertAlmostEqual(feature["geometry"]["coordinates"][0], 18.025, places=6)
-            self.assertAlmostEqual(feature["geometry"]["coordinates"][1], -33.025, places=6)
-            self.assertEqual(feature["properties"]["depth_m"], 24.0)
+            self.assertEqual(feature["geometry"]["type"], "Polygon")
+            self.assertEqual(feature["properties"]["feature_type"],
+                             "potential_coastal_seabed_structure_zone")
+            self.assertEqual(feature["properties"]["deepest_candidate_depth_m"], 24.0)
+            self.assertEqual(feature["properties"]["core_candidate_cells"], 1)
+            self.assertEqual(feature["properties"]["display_footprint_cells"], 9)
             self.assertEqual(feature["properties"]["verification_status"],
-                             "algorithmic_candidate_not_field_verified")
-            self.assertIn("not_verified_fishing_spots", payload["metadata"]["status"])
+                             "bathymetry_derived_candidate_not_field_verified")
+            self.assertIn("recreational_fishing_decision_support_candidates", payload["metadata"]["status"])
+            ring = feature["geometry"]["coordinates"][0]
+            longitudes = [point[0] for point in ring]
+            latitudes = [point[1] for point in ring]
+            self.assertAlmostEqual(min(longitudes), 18.01, places=6)
+            self.assertAlmostEqual(max(longitudes), 18.04, places=6)
+            self.assertAlmostEqual(min(latitudes), -33.04, places=6)
+            self.assertAlmostEqual(max(latitudes), -33.01, places=6)
 
     def test_rejects_unknown_crs_and_invalid_threshold(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -65,9 +74,9 @@ class BathymetryHoleDetectionTests(unittest.TestCase):
             ) as dataset:
                 dataset.write(np.ones((3, 3), dtype=np.float32), 1)
             with self.assertRaisesRegex(ValueError, "threshold"):
-                run(source, Path(tmp) / "out.geojson", 0, "negative", 1, 100)
+                run(source, Path(tmp) / "out.geojson", 0, "negative", 1, 1, 100)
             with self.assertRaisesRegex(ValueError, "no CRS"):
-                run(source, Path(tmp) / "out.geojson", 5, "negative", 1, 100)
+                run(source, Path(tmp) / "out.geojson", 5, "negative", 1, 1, 100)
 
 
 if __name__ == "__main__":

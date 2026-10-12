@@ -1,6 +1,6 @@
-# Bathymetry candidate-hole detection
+# Coastal seabed structure-zone detection
 
-This offline research utility scans a bathymetry GeoTIFF for cells at least a configurable depth threshold below the mean of their valid 8-cell neighborhood, then writes candidate locations as GeoJSON points in WGS84 longitude/latitude for a Leaflet layer.
+This utility is a **Fishing Away / Shoreline Explorer decision-support feature**. It scans a bathymetry GeoTIFF for cells that are relatively deeper than their immediate 8-cell neighborhood, groups nearby candidate cells, and exports **area polygons** in WGS84 GeoJSON. The intention is to help recreational anglers identify coastal areas with depressions or depth changes worth investigating—not to drop a pin on an exact fishing hole.
 
 ## Install
 
@@ -18,26 +18,23 @@ python -m pip install -r scripts/bathymetry/requirements.txt
 ## Run
 
 \`\`\`bash
-python scripts/bathymetry/detect_bathymetry_holes.py input_bathymetry.tif output/candidate-holes.geojson --threshold-m 5 --depth-sign negative
+python scripts/bathymetry/detect_bathymetry_holes.py input_bathymetry.tif output/candidate-structure-zones.geojson --threshold-m 5 --depth-sign negative --cluster-buffer-cells 1
 \`\`\`
 
-- \`--threshold-m\`: minimum prominence in metres (default 5).
-- \`--depth-sign negative\`: use for common elevation rasters where the seabed is negative; values are inverted to positive-down depth. Use \`--depth-sign positive\` for rasters that already store depth as positive values.
-- \`--band\`: one-based band number (default 1).
-- \`--max-points\`: maximum exported points, to avoid accidentally generating an enormous pin layer.
+- \`--threshold-m\`: minimum local depth prominence in metres (default 5).
+- \`--depth-sign negative\`: for rasters where seabed elevation is negative; use \`positive\` when values already represent positive-down depth.
+- \`--band\`: one-based raster band (default 1).
+- \`--cluster-buffer-cells\`: expands each candidate core by this many pixels and merges nearby candidates into display zones (default 1). Pixels are not a fixed distance; the real-world footprint depends on raster resolution and CRS.
+- \`--max-zones\`: safety limit for the number of output zones.
 
-The input must have a valid coordinate reference system. GeoJSON output is transformed to WGS84 and stores depth, local neighbor mean, prominence, source raster, threshold, row/column, and verification status. Nodata cells are ignored; edge windows use only in-bounds valid neighbors. Cells with negative normalized depth are excluded.
+The input must have a valid CRS. GeoJSON uses WGS84 longitude/latitude polygons, suitable for a Leaflet GeoJSON layer. Properties include deepest and mean candidate depth, local depth difference, number of core cells, display footprint size, source raster, and verification status. Nodata cells are ignored.
 
-## Tests
+## South African data workflow
 
-\`\`\`bash
-python -m unittest discover -s scripts/bathymetry -p 'test_*.py' -v
-\`\`\`
+The script does not automatically fetch data. Obtain bathymetry from a source with suitable coverage and permitted reuse, and preserve source attribution, licence, survey date, vertical datum, horizontal CRS, resolution, and coverage. The Willem de Wet continental-shelf resource at https://www.johnscompton.com/maps/ is a research lead, but may provide XYZ or NetCDF rather than GeoTIFF. The Council for Geoscience Marine Mapping Project at https://www.geoscience.org.za/project/marine-mapping-project/ is another source to investigate for access and terms. This commit does not claim that either source has been downloaded or validated.
 
-## South African source workflow
+## How anglers should interpret the map
 
-The script intentionally does not download a dataset automatically. Obtain a bathymetry raster from a source whose access terms and metadata have been checked, then preserve its attribution, licence, survey date, vertical datum, horizontal CRS, resolution, and coverage with the output. The Willem de Wet continental-shelf resource page at https://www.johnscompton.com/maps/ is a research lead, but may offer XYZ or NetCDF rather than GeoTIFF; convert carefully to a georeferenced raster first. The Council for Geoscience Marine Mapping Project at https://www.geoscience.org.za/project/marine-mapping-project/ is another source to investigate for data access and permitted use. Neither source is automatically connected by this script, and this commit does not assert that a suitable real South African GeoTIFF has been downloaded or validated.
+Use friendly wording such as **“Potential seabed structure area”** or **“Deeper-water feature to investigate.”** These areas can help a recreational fisherman understand where depth changes may influence fish movement or feeding. They are not precise science and do not predict fish presence or species. Later enrichment could combine verified local catch reports, species seasons, tides, swell, wind, and access information, with each source and its freshness clearly labelled.
 
-## Interpretation and safety
-
-Outputs are **candidate seabed depressions**, not confirmed fishing holes. The filter is sensitive to grid resolution, interpolation artefacts, survey noise, vertical datum, and the selected threshold. A GeoTIFF's pixel size is not necessarily uniform in metres, especially in geographic CRS. Review results against source metadata and authoritative nautical charts before considering map display. Do not infer fish presence, target species, navigable depth, legal access, or safe conditions from these pins. Leaflet should label the layer as algorithmic research candidates and show the source and uncertainty.
+Do not use these polygons as navigation charts or safety aids. Check authoritative nautical charts, weather and sea conditions, local rules, and access. Results are sensitive to raster resolution, interpolation, survey noise, datum, and threshold. They should be field-tested and reviewed before appearing as real-world recommendations.
