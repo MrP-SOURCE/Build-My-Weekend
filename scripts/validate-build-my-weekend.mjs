@@ -239,7 +239,7 @@ const appLogic = app.slice(0, app.indexOf('const form = document.querySelector("
 assert(appLogic.length > 0, "Could not isolate planner logic for test execution.");
 vm.runInContext(appLogic, context);
 const itineraryLogicStart = app.indexOf("function buildPracticalItinerary(destination, settings, cost)");
-const itineraryLogicEnd = app.indexOf("\\nfunction activitySuitabilityEvidence", itineraryLogicStart);
+const itineraryLogicEnd = app.indexOf("\nfunction activitySuitabilityEvidence", itineraryLogicStart);
 assert(itineraryLogicStart >= 0 && itineraryLogicEnd > itineraryLogicStart, "Could not isolate date-aware itinerary logic.");
 vm.runInContext(app.slice(itineraryLogicStart, itineraryLogicEnd), context);
 assert(context.window.testHermanusCalculation(), "Hermanus budget and fuel calculation failed.");
