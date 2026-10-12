@@ -1,3 +1,5 @@
+import { filterShorelineRegions } from "./shoreline-topography.js";
+
 const MAX_TEXT_LENGTH = 180;
 const MAX_BODY_BYTES = 8_000;
 const DEFAULT_ALLOWED_ORIGIN = "https://mrp-source.github.io";
@@ -145,6 +147,35 @@ export default {
     }
     if (request.method === "GET" && url.pathname === "/healthz") {
       return json({ status: "ok", service: "build-my-weekend-routing", routingConfigured: Boolean(env.TOMTOM_API_KEY) }, 200, cors);
+    }
+    if (request.method === "GET" && url.pathname === "/api/shoreline-topography") {
+      if (originHeader && !cors["access-control-allow-origin"]) return json({ error: "Origin not allowed" }, 403);
+      const destination = url.searchParams.get("destination");
+      if (!destination || destination.trim().length < 2 || destination.length > 100) {
+        return json({ error: "Provide a destination name between 2 and 100 characters." }, 400, cors);
+      }
+      const minLength = url.searchParams.get("shoreline_length_km") ?? url.searchParams.get("min_shoreline_length_km") ?? "";
+      const filters = filterShorelineRegions({
+        destination,
+        lat: url.searchParams.get("lat"),
+        lon: url.searchParams.get("lon"),
+        min_shoreline_length_km: minLength,
+        max_shoreline_length_km: url.searchParams.get("max_shoreline_length_km") ?? ""
+      });
+      if (filters.error) return json({ error: filters.error }, 400, cors);
+      return json({
+        schema_version: "1.0",
+        source_status: "DEMO_REGIONAL_REFERENCE",
+        destination,
+        filters: {
+          min_shoreline_length_km: minLength === "" ? null : Number(minLength),
+          max_shoreline_length_km: url.searchParams.has("max_shoreline_length_km") ? Number(url.searchParams.get("max_shoreline_length_km")) : null,
+          coordinate_bounding_box_match: url.searchParams.has("lat") && url.searchParams.has("lon")
+        },
+        count: filters.regions.length,
+        regions: filters.regions,
+        disclaimer: "Regional bounding boxes and shoreline lengths are approximate demo metadata. Fish notes are illustrative habitat references, not live reports, catch predictions, safe-navigation advice, or verified fishing locations. Check current official charts, local access and regulations."
+      }, 200, cors);
     }
     if (request.method !== "POST" || url.pathname !== "/api/route") {
       return json({ error: "Not found" }, 404, cors);
