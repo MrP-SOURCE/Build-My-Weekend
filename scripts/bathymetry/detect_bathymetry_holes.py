@@ -82,7 +82,7 @@ def run(input_path: Path, output_path: Path, threshold_m: float, depth_sign: str
     else:
         # A small halo converts anomalous cells into visible areas. Connected candidate
         # cores that are near each other are grouped into one broader fishing-research zone.
-        footprint = binary_dilation(core_mask, iterations=cluster_buffer_cells) if cluster_buffer_cells else core_mask.copy()
+        footprint = binary_dilation(core_mask, structure=np.ones((3, 3), dtype=bool), iterations=cluster_buffer_cells) if cluster_buffer_cells else core_mask.copy()
         connectivity = generate_binary_structure(2, 2)  # 8-neighbour connectivity
         labels, zone_count = label(footprint, structure=connectivity)
         zone_mask = labels > 0
