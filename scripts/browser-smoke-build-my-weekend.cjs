@@ -19,6 +19,9 @@ const { chromium } = require("playwright");
     const response = await page.goto(baseUrl, { waitUntil: "networkidle", timeout: 30000 });
     assert(response && response.ok(), "Planner page did not return a successful HTTP response.");
     await page.locator("#trip-form").waitFor();
+    const originScope = page.locator('.origin-scope-note');
+    assert(await originScope.isVisible(), "Cape Town pilot origin limitation is not visible before planning.");
+    assert((await originScope.innerText()).includes("cannot yet be changed"), "Origin disclosure does not explain that other departure areas are unsupported.");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
 
@@ -102,6 +105,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), true, "Destination detail dialog did not open.");
     assert((await page.locator("#dialog-content").innerText()).includes("DEMONSTRATION DATA"), "Destination detail is missing its demonstration-data warning.");
     assert((await page.locator("#dialog-content").innerText()).includes("Additional fuel to buy"), "Destination detail is missing the fuel breakdown.");
+    assert((await page.locator("#dialog-content").innerText()).includes("km one way from Cape Town"), "Destination detail does not disclose the Cape Town basis for distance.");
     await page.locator("#live-weather .weather-day").first().waitFor({ timeout: 10000 });
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
     assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
@@ -143,6 +147,8 @@ const { chromium } = require("playwright");
     await page.locator('[data-testid="navigate-button"]').click();
     const openedRoute = await page.evaluate(() => window.__bmwOpenedUrl);
     assert(openedRoute && openedRoute.includes("google.com/maps/dir"), "Navigate did not hand off to a Google Maps driving route.");
+    const decodedRoute = decodeURIComponent(openedRoute || "");
+    assert(decodedRoute.includes("Cape Town, South Africa"), "Google Maps route origin does not match the Cape Town pilot disclosure.");
     await page.locator('[data-testid="detail-share-button"]').click();
     const sharedPayload = await page.evaluate(() => window.__bmwSharedPayload);
     assert(sharedPayload && sharedPayload.title.includes("Weekend in"), "Share Trip did not invoke the native share hand-off.");
@@ -167,6 +173,18 @@ const { chromium } = require("playwright");
     await page.locator("#camping-setup").selectOption("Glamping");
     await page.locator("#trip-form button[type=submit]").click();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Camping plan returned no destination cards.");
+
+    // Verify specialist outdoor controls appear only for relevant trip types.
+    await page.locator("#experience").selectOption({ label: "Hiking Away" });
+    assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Hiking preferences did not appear.");
+    await page.locator("#hiking-difficulty").selectOption("Easy");
+    await page.locator("#trip-form button[type=submit]").click();
+    assert(await page.locator("#recommendations .trip-card").count() > 0, "Hiking plan returned no destination cards.");
+    await page.locator("#experience").selectOption({ label: "Climbing Away" });
+    assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Climbing preferences did not appear.");
+    await page.locator("#experience").selectOption({ label: "Family Away" });
+    assert.equal(await page.locator("#outdoor-controls").isVisible(), false, "Outdoor specialist controls remained visible for Family Away.");
+    assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fishing specialist controls remained visible for Family Away.");
 
     // Verify a restrictive search explains no matches and the recovery action widens the search.
     await page.locator("#budget").fill("3000");
