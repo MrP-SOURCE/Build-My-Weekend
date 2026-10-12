@@ -123,7 +123,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#origin").inputValue(), "Cape Town, South Africa", "Previous origin leaked across reload.");
     assert.equal(await page.locator('input[name="distance"]:checked').inputValue(), "200", "Default distance was not restored after reload.");
     assert.equal(await page.locator("#camping-setup").inputValue(), "Any", "Previous camping preference leaked across reload.");
-    assert.equal(await page.locator("#fishing-controls").isVisible(), true, "Restored fishing preference did not restore its controls.");
+    assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fresh planner load should not retain the previous fishing selection.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Restored planner settings did not produce destination cards.");
 
     // Incompatible fishing requirements must not fall back to a misleading spot.
