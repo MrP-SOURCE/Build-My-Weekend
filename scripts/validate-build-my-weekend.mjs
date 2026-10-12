@@ -238,7 +238,7 @@ console.log("Glamping profiles for Hermanus:", campingApi.glampingProfiles({ nam
 const appLogic = app.slice(0, app.indexOf('const form = document.querySelector("#trip-form");'));
 assert(appLogic.length > 0, "Could not isolate planner logic for test execution.");
 vm.runInContext(appLogic, context);
-const itineraryLogicStart = app.indexOf("function buildPracticalItinerary(destination, settings, cost)");
+const itineraryLogicStart = app.indexOf("function itineraryTime(hour, minute = 0)");
 const itineraryLogicEnd = app.indexOf("\nfunction activitySuitabilityEvidence", itineraryLogicStart);
 assert(itineraryLogicStart >= 0 && itineraryLogicEnd > itineraryLogicStart, "Could not isolate date-aware itinerary logic.");
 vm.runInContext(app.slice(itineraryLogicStart, itineraryLogicEnd), context);
