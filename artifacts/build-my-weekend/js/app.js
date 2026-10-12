@@ -1853,9 +1853,6 @@ async function addVerifiedRoutes(candidates, settings) {
 async function render() {
   const settings = getSettings();
   if (!valid(settings)) return;
-  try {
-    localStorage.setItem("buildMyWeekendTrip", JSON.stringify(settingsForStorage(settings)));
-  } catch {}
 
   const noResults = document.querySelector("#no-results");
   results.replaceChildren();
@@ -2366,34 +2363,28 @@ dialog.addEventListener("click", event => {
   }
 });
 
-document.querySelector("#reset-filters").addEventListener("click", () => {
-  form.elements.experience.value = "Any";
-  form.querySelector('input[name="distance"][value="any"]').checked = true;
-  const defaults = {
-    "fishing-style": "Any",
-    "target-species": "Any",
-    "spot-preference": "Let the app choose",
-    "fishing-priority": "Best Overall Weekend",
-    "hiking-difficulty": "Any",
-    "hiking-setting": "Any",
-    "climbing-type": "Any",
-    "climbing-level": "Any",
-    "camping-setup": "Any",
-    "camping-power": "Any",
-    "camping-ablutions": "Any",
-    "camping-shade": "Any",
-    "camping-terrain": "Any"
-  };
-  for (const [id, value] of Object.entries(defaults)) {
-    const field = document.getElementById(id);
-    if (field) field.value = value;
+function resetPlannerToDefaults() {
+  try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
+  form.reset();
+  initDates();
+  form.elements.return.min = form.elements.depart.value || localDate(new Date());
+  if (form.elements.return.value < form.elements.depart.value) {
+    form.elements.return.value = form.elements.depart.value;
   }
   form.elements.experience.dispatchEvent(new Event("change", { bubbles: true }));
+  latestRoutedCandidates = [];
+  results.replaceChildren();
+  document.querySelector("#no-results").hidden = true;
+  document.querySelector("#result-count").textContent = "READY TO PLAN";
+  document.querySelector("#results-summary").textContent =
+    "Your planner has been reset. Choose your preferences and build a new weekend.";
   render();
-});
+}
+document.querySelector("#reset-filters").addEventListener("click", resetPlannerToDefaults);
 
 initDates();
-settingsFromStorage();
+// Start every page visit with clean HTML defaults; never restore stale planner inputs.
+try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
 setupFishingControls();
 if (window.BMWCamping) window.BMWCamping.setupCampingControls();
 form.elements.return.min = form.elements.depart.value || localDate(new Date());
