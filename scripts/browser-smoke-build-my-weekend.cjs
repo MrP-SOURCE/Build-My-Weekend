@@ -6,6 +6,7 @@ const { chromium } = require("playwright");
   const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
   const pageErrors = [];
   const failedLocalAssets = [];
+  let simulateRoutingOutage = false;
 
   page.on("pageerror", error => pageErrors.push(error.message));
   // Keep CI deterministic while exercising the real planner's route-response handling.
@@ -18,6 +19,14 @@ const { chromium } = require("playwright");
       }});
     }
     if (new URL(route.request().url()).pathname === "/api/route") {
+      if (simulateRoutingOutage) {
+        return route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          headers: { "access-control-allow-origin": "*" },
+          body: JSON.stringify({ error: "Routing is temporarily unavailable." })
+        });
+      }
       const body = route.request().postDataJSON();
       return route.fulfill({
         status: 200,
@@ -43,7 +52,7 @@ const { chromium } = require("playwright");
   const waitForRouteResults = async () => page.waitForFunction(() => {
     const summary = document.querySelector("#results-summary")?.innerText || "";
     return !summary.includes("Checking real driving routes") &&
-      (summary.includes("route-verified destination") || summary.includes("No route-verified destination passed"));
+      (summary.includes("route-verified destination") || summary.includes("No route-verified destination passed") || summary.includes("routing service is temporarily unavailable"));
   }, null, { timeout: 15000 });
 
   try {
@@ -300,6 +309,23 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#camping-controls").isVisible(), false, "Reset left camping specialist controls open.");
     assert.equal(await page.locator("#no-results").isVisible(), false, "Reset did not restore the default result state.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Reset returned no destination cards.");
+
+    // Simulate a temporary route-service outage. Trip ideas must remain visible,
+    // with clear labels that the route, distance filter and origin-based costs are unverified.
+    simulateRoutingOutage = true;
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert((await page.locator("#results-summary").innerText()).includes("routing service is temporarily unavailable"),
+      "Routing outage did not produce the explicit fallback disclosure.");
+    assert(await page.locator("#recommendations .trip-card").count() > 0,
+      "Routing outage incorrectly left the user with no trip ideas.");
+    assert((await page.locator(".trip-card").first().innerText()).includes("ROUTE NOT VERIFIED"),
+      "Fallback card did not clearly label its route as unverified.");
+    await page.locator('.trip-card button[data-action="view"]').first().click();
+    assert((await page.locator("#trip-dialog").innerText()).includes("ROUTE STATUS: NOT VERIFIED"),
+      "Fallback detail view falsely implies that the route was verified.");
+    await page.locator("#trip-dialog .dialog-close").click();
+    simulateRoutingOutage = false;
 
     // Re-check the production page at a common phone viewport.
     await page.setViewportSize({ width: 390, height: 844 });
