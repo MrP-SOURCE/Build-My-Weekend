@@ -388,6 +388,16 @@ const { chromium } = require("playwright");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: "networkidle" });
     await page.locator("#trip-form").waitFor();
+    assert.equal(await page.locator("#fuel-price").inputValue(), "24.5", "Reset fuel price did not remain at the default after reload.");
+    assert.equal(await page.locator("#consumption").inputValue(), "8", "Reset fuel consumption did not remain at the default after reload.");
+
+    // Separately verify that user-edited fuel assumptions still persist when the user chooses to keep them.
+    await page.locator("#fuel-price").fill("27.15");
+    await page.locator("#fuel-price").dispatchEvent("change");
+    await page.locator("#consumption").fill("6.5");
+    await page.locator("#consumption").dispatchEvent("change");
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator("#trip-form").waitFor();
     assert.equal(await page.locator("#fuel-price").inputValue(), "27.15", "Manual fuel price did not persist after reload.");
     assert.equal(await page.locator("#consumption").inputValue(), "6.5", "Manual fuel consumption did not persist after reload.");
     assert(await page.locator("#budget").isVisible(), "Budget input is not visible on mobile.");
