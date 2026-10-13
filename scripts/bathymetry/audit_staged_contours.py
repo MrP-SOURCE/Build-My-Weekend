@@ -34,12 +34,29 @@ def audit(path: Path) -> dict:
     missing_provenance = Counter()
     geometry_types = Counter()
     coordinates_seen: list[tuple[float, float]] = []
+    object_ids: list[str] = []
+    feature_geometry_bounds: list[tuple[float, float, float, float]] = []
+    query_bounds = metadata.get("query_bounds_wgs84")
+    if not isinstance(query_bounds, dict) or not all(
+        isinstance(query_bounds.get(key), (int, float))
+        for key in ("min_lon", "min_lat", "max_lon", "max_lat")
+    ):
+        raise ValueError("Missing or invalid WGS84 query bounds in staging metadata")
+    if not (
+        -180 <= query_bounds["min_lon"] < query_bounds["max_lon"] <= 180
+        and -90 <= query_bounds["min_lat"] < query_bounds["max_lat"] <= 90
+    ):
+        raise ValueError("Invalid WGS84 query bounds in staging metadata")
+    outside_region_count = 0
     for index, feature in enumerate(features):
         props = feature.get("properties") or {}
         depth = props.get("Depth")
         if isinstance(depth, bool) or not isinstance(depth, (int, float)) or not math.isfinite(depth):
             raise ValueError(f"Feature {index} has invalid numeric Depth")
         depths.append(float(depth))
+        object_id = props.get("OBJECTID", feature.get("id"))
+        if object_id is not None:
+            object_ids.append(str(object_id))
         for key in PROVENANCE_FIELDS:
             if props.get(key) in (None, ""):
                 missing_provenance[key] += 1
@@ -60,6 +77,40 @@ def audit(path: Path) -> dict:
     if not coordinates_seen:
         raise ValueError("No coordinates found")
 
+    min_lon = min(point[0] for point in coordinates_seen)
+    min_lat = min(point[1] for point in coordinates_seen)
+    max_lon = max(point[0] for point in coordinates_seen)
+    max_lat = max(point[1] for point in coordinates_seen)
+    # Source contour lines may extend beyond the query envelope; flag only features
+    # whose complete geometry bounding box does not intersect the requested region.
+    for feature in features:
+        coords = []
+        geometry = feature.get("geometry") or {}
+        lines = [geometry.get("coordinates", [])] if geometry.get("type") == "LineString" else geometry.get("coordinates", [])
+        for line in lines:
+            for point in line:
+                coords.append((float(point[0]), float(point[1])))
+        if coords and (
+            max(p[0] for p in coords) < query_bounds["min_lon"]
+            or min(p[0] for p in coords) > query_bounds["max_lon"]
+            or max(p[1] for p in coords) < query_bounds["min_lat"]
+            or min(p[1] for p in coords) > query_bounds["max_lat"]
+        ):
+            outside_region_count += 1
+
+    warnings = [
+        "Depth units/sign and vertical datum must be confirmed from authoritative metadata.",
+        "Feature geometry and source coverage require spatial review.",
+        "Not a navigation product, verified fishing mark, or confirmation of safe/legal access.",
+        "Do not publish or integrate until licensing, attribution, provenance and coverage are reviewed."
+    ]
+    if metadata.get("feature_count") != len(features):
+        warnings.append("Collection feature_count metadata does not match the actual number of features.")
+    if outside_region_count:
+        warnings.append("Some full source geometries have bounding boxes outside the requested region; review spatial coverage.")
+    if len(set(object_ids)) != len(object_ids):
+        warnings.append("Duplicate source OBJECTID/feature identifiers detected.")
+
     return {
         "audit_status": "REVIEW_REQUIRED_NOT_PUBLICATION_APPROVAL",
         "input_file": path.name,
@@ -68,6 +119,8 @@ def audit(path: Path) -> dict:
         "source_status": metadata.get("status"),
         "feature_count": len(features),
         "metadata_feature_count_matches": metadata.get("feature_count") == len(features),
+        "duplicate_feature_id_count": len(object_ids) - len(set(object_ids)),
+        "features_outside_query_bounds_count": outside_region_count,
         "geometry_types": dict(sorted(geometry_types.items())),
         "depth_field": "Depth",
         "depth_value_count": len(depths),
@@ -78,17 +131,12 @@ def audit(path: Path) -> dict:
         "vertical_datum_confirmed": False,
         "provenance_missing_counts": {key: missing_provenance.get(key, 0) for key in PROVENANCE_FIELDS},
         "wgs84_bounds": {
-            "min_lon": min(point[0] for point in coordinates_seen),
-            "min_lat": min(point[1] for point in coordinates_seen),
-            "max_lon": max(point[0] for point in coordinates_seen),
-            "max_lat": max(point[1] for point in coordinates_seen),
+            "min_lon": min_lon,
+            "min_lat": min_lat,
+            "max_lon": max_lon,
+            "max_lat": max_lat,
         },
-        "warnings": [
-            "Depth units/sign and vertical datum must be confirmed from authoritative metadata.",
-            "Feature geometry and source coverage require spatial review.",
-            "Not a navigation product, verified fishing mark, or confirmation of safe/legal access.",
-            "Do not publish or integrate until licensing, attribution, provenance and coverage are reviewed."
-        ],
+        "warnings": warnings,
     }
 
 
