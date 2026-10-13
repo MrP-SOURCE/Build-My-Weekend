@@ -102,3 +102,21 @@ Before an adapter is implemented, record the exact endpoint, response schema, ge
 3. Evaluate DWS for relevant water-resource datasets, verifying whether a usable public endpoint exists.
 4. Evaluate GBIF and OBIS for supplementary biodiversity context, with attribution and clear limits.
 5. Choose and authorize a geocoding/routing provider before implementing nationwide origin-aware distance and fuel calculations.
+
+
+## Bathymetry and coastal terrain
+
+- **GEBCO_2026 Grid and Type Identifier (TID) Grid:** https://www.gebco.net/data-products-gridded-bathymetry-data/gebco2026-grid
+- **GEBCO subset download application:** https://betadownload.gebco.net/
+- **GEBCO data access and format overview:** https://www.gebco.net/data-products/gridded-bathymetry-data
+
+GEBCO_2026 is an official global terrain model published in April 2026. Its standard grid interval is 15 arc-seconds, and the accompanying TID grid identifies whether cells are based on direct measurements or other source types. A regional subset is preferable to downloading the multi-gigabyte global grid for this project. Use the subset tool to investigate relevant South African coastal areas and retain the grid and TID data together where practical.
+
+**Integration requirements and limitations:**
+
+- GEBCO is a broad-scale reference, not a substitute for official nautical charts, local hydrographic surveys, or a safe-navigation product. Its grid may be interpolated and may not resolve nearshore rocks, reefs, channels, surf zones, or small fishing features.
+- Keep source-depth provenance visible using the TID layer; do not present interpolated or lower-confidence cells as measured seabed soundings.
+- Confirm raster registration, coordinate reference system (geographic WGS84), units (metres), and sign convention (negative values are below-sea-level bathymetry) in the downloaded subset before processing.
+- Record the exact source version, download date, selected bounding box, file checksum, processing steps, and attribution in the repository alongside any derived asset.
+- GEBCO permits free public-domain use subject to attribution and its disclaimer. Do not imply endorsement by GEBCO or its partners. Required citation for this release: GEBCO Bathymetric Compilation Group 2026 (2026), *The GEBCO_2026 Grid*, doi:10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa.
+- Do not mark Shoreline Explorer as integrated or live until a real regional subset is ingested, source/TID provenance is checked, the API serves the derived product, and automated tests verify the output. The existing regional cards remain demonstration references until those gates pass.
