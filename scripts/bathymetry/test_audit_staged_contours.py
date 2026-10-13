@@ -45,6 +45,7 @@ class StagedContourAuditTests(unittest.TestCase):
     def test_reports_duplicate_ids_and_geometry_outside_region(self):
         payload = staged_payload()
         payload["metadata"]["feature_count"] = 2
+        payload["features"][0]["properties"]["OBJECTID"] = 1
         second = json.loads(json.dumps(payload["features"][0]))
         second["properties"]["OBJECTID"] = payload["features"][0]["properties"].get("OBJECTID", 1)
         second["geometry"]["coordinates"] = [[30.0, -20.0], [30.1, -20.1]]
