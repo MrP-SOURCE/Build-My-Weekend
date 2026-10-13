@@ -7,10 +7,16 @@ const app = fs.readFileSync(root + "/js/app.js", "utf8");
 const fishing = fs.readFileSync(root + "/js/fishing.js", "utf8");
 const accommodation = fs.readFileSync(root + "/js/accommodation.js", "utf8");
 const camping = fs.readFileSync(root + "/js/camping.js", "utf8");
+const shoreline = fs.readFileSync(root + "/shoreline-explorer.html", "utf8");
+const shorelinePublic = fs.readFileSync(root + "/public/shoreline-explorer.html", "utf8");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+
+assert(shoreline === shorelinePublic, "The standalone Shoreline Explorer and its public copy must stay in sync.");
+assert(shoreline.includes("https://ocims.environment.gov.za/coastalviewer/") && shoreline.includes("https://paca.environment.gov.za/par/rest/services/OC/NDIR_Nat_Env/MapServer/1") && shoreline.includes("https://betadownload.gebco.net/"), "Shoreline Explorer must expose official coastal and bathymetry reference links.");
+assert(shoreline.includes("not connected live layers") && shoreline.includes("not suitable for navigation or safety decisions"), "External bathymetry sources must be clearly distinguished from integrated data and safety products.");
 
 function idsFromHtml(source) {
   return [...source.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
