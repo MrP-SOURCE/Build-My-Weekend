@@ -38,7 +38,7 @@ class CampsiteAuditTests(unittest.TestCase):
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=fields)
             writer.writeheader()
-            writer.writerows(rows)
+            writer.writerows({key: row.get(key, "") for key in fields} for row in rows)
         return path
 
     def test_valid_record_remains_review_only(self):
