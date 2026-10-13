@@ -1,0 +1,64 @@
+name: BUILD MY WEEKEND — manual DFFE contour staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: Bounded South African coastal region to stage
+        required: true
+        type: choice
+        options:
+          - false-bay
+          - algoa-bay
+          - wild-coast
+        default: false-bay
+      max_records:
+        description: Maximum contour features (safety limit)
+        required: true
+        type: choice
+        options:
+          - "2000"
+          - "5000"
+          - "10000"
+        default: "2000"
+
+permissions:
+  contents: read
+
+jobs:
+  stage-contours:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate staging utility tests
+        run: python -m unittest scripts.bathymetry.test_fetch_dffe_contours -v
+
+      - name: Fetch bounded official DFFE/OCIMS contour subset
+        run: |
+          python scripts/bathymetry/fetch_dffe_contours.py \
+            --region "${{ inputs.region }}" \
+            --max-records "${{ inputs.max_records }}" \
+            --timeout 30 \
+            --output "staging-output/dffe-${{ inputs.region }}-contours.geojson"
+
+      - name: Upload review-only GeoJSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dffe-contours-${{ inputs.region }}-${{ github.run_id }}
+          path: staging-output/*.geojson
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: State review restrictions
+        run: |
+          echo "Downloaded data is a temporary review artifact only."
+          echo "It has not been committed or published to the app."
+          echo "Review depth units/sign, vertical datum, survey metadata, source terms and spatial coverage before integration."
