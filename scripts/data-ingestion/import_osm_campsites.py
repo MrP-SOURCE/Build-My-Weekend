@@ -191,6 +191,8 @@ def main() -> int:
         )
         accepted = 0
         rejected = 0
+        duplicates = 0
+        seen_ids: set[str] = set()
         args.output.parent.mkdir(parents=True, exist_ok=True)
         with args.output.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=OUTPUT_FIELDS)
@@ -204,9 +206,17 @@ def main() -> int:
                 if normalized is None:
                     rejected += 1
                     continue
+                # Bulk POI exports can contain repeated OSM IDs; emit each source record once.
+                if normalized["id"] in seen_ids:
+                    duplicates += 1
+                    continue
+                seen_ids.add(normalized["id"])
                 writer.writerow(normalized)
                 accepted += 1
-        print(f"Import complete: {accepted} campsite records accepted; {rejected} records skipped.")
+        print(
+            f"Import complete: {accepted} unique campsite records accepted; "
+            f"{rejected} records skipped; {duplicates} duplicate IDs skipped."
+        )
         print("Output is not live availability or proof of legal access, safety, amenities, or fishing permission.")
         return 0
     except (OSError, ValueError, json.JSONDecodeError) as exc:
