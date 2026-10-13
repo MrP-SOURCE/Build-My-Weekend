@@ -44,11 +44,11 @@ class DffeContourFetchTests(unittest.TestCase):
 
     def test_rejects_out_of_region_country_geometry(self):
         bad = feature()
-        bad["geometry"]["coordinates"][0][0] = [2.0, 48.0]
+        bad["geometry"]["coordinates"] = [[2.0, 48.0], [2.1, 48.1]]
         with patch("fetch_dffe_contours._query_page", return_value={
             "type": "FeatureCollection", "features": [bad]
         }):
-            with self.assertRaisesRegex(RuntimeError, "out-of-bounds"):
+            with self.assertRaisesRegex(RuntimeError, "non-intersecting"):
                 fetch_region("false-bay")
 
     def test_record_limit_probes_for_truncation(self):
