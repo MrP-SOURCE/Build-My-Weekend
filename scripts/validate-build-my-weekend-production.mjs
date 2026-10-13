@@ -42,6 +42,17 @@ const missingScripts = scripts.filter((src) => {
 });
 assert(missingScripts.length === 0, "Built HTML references missing JavaScript: " + missingScripts.join(", "));
 
+const explorerPath = path.join(root, "shoreline-explorer.html");
+assert(fs.existsSync(explorerPath), "Production output is missing the standalone Shoreline Explorer page.");
+const explorerHtml = fs.readFileSync(explorerPath, "utf8");
+for (const [label, marker] of [
+  ["Shoreline Explorer form", 'id="search-form"'],
+  ["fail-closed bathymetry status", 'id="bathymetry-status"'],
+  ["regional reference results", 'id="results"']
+]) {
+  assert(explorerHtml.includes(marker), "Built Shoreline Explorer is missing " + label + ".");
+}
+
 const jsFiles = files.filter((file) => file.endsWith(".js") || file.endsWith(".mjs"));
 assert(jsFiles.length > 0, "Production output contains no JavaScript files.");
 const bundle = jsFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
@@ -52,5 +63,5 @@ for (const marker of ["Hermanus", "Gordon's Bay", "budget", "Fishing"]) {
 const cssFiles = files.filter((file) => file.endsWith(".css"));
 assert(cssFiles.length > 0, "Production output contains no CSS files.");
 console.log("Production artifact smoke: PASS");
-console.log("HTML entrypoint, planner controls, safety disclosures, local assets, destination data and CSS verified.");
+console.log("Planner and Shoreline Explorer entrypoints, controls, safety disclosures, local assets, destination data and CSS verified.");
 console.log("Production files:", files.length, "| JavaScript files:", jsFiles.length, "| CSS files:", cssFiles.length);
