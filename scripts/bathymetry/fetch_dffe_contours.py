@@ -23,8 +23,6 @@ REGIONS = {
 }
 OUT_FIELDS = "OBJECTID,Depth,valdco,verdat,scamin,scamax,inform,ninfom,txtdsc,ntxtds,recdat,recind,sordat,sorind,Shape_Length"
 PAGE_SIZE = 2000
-SOUTH_AFRICA = {"min_lon": 15.0, "max_lon": 35.0, "min_lat": -36.0, "max_lat": -21.0}
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -68,24 +66,16 @@ def _query_page(region: dict[str, float], offset: int, timeout: float, record_co
     return payload
 
 
-def _valid_south_african_geometry(geometry: object) -> bool:
+def _valid_regional_geometry(geometry: object, region: dict[str, float]) -> bool:
+    """Validate WGS84 line coordinates and ensure the geometry bounds intersect the query region."""
     if not isinstance(geometry, dict) or geometry.get("type") not in {"LineString", "MultiLineString"}:
         return False
     coordinates = geometry.get("coordinates")
     if not isinstance(coordinates, list) or not coordinates:
         return False
-
-    def walk(value: object) -> list[object]:
-        if not isinstance(value, list):
-            return [value]
-        result: list[object] = []
-        for item in value:
-            result.extend(walk(item))
-        return result
-
-    # Flatten into coordinate pairs by geometry nesting depth.
     lines = [coordinates] if geometry["type"] == "LineString" else coordinates
-    found = False
+    all_lons: list[float] = []
+    all_lats: list[float] = []
     for line in lines:
         if not isinstance(line, list):
             return False
@@ -96,11 +86,18 @@ def _valid_south_african_geometry(geometry: object) -> bool:
                 lon, lat = float(point[0]), float(point[1])
             except (TypeError, ValueError):
                 return False
-            if not (SOUTH_AFRICA["min_lon"] <= lon <= SOUTH_AFRICA["max_lon"] and
-                    SOUTH_AFRICA["min_lat"] <= lat <= SOUTH_AFRICA["max_lat"]):
+            if not (-180 <= lon <= 180 and -90 <= lat <= 90):
                 return False
-            found = True
-    return found
+            all_lons.append(lon)
+            all_lats.append(lat)
+    if not all_lons:
+        return False
+    # ArcGIS may return the complete source line rather than clipping it to the query
+    # envelope. Require spatial overlap, but permit offshore vertices outside the region.
+    return not (
+        max(all_lons) < region["min_lon"] or min(all_lons) > region["max_lon"] or
+        max(all_lats) < region["min_lat"] or min(all_lats) > region["max_lat"]
+    )
 
 
 def fetch_region(region_name: str, max_records: int = 10000, timeout: float = 30) -> dict:
@@ -118,8 +115,8 @@ def fetch_region(region_name: str, max_records: int = 10000, timeout: float = 30
         page = _query_page(region, offset, timeout, min(PAGE_SIZE, max_records - len(features)))
         page_features = page["features"]
         for feature in page_features:
-            if not isinstance(feature, dict) or not _valid_south_african_geometry(feature.get("geometry")):
-                raise RuntimeError("DFFE response contained a non-line or out-of-bounds geometry; staging aborted")
+            if not isinstance(feature, dict) or not _valid_regional_geometry(feature.get("geometry"), region):
+                raise RuntimeError("DFFE response contained a non-line, invalid-coordinate, or non-intersecting geometry; staging aborted")
             properties = feature.get("properties")
             if not isinstance(properties, dict) or not isinstance(properties.get("Depth"), (int, float)):
                 raise RuntimeError("DFFE response is missing numeric Depth metadata; staging aborted")
