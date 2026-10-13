@@ -404,6 +404,8 @@ const { chromium } = require("playwright");
     await page.locator("#search-form").waitFor();
     await page.locator(".region-card").waitFor({ timeout: 10000 });
     assert((await page.locator(".region-card").innerText()).includes("False Bay"), "Shoreline Explorer did not render the region card.");
+    assert((await page.locator("#bathymetry-status").innerText()).includes("not published yet"), "Missing bathymetry data did not fail closed with an explicit status.");
+    assert.equal(await page.locator(".leaflet-control-layers").count(), 0, "An unavailable bathymetry dataset must not create a misleading map overlay control.");
     assert((await page.locator(".region-card").innerText()).includes("Yellowtail"), "Shoreline Explorer did not render the fish-habitat reference.");
     assert((await page.locator(".region-card").innerText()).includes("Fixture topography description."), "Shoreline Explorer did not render topography details.");
     await page.locator("#shoreline-length").fill("200");
