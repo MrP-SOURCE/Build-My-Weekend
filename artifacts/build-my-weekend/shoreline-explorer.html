@@ -122,7 +122,7 @@
           onEachFeature: (feature, layer) => {
             const properties = feature.properties || {};
             const depth = Number(properties.deepest_candidate_depth_m);
-            const prominence = Number(properties.max_local_depth_difference_m ?? properties.mean_local_depth_difference_m);
+            const prominence = Number(properties.maximum_local_depth_difference_m ?? properties.mean_local_depth_difference_m);
             const details = [
               "<strong>Potential seabed structure area</strong>",
               "Bathymetry-derived candidate; not field verified.",
