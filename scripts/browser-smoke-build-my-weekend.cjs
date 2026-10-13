@@ -69,6 +69,9 @@ const { chromium } = require("playwright");
   });
   page.on("requestfailed", request => {
     if (new URL(request.url()).origin === new URL(process.env.BMW_BASE_URL).origin) {
+      // The bathymetry GeoJSON is intentionally optional until real, licensed,
+      // provenance-checked data is published. Its expected 404 must not fail CI.
+      if (new URL(request.url()).pathname.endsWith("/data/bathymetry/candidate-structure-zones.geojson")) return;
       failedLocalAssets.push(request.url() + " — " + (request.failure()?.errorText || "request failed"));
     }
   });
