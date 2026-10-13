@@ -63,6 +63,14 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
+    // Build the standalone Shoreline Explorer as a second page instead of
+    // leaving it beside the Vite root where production builds omit it.
+    rollupOptions: {
+      input: {
+        main: path.resolve(import.meta.dirname, 'index.html'),
+        shorelineExplorer: path.resolve(import.meta.dirname, 'shoreline-explorer.html'),
+      },
+    },
   },
   server: {
     port,
