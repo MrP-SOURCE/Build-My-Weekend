@@ -39,6 +39,11 @@ Use friendly wording such as **“Potential seabed structure area”** or **“D
 
 Do not use these polygons as navigation charts or safety aids. Check authoritative nautical charts, weather and sea conditions, local rules, and access. Results are sensitive to raster resolution, interpolation, survey noise, datum, and threshold. They should be field-tested and reviewed before appearing as real-world recommendations.
 
+
+### DFFE/OCIMS layer metadata checked
+
+The official ArcGIS REST layer metadata identifies the endpoint as a polyline feature layer named **Bathymetry**, with a numeric Depth field, a 2,000-record service page limit, and source spatial reference AEA_RSA_WGS84 (Albers; WGS 84 geographic datum). The staging request explicitly asks the service to return geometry in EPSG:4326. The layer metadata lists supporting source fields such as verdat, inform, recdat, sordat, and sorind, which should be retained for review. The published layer metadata does **not** by itself establish the Depth unit, sign convention, vertical datum meaning, survey currency, or a licence permitting republication; those remain mandatory review items. See the [official Bathymetry layer metadata](https://paca.environment.gov.za/par/rest/services/OC/NDIR_Nat_Env/MapServer/1) and the [DFFE Data & Resources portal](https://ocims.environment.gov.za/DataResources). DFFE notes that some shared marine-planning services may not be the latest release and that original data should be obtained from the relevant custodian.
+
 ## Practical baseline source: GEBCO
 
 A practical first test source is the current **GEBCO_2026 Grid**. GEBCO provides a user-defined-area download in GeoTIFF, Esri ASCII raster, or NetCDF format. Its public-domain terms permit reuse with source attribution, but the grid is a global compilation and may be too coarse or interpolated to resolve nearshore features reliably. Treat it as a workflow test and broad regional context, not as a verified local fishing-structure dataset.
