@@ -94,6 +94,7 @@ jobs:
 
   browser-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: production-build
     env:
       PORT: 5000
