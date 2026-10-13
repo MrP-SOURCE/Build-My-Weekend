@@ -10,7 +10,7 @@ from pathlib import Path
 from statistics import median
 
 
-REQUIRED_METADATA = ("source", "source_owner", "status", "region", "feature_count", "warning")
+REQUIRED_METADATA = ("source", "source_owner", "status", "region_preset", "feature_count", "warning")
 PROVENANCE_FIELDS = ("verdat", "inform", "recdat", "sordat", "sorind")
 
 
@@ -63,7 +63,7 @@ def audit(path: Path) -> dict:
     return {
         "audit_status": "REVIEW_REQUIRED_NOT_PUBLICATION_APPROVAL",
         "input_file": path.name,
-        "region": metadata.get("region"),
+        "region": metadata.get("region_preset"),
         "source": metadata.get("source"),
         "source_status": metadata.get("status"),
         "feature_count": len(features),
