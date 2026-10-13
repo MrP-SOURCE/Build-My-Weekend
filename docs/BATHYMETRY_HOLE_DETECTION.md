@@ -29,6 +29,14 @@ python scripts/bathymetry/detect_bathymetry_holes.py input_bathymetry.tif output
 
 The input must have a valid CRS. GeoJSON uses WGS84 longitude/latitude polygons, suitable for a Leaflet GeoJSON layer. Properties include deepest and mean candidate depth, local depth difference, number of core cells, display footprint size, source raster, and verification status. Nodata cells are ignored.
 
+## Supported raw format and loader choice
+
+**Option B (a clipped GEBCO GeoTIFF) is the easiest first parser target** because its raster cells already carry georeferencing and nodata metadata, and this project already uses Rasterio for GeoTIFF analysis. Use GEBCO's user-defined-area download to request only the South African coastal bounding box you need; avoid loading a full global grid into memory.
+
+The reusable `load_geotiff_bathymetry()` function in `scripts/bathymetry/detect_bathymetry_holes.py` returns a NumPy depth array normalized to positive-down metres, the raster CRS, affine transform, and raster shape. It respects masked/nodata cells and rejects land/negative depth cells after sign normalization. GEBCO's default convention is negative bathymetric elevation and positive land elevation, so use `depth_sign="negative"` for a standard GEBCO grid. This is a file loader, not a downloader; source units, sign, CRS, resolution, attribution, and licence still need to be checked against the actual downloaded file and its documentation.
+
+A raw XYZ/ASCII source (Option A) is also possible, but it needs a separate parser that knows the exact column order, delimiter, header structure, nodata convention, and whether coordinates are scattered points or a regular grid. Do not assume that format from the website description alone.
+
 ## South African data workflow
 
 The script does not automatically fetch data. Obtain bathymetry from a source with suitable coverage and permitted reuse, and preserve source attribution, licence, survey date, vertical datum, horizontal CRS, resolution, and coverage. The Willem de Wet continental-shelf resource at https://www.johnscompton.com/maps/ is a research lead, but may provide XYZ or NetCDF rather than GeoTIFF. The Council for Geoscience Marine Mapping Project at https://www.geoscience.org.za/project/marine-mapping-project/ is another source to investigate for access and terms. This commit does not claim that either source has been downloaded or validated.
