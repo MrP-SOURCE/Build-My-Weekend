@@ -1,5 +1,7 @@
 import csv
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -97,6 +99,37 @@ class OSMCampsiteImportTests(unittest.TestCase):
             records = list(read_records(path))
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["name"], "CSV Camp")
+
+    def test_cli_deduplicates_repeated_source_ids(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "duplicate-campsites.csv"
+            output = root / "normalized.csv"
+            source.write_text(
+                "osm_id,name,tourism,lat,lon\n"
+                "node/42,Repeat Camp,camp_site,-33.9,18.4\n"
+                "node/42,Repeat Camp,camp_site,-33.9,18.4\n",
+                encoding="utf-8",
+            )
+            script = Path(__file__).with_name("import_osm_campsites.py")
+            result = subprocess.run(
+                [
+                    sys.executable, str(script), str(source), str(output),
+                    "--source-id", self.meta["source_id"],
+                    "--source-url", self.meta["source_url"],
+                    "--licence-id", self.meta["licence_id"],
+                    "--attribution", self.meta["attribution_text"],
+                    "--source-updated-at", self.meta["source_updated_at"],
+                    "--imported-at", self.meta["imported_at"],
+                ],
+                check=True, capture_output=True, text=True,
+            )
+            with output.open("r", encoding="utf-8", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["source_record_id"], "node/42")
+            self.assertIn("1 duplicate IDs skipped", result.stdout)
+
 
 
 if __name__ == "__main__":
