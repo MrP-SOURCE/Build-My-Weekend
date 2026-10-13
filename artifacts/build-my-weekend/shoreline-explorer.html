@@ -23,6 +23,7 @@
     .tag{display:inline-block;background:#eaf0e8;color:#3d6048;border-radius:100px;padding:.15rem .55rem;font-size:.76rem;font-weight:800;letter-spacing:.03em}
     .error{color:#a52f2f;font-weight:700}.empty{padding:1rem;border:1px dashed #b8c5b8;border-radius:12px}
     .bathymetry-status{padding:.75rem 1rem;background:#edf2eb;border:1px solid var(--line);border-radius:10px;font-size:.9rem;color:var(--ink)}
+    .source-links{padding:1rem;background:#fff;border:1px solid var(--line);border-radius:12px;margin:1rem 0}.source-links h2{font-size:1.05rem;margin-bottom:.35rem}.source-links ul{margin:.5rem 0 0;padding-left:1.25rem}.source-links li{margin:.3rem 0}.source-links a{color:#315d43;text-underline-offset:3px}
     footer{padding:1.5rem;text-align:center;color:var(--muted);font-size:.85rem}
   </style>
 </head>
@@ -33,6 +34,16 @@
     <h1>Read the shoreline before you go.</h1>
     <p class="intro">Explore broad regional topography notes, bounding boxes and illustrative fish-habitat references for False Bay, Algoa Bay and the Wild Coast. Use this as a planning aid—not as a navigation chart, verified fishing mark or catch forecast.</p>
     <p class="disclaimer">The current records are demo references. Shoreline lengths and bounding boxes are approximate; species notes are not live sightings or bite predictions. Exact hotspot GPS coordinates, live marine conditions and nautical-chart overlays are not connected. Confirm official charts, local access, weather, swell, permits and regulations before travelling or fishing.</p>
+    <section class="source-links" aria-labelledby="official-data-heading">
+      <h2 id="official-data-heading">Official coastal and bathymetry references</h2>
+      <p class="hint">These are external reference sources, not connected live layers in this planner. Review source metadata and current charts independently.</p>
+      <ul>
+        <li><a href="https://ocims.environment.gov.za/coastalviewer/" target="_blank" rel="noopener noreferrer">DFFE Coastal Viewer</a> — official coastal spatial-data viewer.</li>
+        <li><a href="https://paca.environment.gov.za/par/rest/services/OC/NDIR_Nat_Env/MapServer/1" target="_blank" rel="noopener noreferrer">DFFE / OCIMS bathymetry contour layer</a> — regional depth contours; source metadata and datum must be checked.</li>
+        <li><a href="https://www.gebco.net/data-products/gridded-bathymetry-data/gebco2026-grid" target="_blank" rel="noopener noreferrer">GEBCO_2026 Grid</a> — global bathymetry baseline; not suitable for navigation or safety decisions.</li>
+        <li><a href="https://betadownload.gebco.net/" target="_blank" rel="noopener noreferrer">GEBCO user-defined-area download</a> — obtain a bounded raster subset for the data-ingestion workflow.</li>
+      </ul>
+    </section>
     <form class="controls" id="search-form">
       <div><label for="destination">Region</label><select id="destination" required><option value="False Bay">False Bay</option><option value="Algoa Bay">Algoa Bay</option><option value="Wild Coast">Wild Coast</option></select></div>
       <div><label for="shoreline-length">Minimum shoreline length (km)</label><input id="shoreline-length" type="number" min="0" max="10000" step="1" value="0"></div>
