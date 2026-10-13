@@ -53,6 +53,30 @@ def detect_candidates(depth_m: np.ndarray, threshold_m: float) -> tuple[np.ndarr
     return prominence, candidates
 
 
+def load_geotiff_bathymetry(
+    input_path: Path, *, band: int = 1, depth_sign: str = "negative"
+) -> tuple[np.ndarray, object, object, tuple[int, int]]:
+    """Load a clipped bathymetry GeoTIFF as positive-down metres plus spatial metadata.
+
+    This intentionally accepts a user-downloaded GeoTIFF subset, not visual imagery
+    or an unbounded global grid. The caller must verify units, sign, CRS, resolution,
+    attribution, and licence from the source documentation before interpreting results.
+    """
+    if depth_sign not in {"negative", "positive"}:
+        raise ValueError("depth_sign must be 'negative' or 'positive'")
+    with rasterio.open(input_path) as dataset:
+        if dataset.crs is None:
+            raise ValueError("Input raster has no CRS; assign its real CRS before processing")
+        if band < 1 or band > dataset.count:
+            raise ValueError("Requested band is outside the raster's available band range")
+        raw = dataset.read(band, masked=True).astype(np.float64).filled(np.nan)
+        depth_m = -raw if depth_sign == "negative" else raw
+        # GEBCO uses negative elevations for underwater depths and positive values on land.
+        # Reject land/non-depth cells and nodata; never silently convert land into depth.
+        depth_m[~np.isfinite(raw) | (depth_m < 0)] = np.nan
+        return depth_m, dataset.crs, dataset.transform, dataset.shape
+
+
 def run(input_path: Path, output_path: Path, threshold_m: float, depth_sign: str,
         band: int, cluster_buffer_cells: int, max_zones: int) -> int:
     if threshold_m <= 0:
@@ -62,18 +86,10 @@ def run(input_path: Path, output_path: Path, threshold_m: float, depth_sign: str
     if max_zones < 1:
         raise ValueError("--max-zones must be at least 1")
 
-    with rasterio.open(input_path) as dataset:
-        if dataset.crs is None:
-            raise ValueError("Input raster has no CRS; assign its real CRS before processing")
-        if band < 1 or band > dataset.count:
-            raise ValueError("Requested band is outside the raster's available band range")
-        raw = dataset.read(band, masked=True).astype(np.float64).filled(np.nan)
-        depth_m = -raw if depth_sign == "negative" else raw
-        depth_m[~np.isfinite(raw) | (depth_m < 0)] = np.nan
-        source_crs = dataset.crs
-        source_name = input_path.name
-        raster_transform = dataset.transform
-        raster_shape = dataset.shape
+    depth_m, source_crs, raster_transform, raster_shape = load_geotiff_bathymetry(
+        input_path, band=band, depth_sign=depth_sign
+    )
+    source_name = input_path.name
 
     prominence, core_mask = detect_candidates(depth_m, threshold_m)
     if not np.any(core_mask):
