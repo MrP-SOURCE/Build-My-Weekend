@@ -2381,18 +2381,11 @@ dialog.addEventListener("click", event => {
 });
 
 function resetPlannerToDefaults() {
-  // Reset every planner criterion together: origin, destination preferences,
-  // dates, group size, budget, distance, fuel assumptions and specialist options.
+  // A full reset returns every field, including fuel assumptions, to the
+  // documented defaults so the user can start from a genuinely clean planner.
   try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
-  // Fuel pricing and vehicle efficiency are user-managed settings, not trip filters.
-  // Preserve their current values when the rest of the planner is reset.
-  const savedFuelSettings = {
-    fuelPrice: form.elements.fuelPrice.value,
-    consumption: form.elements.consumption.value
-  };
+  try { localStorage.removeItem("buildMyWeekendFuelSettings"); } catch {}
   form.reset();
-  form.elements.fuelPrice.value = savedFuelSettings.fuelPrice;
-  form.elements.consumption.value = savedFuelSettings.consumption;
   initDates();
   form.elements.return.min = form.elements.depart.value || localDate(new Date());
   if (form.elements.return.value < form.elements.depart.value) {
