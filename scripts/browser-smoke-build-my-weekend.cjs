@@ -412,6 +412,36 @@ const { chromium } = require("playwright");
     await page.locator("#search-form button[type=submit]").click();
     await page.locator("#status").getByText("No region matched", { exact: false }).waitFor({ state: "visible" });
     assert((await page.locator("#status").innerText()).includes("No region matched"), "Shoreline Explorer did not apply the shoreline-length filter.");
+
+    // Supply a deterministic synthetic GeoJSON fixture to exercise the optional map layer.
+    // This fixture exists only inside CI; production must still fail closed when no real data is published.
+    await page.route("**/data/bathymetry/candidate-structure-zones.geojson", route => route.fulfill({
+      status: 200,
+      contentType: "application/geo+json",
+      body: JSON.stringify({
+        type: "FeatureCollection",
+        metadata: { source_raster: "CI synthetic fixture only" },
+        features: [{
+          type: "Feature",
+          geometry: { type: "Polygon", coordinates: [[
+            [18.55,-34.12],[18.62,-34.12],[18.62,-34.08],[18.55,-34.08],[18.55,-34.12]
+          ]]},
+          properties: {
+            feature_type: "potential_coastal_seabed_structure_zone",
+            deepest_candidate_depth_m: 32,
+            maximum_local_depth_difference_m: 7,
+            verification_status: "bathymetry_derived_candidate_not_field_verified"
+          }
+        }]
+      })
+    }));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator(".region-card").waitFor({ timeout: 10000 });
+    await page.locator(".leaflet-control-layers").waitFor({ timeout: 10000 });
+    assert((await page.locator("#bathymetry-status").innerText()).includes("CI synthetic fixture only"),
+      "Available GeoJSON source metadata was not shown in the bathymetry status.");
+    assert.equal(await page.locator(".leaflet-control-layers").count(), 1,
+      "A valid, region-matching candidate polygon did not produce an optional map overlay control.");
     assert.deepEqual(pageErrors, [], "Browser runtime errors were detected: " + pageErrors.join(" | "));
     assert.deepEqual(failedLocalAssets, [], "Local assets failed to load: " + failedLocalAssets.join(" | "));
     console.log("Browser journey smoke: PASS");
