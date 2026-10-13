@@ -49,11 +49,19 @@ jobs:
             --timeout 30 \
             --output "staging-output/dffe-${{ inputs.region }}-contours.geojson"
 
-      - name: Upload review-only GeoJSON artifact
+      - name: Audit staged contour data
+        run: |
+          python scripts/bathymetry/audit_staged_contours.py \
+            "staging-output/dffe-${{ inputs.region }}-contours.geojson" \
+            --output "staging-output/dffe-${{ inputs.region }}-audit.json"
+
+      - name: Upload review-only data and audit report
         uses: actions/upload-artifact@v4
         with:
           name: dffe-contours-${{ inputs.region }}-${{ github.run_id }}
-          path: staging-output/*.geojson
+          path: |
+            staging-output/*.geojson
+            staging-output/*-audit.json
           if-no-files-found: error
           retention-days: 7
 
