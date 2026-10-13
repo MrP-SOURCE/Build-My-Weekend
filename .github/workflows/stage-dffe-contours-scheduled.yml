@@ -1,0 +1,58 @@
+name: BUILD MY WEEKEND — scheduled DFFE review staging
+
+on:
+  schedule:
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dffe-review-staging
+  cancel-in-progress: false
+
+jobs:
+  stage-review-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate staging and audit utilities
+        run: PYTHONPATH=scripts/bathymetry python -m unittest test_fetch_dffe_contours test_audit_staged_contours -v
+
+      - name: Fetch bounded False Bay contour subset
+        run: |
+          python scripts/bathymetry/fetch_dffe_contours.py \
+            --region "false-bay" \
+            --max-records "2000" \
+            --timeout 30 \
+            --output "staging-output/dffe-false-bay-contours.geojson"
+
+      - name: Audit staged contour data
+        run: |
+          python scripts/bathymetry/audit_staged_contours.py \
+            "staging-output/dffe-false-bay-contours.geojson" \
+            --output "staging-output/dffe-false-bay-audit.json"
+
+      - name: Upload review-only data and audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dffe-false-bay-review-${{ github.run_id }}
+          path: |
+            staging-output/*.geojson
+            staging-output/*-audit.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Confirm no publication occurred
+        run: |
+          echo "Review artifact only; no app data was committed or published."
+          echo "Before integration, review depth units/sign, vertical datum, survey metadata, spatial coverage, licensing and source terms."
