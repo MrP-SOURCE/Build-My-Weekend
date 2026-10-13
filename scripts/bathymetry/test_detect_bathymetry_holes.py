@@ -7,10 +7,43 @@ import numpy as np
 import rasterio
 from rasterio.transform import from_origin
 
-from detect_bathymetry_holes import detect_candidates, run
+from detect_bathymetry_holes import detect_candidates, load_geotiff_bathymetry, run
 
 
 class BathymetryStructureZoneTests(unittest.TestCase):
+    def test_geotiff_loader_normalizes_negative_depth_and_masks_land_nodata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "loader-fixture.tif"
+            matrix = np.array([[-10, -20, 5], [-30, -9999, -40]], dtype=np.float32)
+            with rasterio.open(
+                source, "w", driver="GTiff", height=2, width=3, count=1,
+                dtype="float32", crs="EPSG:4326",
+                transform=from_origin(18.0, -33.0, 0.01, 0.01), nodata=-9999,
+            ) as dataset:
+                dataset.write(matrix, 1)
+            depths, crs, transform, shape = load_geotiff_bathymetry(source)
+        self.assertEqual(str(crs), "EPSG:4326")
+        self.assertEqual(shape, (2, 3))
+        self.assertAlmostEqual(float(depths[0, 0]), 10.0)
+        self.assertTrue(np.isnan(depths[0, 2]))
+        self.assertTrue(np.isnan(depths[1, 1]))
+        self.assertEqual(transform.c, 18.0)
+
+    def test_geotiff_loader_accepts_positive_down_depths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "positive-depth.tif"
+            matrix = np.array([[10, 20], [0, -9999]], dtype=np.float32)
+            with rasterio.open(
+                source, "w", driver="GTiff", height=2, width=2, count=1,
+                dtype="float32", crs="EPSG:4326",
+                transform=from_origin(18.0, -33.0, 0.01, 0.01), nodata=-9999,
+            ) as dataset:
+                dataset.write(matrix, 1)
+            depths, _, _, _ = load_geotiff_bathymetry(source, depth_sign="positive")
+        self.assertEqual(float(depths[0, 0]), 10.0)
+        self.assertTrue(np.isnan(depths[1, 0]))
+        self.assertTrue(np.isnan(depths[1, 1]))
+
     def test_detects_relative_depression_and_ignores_nodata(self):
         depth = np.array([
             [12, 12, 13, 14, 13],
