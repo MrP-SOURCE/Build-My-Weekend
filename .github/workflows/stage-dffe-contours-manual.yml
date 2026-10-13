@@ -39,7 +39,7 @@ jobs:
           python-version: "3.12"
 
       - name: Validate staging utility tests
-        run: python -m unittest scripts.bathymetry.test_fetch_dffe_contours -v
+        run: PYTHONPATH=scripts/bathymetry python -m unittest test_fetch_dffe_contours test_audit_staged_contours -v
 
       - name: Fetch bounded official DFFE/OCIMS contour subset
         run: |
