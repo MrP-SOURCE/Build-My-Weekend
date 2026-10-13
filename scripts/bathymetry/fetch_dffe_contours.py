@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _query_page(region: dict[str, float], offset: int, timeout: float) -> dict:
+def _query_page(region: dict[str, float], offset: int, timeout: float, record_count: int = PAGE_SIZE) -> dict:
     params = {
         "f": "geojson",
         "where": "1=1",
@@ -50,7 +50,7 @@ def _query_page(region: dict[str, float], offset: int, timeout: float) -> dict:
         "geometryType": "esriGeometryEnvelope",
         "inSR": "4326",
         "spatialRel": "esriSpatialRelIntersects",
-        "resultRecordCount": str(PAGE_SIZE),
+        "resultRecordCount": str(record_count),
         "resultOffset": str(offset),
         "orderByFields": "OBJECTID ASC",
     }
@@ -115,7 +115,7 @@ def fetch_region(region_name: str, max_records: int = 10000, timeout: float = 30
     features: list[dict] = []
     offset = 0
     while offset < max_records:
-        page = _query_page(region, offset, timeout)
+        page = _query_page(region, offset, timeout, min(PAGE_SIZE, max_records - len(features)))
         page_features = page["features"]
         for feature in page_features:
             if not isinstance(feature, dict) or not _valid_south_african_geometry(feature.get("geometry")):
@@ -129,7 +129,9 @@ def fetch_region(region_name: str, max_records: int = 10000, timeout: float = 30
             if len(features) >= max_records:
                 break
         if len(features) >= max_records:
-            if page.get("exceededTransferLimit") or len(page_features) >= PAGE_SIZE:
+            # Probe one extra record so an exact-size result is not falsely reported as truncated.
+            probe = _query_page(region, max_records, timeout, 1)
+            if probe["features"]:
                 raise RuntimeError(f"Record safety limit reached ({max_records}); raise --max-records deliberately or narrow the region")
             break
         if not page_features:
