@@ -120,3 +120,15 @@ GEBCO_2026 is an official global terrain model published in April 2026. Its stan
 - Record the exact source version, download date, selected bounding box, file checksum, processing steps, and attribution in the repository alongside any derived asset.
 - GEBCO permits free public-domain use subject to attribution and its disclaimer. Do not imply endorsement by GEBCO or its partners. Required citation for this release: GEBCO Bathymetric Compilation Group 2026 (2026), *The GEBCO_2026 Grid*, doi:10.5285/4f68d5c7-45eb-f999-e063-7086abc036fa.
 - Do not mark Shoreline Explorer as integrated or live until a real regional subset is ingested, source/TID provenance is checked, the API serves the derived product, and automated tests verify the output. The existing regional cards remain demonstration references until those gates pass.
+
+## South African official bathymetry contour candidate
+
+- **DFFE / OCIMS ArcGIS REST Bathymetry layer:** https://paca.environment.gov.za/par/rest/services/OC/NDIR_Nat_Env/MapServer/1
+- **Coastal Viewer / OCIMS overview:** https://ocims.environment.gov.za/coastalviewer/
+- **DFFE Data & Resources:** https://ocims.environment.gov.za/DataResources
+
+The published ArcGIS layer identifies itself as a polyline Feature Layer named `Bathymetry`, with a numeric `Depth` field and source/metadata fields including `verdat`, `inform`, `recdat`, `sordat` and `sorind`. Its advertised query formats include GeoJSON. The service extent is regional rather than global. This makes it a candidate source for official contour context, not a replacement for a bathymetry raster or detailed nautical chart.
+
+**Before production use:** query a small False Bay test extent; verify returned contour depth values, datum and source metadata; confirm the service is stable and its reuse/attribution terms; check whether the service's coverage and update history are adequate; then cache a versioned, attributed subset rather than relying on an unbounded browser-side query. Keep the original source fields and distinguish these contours from GEBCO-derived structure zones.
+
+Do not infer that contour lines guarantee safe navigation, exact reef positions, legal fishing access, or current fish activity. This source has not yet been ingested into Shoreline Explorer; its presence here is a researched candidate only.
