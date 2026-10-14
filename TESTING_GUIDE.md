@@ -19,6 +19,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 - [ ] Change fuel consumption and fuel price. Confirm fuel is calculated for the return journey, not multiplied by the number of travellers.
 - [ ] Change “Fuel already in the tank”. Confirm only the estimated amount of fuel still to buy is counted as new spend.
 - [ ] Compare the lowest-spend and farther-away options. Read the estimated cost range and budget caveats.
+- [ ] **Clean start and reset:** open a fresh page and confirm no trip results are prefilled; submit a plan, change fuel price/consumption, then reload and confirm only those fuel assumptions persist; use Reset and confirm defaults return and result cards remain empty until a new submission.
 
 ## Activity-specific checks
 
