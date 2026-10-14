@@ -369,6 +369,12 @@ const { chromium } = require("playwright");
     assert((await page.locator("#results-summary").innerText()).includes("back to defaults"), "Reset did not explain that the planner is ready for new criteria.");
 
     // A slower response from an older submission must not overwrite a newer plan.
+    // Remove route-cache entries so this regression test guarantees a fresh request.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("bmwRoute:v3:")) localStorage.removeItem(key);
+      }
+    });
     delayNextRoute = true;
     delayedRouteStarted = false;
     const olderRouteRequest = page.waitForRequest(request => request.url().includes("/api/route"));
