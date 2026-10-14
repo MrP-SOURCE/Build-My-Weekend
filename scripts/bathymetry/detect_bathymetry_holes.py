@@ -73,7 +73,7 @@ def load_geotiff_bathymetry(
         depth_m = -raw if depth_sign == "negative" else raw
         # GEBCO uses negative elevations for underwater depths and positive values on land.
         # Reject land/non-depth cells and nodata; never silently convert land into depth.
-        depth_m[~np.isfinite(raw) | (depth_m < 0)] = np.nan
+        depth_m[~np.isfinite(raw) | (depth_m <= 0)] = np.nan
         return depth_m, dataset.crs, dataset.transform, dataset.shape
 
 
