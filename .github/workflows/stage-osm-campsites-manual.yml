@@ -1,0 +1,85 @@
+name: BUILD MY WEEKEND — manual OSM campsite snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      area:
+        description: Small predefined area for a review-only campsite snapshot
+        required: true
+        type: choice
+        options:
+          - cape-town
+          - garden-route
+          - durban-north
+          - johannesburg-north
+        default: cape-town
+
+permissions:
+  contents: read
+
+jobs:
+  stage-campsites:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate campsite fetcher tests
+        working-directory: scripts/data-ingestion
+        run: python -m unittest test_fetch_osm_campsites -v
+
+      - name: Fetch bounded OSM campsite snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ inputs.area }}" in
+            cape-town)
+              south=-34.05; west=18.30; north=-33.75; east=18.60 ;;
+            garden-route)
+              south=-34.10; west=22.20; north=-33.80; east=22.50 ;;
+            durban-north)
+              south=-30.10; west=30.80; north=-29.80; east=31.10 ;;
+            johannesburg-north)
+              south=-26.10; west=27.90; north=-25.80; east=28.20 ;;
+            *)
+              echo "Unsupported area profile" >&2
+              exit 2 ;;
+          esac
+          python scripts/data-ingestion/fetch_osm_campsites.py             "staging-output/osm-campsites-${{ inputs.area }}.geojson"             --south "$south" --west "$west" --north "$north" --east "$east"             --timeout 30
+
+      - name: Verify review-only snapshot metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = next(Path("staging-output").glob("osm-campsites-*.geojson"))
+          data = json.loads(path.read_text(encoding="utf-8"))
+          metadata = data.get("metadata", {})
+          assert data.get("type") == "FeatureCollection", "Not a GeoJSON FeatureCollection"
+          assert metadata.get("status") == "REVIEW_REQUIRED_NOT_PUBLISHED", "Missing review-only status"
+          assert "OpenStreetMap contributors" in metadata.get("attribution", ""), "Missing OSM attribution"
+          assert metadata.get("accepted_features") == len(data.get("features", [])), "Feature count mismatch"
+          assert metadata.get("licence", "").startswith("ODbL"), "Missing ODbL licence note"
+          print(f"Review-only snapshot checked: {len(data['features'])} features; not approved for publication.")
+          PY
+
+      - name: Upload temporary review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: osm-campsites-${{ inputs.area }}-${{ github.run_id }}
+          path: staging-output/*.geojson
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: State publication restrictions
+        run: |
+          echo "The artifact is a temporary review snapshot only."
+          echo "It is not committed to the repository or published to the app."
+          echo "Review freshness, record accuracy, legal access, amenities, attribution and ODbL obligations before any reuse."
