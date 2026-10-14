@@ -371,8 +371,9 @@ const { chromium } = require("playwright");
     // A slower response from an older submission must not overwrite a newer plan.
     delayNextRoute = true;
     delayedRouteStarted = false;
+    const olderRouteRequest = page.waitForRequest(request => request.url().includes("/api/route"));
     await page.locator("#trip-form button[type=submit]").click();
-    await page.waitForFunction(() => document.querySelector("#results-summary")?.innerText.includes("Checking real driving routes"));
+    await olderRouteRequest;
     await page.waitForTimeout(100);
     await page.locator("#experience").selectOption({ label: "Fishing Away" });
     await page.locator("#fishing-style").selectOption("Estuary");
