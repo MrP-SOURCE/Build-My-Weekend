@@ -2037,11 +2037,11 @@ async function loadMarineForecast(destination, settings) {
       <p class="weather-caption">Modelled wave and swell forecast for your selected dates. This is not a catch forecast, tide table, coastal warning or safety assessment. Model grid cells may be several kilometres from shore; conditions can change quickly.</p>
       <div class="weather-days">${dates.map(day => `<div class="weather-day">
         <b>${esc(weatherDateLabel(day.date))}</b>
-        <span>Max wave: ${Number.isFinite(Number(day.wave)) ? `${Number(day.wave).toFixed(1)} m` : "n/a"}</span>
-        <span>Max swell: ${Number.isFinite(Number(day.swell)) ? `${Number(day.swell).toFixed(1)} m` : "n/a"}</span>
-        <small>Wave period: ${Number.isFinite(Number(day.period)) ? `${Math.round(Number(day.period))} s` : "n/a"}</small>
-        <small>Swell period: ${Number.isFinite(Number(day.swellPeriod)) ? `${Math.round(Number(day.swellPeriod))} s` : "n/a"}</small>
-        <small>Dominant swell direction: ${Number.isFinite(Number(day.swellDirection)) ? `${Math.round(Number(day.swellDirection))}°` : "n/a"}</small>
+        <span>Max wave: ${day.wave != null && Number.isFinite(Number(day.wave)) ? `${Number(day.wave).toFixed(1)} m` : "n/a"}</span>
+        <span>Max swell: ${day.swell != null && Number.isFinite(Number(day.swell)) ? `${Number(day.swell).toFixed(1)} m` : "n/a"}</span>
+        <small>Wave period: ${day.period != null && Number.isFinite(Number(day.period)) ? `${Math.round(Number(day.period))} s` : "n/a"}</small>
+        <small>Swell period: ${day.swellPeriod != null && Number.isFinite(Number(day.swellPeriod)) ? `${Math.round(Number(day.swellPeriod))} s` : "n/a"}</small>
+        <small>Dominant swell direction: ${day.swellDirection != null && Number.isFinite(Number(day.swellDirection)) ? `${Math.round(Number(day.swellDirection))}°` : "n/a"}</small>
       </div>`).join("")}</div>
       <small>Source: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo Marine API</a> · Retrieved ${esc(retrieved)}. Forecasts are model estimates, not a substitute for official marine warnings or local judgement.</small>`;
   } catch {
