@@ -342,7 +342,6 @@ const { chromium } = require("playwright");
     await page.locator("#camping-shade").selectOption("Shaded");
     await page.locator("#camping-terrain").selectOption("Grass");
     await page.locator("#reset-filters").click();
-    await waitForRouteResults();
     assert.equal(await page.locator("#experience").inputValue(), "Any", "Reset did not restore the default activity filter.");
     assert.equal(await page.locator('input[name="distance"][value="200"]').isChecked(), true, "Reset did not restore the default distance limit.");
     assert.equal(await page.locator("#origin").inputValue(), "Cape Town, South Africa", "Reset did not restore the default starting location.");
@@ -360,7 +359,8 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#camping-terrain").inputValue(), "Any", "Reset did not clear camping terrain preferences.");
     assert.equal(await page.locator("#camping-controls").isVisible(), false, "Reset left camping specialist controls open.");
     assert.equal(await page.locator("#no-results").isVisible(), false, "Reset did not restore the default result state.");
-    assert(await page.locator("#recommendations .trip-card").count() > 0, "Reset returned no destination cards.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0, "Reset should leave results empty until the user submits new criteria.");
+    assert((await page.locator("#results-summary").innerText()).includes("back to defaults"), "Reset did not explain that the planner is ready for new criteria.");
 
     // Simulate a temporary route-service outage. Trip ideas must remain visible,
     // with clear labels that the route, distance filter and origin-based costs are unverified.
