@@ -7,6 +7,8 @@ const { chromium } = require("playwright");
   const pageErrors = [];
   const failedLocalAssets = [];
   let simulateRoutingOutage = false;
+  let delayNextRoute = false;
+  let delayedRouteStarted = false;
 
   page.on("pageerror", error => pageErrors.push(error.message));
   // Keep CI deterministic while exercising the real planner's route-response handling.
@@ -20,6 +22,10 @@ const { chromium } = require("playwright");
     }
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === "/api/route") {
+      if (delayNextRoute && !delayedRouteStarted) {
+        delayedRouteStarted = true;
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
       if (simulateRoutingOutage) {
         return route.fulfill({
           status: 503,
@@ -361,6 +367,28 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#no-results").isVisible(), false, "Reset did not restore the default result state.");
     assert.equal(await page.locator("#recommendations .trip-card").count(), 0, "Reset should leave results empty until the user submits new criteria.");
     assert((await page.locator("#results-summary").innerText()).includes("back to defaults"), "Reset did not explain that the planner is ready for new criteria.");
+
+    // A slower response from an older submission must not overwrite a newer plan.
+    delayNextRoute = true;
+    delayedRouteStarted = false;
+    await page.locator("#trip-form button[type=submit]").click();
+    await page.waitForFunction(() => document.querySelector("#results-summary")?.innerText.includes("Checking real driving routes"));
+    await page.waitForTimeout(100);
+    await page.locator("#experience").selectOption({ label: "Fishing Away" });
+    await page.locator("#fishing-style").selectOption("Estuary");
+    await page.locator("#target-species").selectOption("Galjoen");
+    await page.locator("#spot-preference").selectOption("River Mouth");
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert.equal(await page.locator("#no-results").isVisible(), true,
+      "The newer incompatible fishing plan should show no-results guidance.");
+    await page.waitForTimeout(1700);
+    assert.equal(delayedRouteStarted, true, "The test did not delay an earlier route response.");
+    assert.equal(await page.locator("#no-results").isVisible(), true,
+      "A stale route response overwrote the newer no-results state.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
+      "A stale route response repopulated cards after a newer no-results plan.");
+    delayNextRoute = false;
 
     // Simulate a temporary route-service outage. Trip ideas must remain visible,
     // with clear labels that the route, distance filter and origin-based costs are unverified.
