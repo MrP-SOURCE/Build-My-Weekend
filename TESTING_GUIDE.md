@@ -26,6 +26,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 ## Activity-specific checks
 
 - [ ] **Fishing Away:** select shore/rock/estuary style, target species and preferred area. Confirm fishing controls appear only for Fishing Away. Read the demo-data warning and independently verify permits, tide, wind, swell, access and current conditions.
+- [ ] **Marine forecast:** for a coastal Fishing Away destination, confirm the selected-date panel shows modelled wave height, swell height, period and direction with Open-Meteo attribution. For inland/estuary destinations, confirm it does not substitute an offshore grid forecast for local conditions. Block the marine API and confirm a clear fallback; do not treat the forecast as a catch prediction or safety warning.
 - [ ] **Camping Away:** try tent, caravan, off-grid and glamping settings. Review electricity, ablutions, shade and ground notes. Confirm the app clearly states that the actual campsite or glamping fee may be excluded from the estimate.
 - [ ] **Hiking Away / Climbing Away:** change difficulty, scenery, discipline and experience. Treat the map pin as a general-area preview, not a verified trail or climbing route.
 - [ ] Try Family Away, Couples Away, Beach Away, Wildlife Away, Cycling Away and Road Trip Away. Check that the shortlist and suitability notes change with the selected activity.
@@ -42,6 +43,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 ## Release-readiness gates — before public or commercial launch
 
 - [ ] **Weather API licence:** the current forecast calls use Open-Meteo. Its free API is limited to non-commercial use; an app integrated into a commercial product or promotional activity needs an appropriate paid API plan or a different provider. Do not launch commercially on the free endpoint without resolving this. Review the [Open-Meteo terms](https://open-meteo.com/en/terms).
+- [ ] **Marine forecast licence and attribution:** the marine forecast also calls Open-Meteo. Resolve commercial-use permission before a commercial launch and verify the required attribution for the selected wave model and its underlying data sources; see the [Marine API documentation](https://open-meteo.com/en/docs/marine-weather-api).
 - [ ] **Data attribution:** retain the provider attribution required by the chosen weather data licence. If marine forecasts are added, review the marine API's separate data-source attribution requirements first.
 - [ ] **Real-world validation:** verify route distances and times, accommodation prices and availability, campsite facilities, fishing access and regulations, and nearby health services with authoritative sources before presenting them as verified.
 - [ ] **Fishing forecast boundary:** the current app's weather display is not a marine forecast. Do not describe it as a fishing-day predictor until wave/swell data and the limits of those forecasts have been implemented and tested.

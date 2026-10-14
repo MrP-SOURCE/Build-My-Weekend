@@ -221,6 +221,20 @@ const { chromium } = require("playwright");
       await page.locator("#depart").inputValue(),
       await page.locator("#return").inputValue()
     ])];
+    await page.route("https://marine-api.open-meteo.com/**", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        daily: {
+          time: forecastDates,
+          wave_height_max: forecastDates.map(() => 1.4),
+          swell_wave_height_max: forecastDates.map(() => 0.9),
+          wave_period_max: forecastDates.map(() => 8),
+          swell_wave_period_max: forecastDates.map(() => 10),
+          swell_wave_direction_dominant: forecastDates.map(() => 225)
+        }
+      })
+    }));
     await page.route("https://api.open-meteo.com/**", route => route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -235,7 +249,8 @@ const { chromium } = require("playwright");
         }
       })
     }));
-    await page.locator('#recommendations button[data-action="view"]').first().click();
+    const coastalFishingCard = page.locator("#recommendations .trip-card").filter({ hasText: /Hermanus|Gordon.?s Bay/i }).first();
+    await coastalFishingCard.locator('button[data-action="view"]').click();
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), true, "Destination detail dialog did not open.");
     assert((await page.locator("#dialog-content").innerText()).includes("DEMONSTRATION DATA"), "Destination detail is missing its demonstration-data warning.");
     assert((await page.locator("#dialog-content").innerText()).includes("Additional fuel to buy"), "Destination detail is missing the fuel breakdown.");
@@ -243,6 +258,10 @@ const { chromium } = require("playwright");
     await page.locator("#live-weather .weather-day").first().waitFor({ timeout: 10000 });
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
     assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
+    await page.locator("#marine-forecast .weather-day").first().waitFor({ timeout: 10000 });
+    assert((await page.locator("#marine-forecast").innerText()).includes("Max wave: 1.4 m"), "Marine wave forecast fixture was not rendered.");
+    assert((await page.locator("#marine-forecast").innerText()).includes("Max swell: 0.9 m"), "Marine swell forecast fixture was not rendered.");
+    assert((await page.locator("#marine-forecast").innerText()).includes("Open-Meteo Marine API"), "Marine forecast is missing its source attribution.");
 
     // Verify that fuel already paid for reduces only the remaining cash spend.
     const readAdditionalFuelLine = async () => page.locator("#dialog-content").evaluate(root => {

@@ -1959,6 +1959,14 @@ const weatherCoordinates = {
   "Mossel Bay": [-34.1831, 22.1460], "Wilderness": [-33.9930, 22.5920]
 };
 
+// Use offshore wave-model data only for configured coastal destinations. Inland
+// rivers and estuaries must not inherit an unrelated nearest sea-grid forecast.
+const marineForecastCoastalDestinations = new Set([
+  "Hermanus", "Gordon's Bay", "Betty's Bay", "Kleinmond", "Strand",
+  "Yzerfontein", "Paternoster", "Langebaan", "St Helena Bay", "Kogel Bay",
+  "Witsand", "Arniston", "Struisbaai", "Mossel Bay", "Wilderness"
+]);
+
 function weatherDescription(code) {
   if (code === 0) return "Clear";
   if ([1, 2].includes(code)) return "Mainly clear / partly cloudy";
@@ -1980,9 +1988,13 @@ function weatherDateLabel(value) {
 async function loadMarineForecast(destination, settings) {
   const panel = document.querySelector("#marine-forecast");
   if (!panel || settings.experience !== "Fishing Away") return;
+  if (!marineForecastCoastalDestinations.has(destination.name)) {
+    panel.innerHTML = "<strong>MARINE FORECAST NOT SUITABLE FOR THIS AREA</strong><p>This destination is inland or estuary-focused. An offshore wave-model grid is not a reliable proxy for local river, lagoon or estuary conditions. Check local tide, access and official guidance separately.</p>";
+    return;
+  }
   const coords = weatherCoordinates[destination.name];
   if (!coords) {
-    panel.innerHTML = "<strong>MARINE FORECAST UNAVAILABLE</strong><p>No configured forecast location is available for this destination.</p>";
+    panel.innerHTML = "<strong>MARINE FORECAST UNAVAILABLE</strong><p>No configured coastal forecast location is available for this destination.</p>";
     return;
   }
   const startDate = settings.depart;
