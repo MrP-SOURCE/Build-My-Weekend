@@ -32,7 +32,7 @@ Do not use the pilot to make safety-critical decisions. Confirm access rules, op
 | Destination details | Open a result card | Estimated cost, fuel breakdown, origin basis and demonstration-data warning are visible |
 | Local services | Open hospital, pharmacy and fuel search links | Links search near the selected destination and do not claim that a particular facility is verified |
 | Share / navigation | Use share and navigation actions | Shared text and map hand-off state the Cape Town origin; no other origin is implied |
-| Saved preferences | Submit a plan, reload the page, and inspect the restored form | Planner settings persist and remain internally consistent |
+| Clean start and saved fuel assumptions | Change trip criteria, set custom fuel price/consumption, then reload; separately use Reset | Each new page visit starts with clean trip criteria; user-edited fuel price and consumption persist across reloads; Reset restores all defaults and leaves results empty until the user submits new criteria |
 | Mobile layout | Repeat a basic plan on a narrow screen | Controls, result cards and destination details remain usable without clipped essential information |
 
 ## Record a problem
