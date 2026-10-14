@@ -1854,7 +1854,10 @@ async function addVerifiedRoutes(candidates, settings) {
   return { routed, attempted: ranked.length, failedLookups };
 }
 
+let renderSequence = 0;
+
 async function render() {
+  const requestSequence = ++renderSequence;
   const settings = getSettings();
   if (!valid(settings)) return;
 
@@ -1866,6 +1869,8 @@ async function render() {
   document.querySelector("#result-count").textContent = "CHECKING ROUTES…";
   const preliminary = findCandidates({ ...settings, distance: "any" }, { preRoute: true });
   const routeCheck = await addVerifiedRoutes(preliminary, settings);
+  // Ignore an older route lookup if a newer submission or Reset happened while it was pending.
+  if (requestSequence !== renderSequence) return;
   let candidates = routeCheck.routed;
   const routeFallback = candidates.length === 0 && routeCheck.attempted > 0 &&
     routeCheck.failedLookups === routeCheck.attempted && preliminary.length > 0;
@@ -2381,6 +2386,8 @@ dialog.addEventListener("click", event => {
 });
 
 function resetPlannerToDefaults() {
+  // Invalidate pending route requests so they cannot repopulate results after Reset.
+  renderSequence += 1;
   // A full reset returns every field, including fuel assumptions, to the
   // documented defaults so the user can start from a genuinely clean planner.
   try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
