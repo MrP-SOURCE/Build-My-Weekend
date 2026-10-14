@@ -12,9 +12,22 @@ This utility converts a **locally downloaded** CSV or GeoJSON snapshot into a no
 
 A public download is not automatically cleared for commercial use. OpenStreetMap-derived data can carry attribution and share-alike obligations; verify the specific source and export conditions rather than assuming the source is unrestricted.
 
-## Run locally
+## Optional: fetch a small OSM campsite snapshot
 
-From the repository root, after downloading a supported CSV or GeoJSON file to your own machine:
+The fetcher is an explicit, user-run network request. It requires a small bounding box inside South Africa and rejects boxes wider than 1 degree per side or larger than 0.5 square degrees. Do not use it for national-scale harvesting or rapid repeated polling; Overpass is a shared community service and may throttle or reject requests.
+
+Example for a small Cape Town-area rectangle (adjust bounds to the area you actually need):
+
+```bash
+python scripts/data-ingestion/fetch_osm_campsites.py data/staging/osm-campsites.geojson \
+  --south -34.05 --west 18.30 --north -33.75 --east 18.60
+```
+
+This writes a dated, review-only GeoJSON snapshot with OSM element IDs, source links, attribution, licence notes, snapshot time, and a warning that mapped points are not proof of operation, access, safety, or amenities. Ways and relations use their Overpass centre as an approximate point, not a verified entrance. No request runs automatically in CI and nothing is published to the website. Before redistribution, review OpenStreetMap's attribution and ODbL obligations and the current Overpass usage policy.
+
+## Normalize a downloaded CSV or GeoJSON
+
+From the repository root, after downloading or fetching a supported CSV or GeoJSON file to your own machine:
 
 ```bash
 python scripts/data-ingestion/import_osm_campsites.py INPUT_FILE OUTPUT_FILE \
