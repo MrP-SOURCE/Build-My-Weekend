@@ -25,6 +25,12 @@ python scripts/data-ingestion/fetch_osm_campsites.py data/staging/osm-campsites.
 
 This writes a dated, review-only GeoJSON snapshot with OSM element IDs, source links, attribution, licence notes, snapshot time, and a warning that mapped points are not proof of operation, access, safety, or amenities. Ways and relations use their Overpass centre as an approximate point, not a verified entrance. No request runs automatically in CI and nothing is published to the website. Before redistribution, review OpenStreetMap's attribution and ODbL obligations and the current Overpass usage policy.
 
+## Optional: stage a snapshot through GitHub Actions
+
+A manual workflow is available at **Actions → BUILD MY WEEKEND — manual OSM campsite snapshot → Run workflow**. Choose one predefined small area (Cape Town, Garden Route, Durban North, or Johannesburg North). The workflow runs the fetcher tests, makes one bounded Overpass request, checks basic metadata, and uploads a temporary GeoJSON artifact for seven days.
+
+The artifact is for inspection only. Download it from the completed workflow run's **Artifacts** section. It is not committed to the repository and is not deployed to the app. An empty result is possible, and a successful fetch does not verify whether individual places are current, legal to access, safe, open, or accurately tagged. Do not repeatedly rerun the workflow to harvest data; respect Overpass capacity. Review the source and ODbL obligations before any reuse.
+
 ## Normalize a downloaded CSV or GeoJSON
 
 From the repository root, after downloading or fetching a supported CSV or GeoJSON file to your own machine:
