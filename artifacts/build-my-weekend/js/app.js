@@ -1977,6 +1977,67 @@ function weatherDateLabel(value) {
   });
 }
 
+async function loadMarineForecast(destination, settings) {
+  const panel = document.querySelector("#marine-forecast");
+  if (!panel || settings.experience !== "Fishing Away") return;
+  const coords = weatherCoordinates[destination.name];
+  if (!coords) {
+    panel.innerHTML = "<strong>MARINE FORECAST UNAVAILABLE</strong><p>No configured forecast location is available for this destination.</p>";
+    return;
+  }
+  const startDate = settings.depart;
+  const endDate = settings.returnDate || settings.depart;
+  panel.innerHTML = "<strong>MARINE CONDITIONS · FORECAST</strong><p>Loading wave and swell estimates…</p>";
+  const isCurrentPanel = () => {
+    const current = document.querySelector("#marine-forecast");
+    return current && current.dataset.destination === destination.id;
+  };
+  try {
+    const params = new URLSearchParams({
+      latitude: String(coords[0]),
+      longitude: String(coords[1]),
+      daily: "wave_height_max,swell_wave_height_max,wave_period_max,swell_wave_period_max,swell_wave_direction_dominant",
+      timezone: "auto",
+      forecast_days: "8",
+      cell_selection: "sea"
+    });
+    const response = await fetch("https://marine-api.open-meteo.com/v1/marine?" + params.toString(), {
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) throw new Error("Marine forecast service unavailable");
+    const data = await response.json();
+    if (!data.daily || !Array.isArray(data.daily.time)) throw new Error("Marine forecast data missing");
+    const dates = data.daily.time.map((date, index) => ({
+      date,
+      wave: data.daily.wave_height_max?.[index],
+      swell: data.daily.swell_wave_height_max?.[index],
+      period: data.daily.wave_period_max?.[index],
+      swellPeriod: data.daily.swell_wave_period_max?.[index],
+      swellDirection: data.daily.swell_wave_direction_dominant?.[index]
+    })).filter(day => day.date >= startDate && day.date <= endDate);
+    if (!isCurrentPanel()) return;
+    const retrieved = new Date().toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
+    if (!dates.length) {
+      panel.innerHTML = `<strong>MARINE FORECAST · DATE NOT COVERED</strong><p>The marine provider returns a limited forecast window (up to 8 days). Your selected dates (${esc(startDate)} to ${esc(endDate)}) are outside the available window or not covered.</p><small>Source: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo Marine API</a></small>`;
+      return;
+    }
+    panel.innerHTML = `<strong>MARINE CONDITIONS · ${esc(destination.name.toUpperCase())}</strong>
+      <p class="weather-caption">Modelled wave and swell forecast for your selected dates. This is not a catch forecast, tide table, coastal warning or safety assessment. Model grid cells may be several kilometres from shore; conditions can change quickly.</p>
+      <div class="weather-days">${dates.map(day => `<div class="weather-day">
+        <b>${esc(weatherDateLabel(day.date))}</b>
+        <span>Max wave: ${Number.isFinite(Number(day.wave)) ? `${Number(day.wave).toFixed(1)} m` : "n/a"}</span>
+        <span>Max swell: ${Number.isFinite(Number(day.swell)) ? `${Number(day.swell).toFixed(1)} m` : "n/a"}</span>
+        <small>Wave period: ${Number.isFinite(Number(day.period)) ? `${Math.round(Number(day.period))} s` : "n/a"}</small>
+        <small>Swell period: ${Number.isFinite(Number(day.swellPeriod)) ? `${Math.round(Number(day.swellPeriod))} s` : "n/a"}</small>
+        <small>Dominant swell direction: ${Number.isFinite(Number(day.swellDirection)) ? `${Math.round(Number(day.swellDirection))}°` : "n/a"}</small>
+      </div>`).join("")}</div>
+      <small>Source: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo Marine API</a> · Retrieved ${esc(retrieved)}. Forecasts are model estimates, not a substitute for official marine warnings or local judgement.</small>`;
+  } catch {
+    if (!isCurrentPanel()) return;
+    panel.innerHTML = `<strong>MARINE FORECAST TEMPORARILY UNAVAILABLE</strong><p>Wave and swell data could not be retrieved. Check an official marine forecast and local conditions before fishing. No fishing-day recommendation is inferred.</p><small>Source attempted: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo Marine API</a></small>`;
+  }
+}
+
 async function loadDestinationWeather(destination, settings) {
   const panel = document.querySelector("#live-weather");
   if (!panel) return;
@@ -2195,6 +2256,7 @@ function detail(destination, settings) {
       const m = window.BMWFishing.bestSpot(destination.id, settings).spot;
       return `<section class="fishing-detail">
         <h3>FISHING AWAY · SPECIALIST MATCH</h3>
+        <div id="marine-forecast" data-destination="${esc(destination.id)}" class="live-weather marine-forecast" aria-live="polite"><strong>MARINE CONDITIONS · FORECAST</strong><p>Loading wave and swell estimates…</p></div>
         <strong>Best matching area: ${esc(m.name)}</strong>
         <div>${esc(m.area)} · ${esc(m.spotType)} · ${esc(m.styles.join(", "))}</div>
         <div>Target species: ${esc(m.species.join(", "))}</div>
@@ -2250,6 +2312,7 @@ function detail(destination, settings) {
     <p class="field-hint">NAVIGATE opens a Google Maps driving route from your entered starting point. Confirm traffic, access and conditions before travelling; this is not live safety guidance.</p>`;
   dialog.showModal();
   loadDestinationWeather(destination, settings);
+  if (settings.experience === "Fishing Away") loadMarineForecast(destination, settings);
 }
 
 function shareText(destination, settings) {
