@@ -1,6 +1,9 @@
 import json
 import unittest
 from unittest.mock import patch
+from urllib.error import URLError
+
+from fetch_osm_campsites import fetch_snapshot
 
 from fetch_osm_campsites import (
     overpass_query,
@@ -47,6 +50,38 @@ class OSMCampsiteFetcherTests(unittest.TestCase):
         self.assertEqual(result["features"][0]["properties"]["toilets"], "yes")
         self.assertIn("ODbL", result["metadata"]["licence"])
         self.assertIn("centre", result["features"][1]["properties"]["location_precision"])
+
+    def test_fetch_snapshot_posts_bounded_query_and_returns_review_file_data(self):
+        response = {"elements": [
+            {"type": "node", "id": 7, "lat": -33.9, "lon": 18.4,
+             "tags": {"tourism": "camp_site", "name": "Fixture Camp"}}
+        ]}
+        endpoint = "https://overpass.example.test/api/interpreter"
+        with patch("fetch_osm_campsites.urlopen") as mocked:
+            mocked.return_value.__enter__.return_value.read.return_value = json.dumps(response).encode()
+            result = fetch_snapshot(
+                -34.0, 18.0, -33.8, 18.3, endpoint=endpoint, timeout_s=10
+            )
+        request = mocked.call_args.args[0]
+        self.assertEqual(request.full_url, endpoint)
+        self.assertIn("node", request.data.decode())
+        self.assertIn("camp_site", request.data.decode())
+        self.assertEqual(mocked.call_args.kwargs["timeout"], 10)
+        self.assertEqual(result["metadata"]["status"], "REVIEW_REQUIRED_NOT_PUBLISHED")
+        self.assertEqual(result["metadata"]["accepted_features"], 1)
+
+    def test_fetch_snapshot_rejects_invalid_timeout_without_network_call(self):
+        with patch("fetch_osm_campsites.urlopen") as mocked:
+            with self.assertRaisesRegex(ValueError, "between 5 and 60"):
+                fetch_snapshot(
+                    -34.0, 18.0, -33.8, 18.3, timeout_s=120
+                )
+        mocked.assert_not_called()
+
+    def test_fetch_snapshot_surfaces_overpass_network_errors(self):
+        with patch("fetch_osm_campsites.urlopen", side_effect=URLError("offline")):
+            with self.assertRaisesRegex(ValueError, "Could not reach Overpass"):
+                fetch_snapshot(-34.0, 18.0, -33.8, 18.3)
 
     def test_rejects_missing_elements_list(self):
         with self.assertRaisesRegex(ValueError, "elements list"):
