@@ -404,6 +404,8 @@ const { chromium } = require("playwright");
         if (key.startsWith("bmwRoute:v3:")) localStorage.removeItem(key);
       }
     });
+    // Use a compatible general search so the outage path actually attempts routes.
+    await page.locator("#experience").selectOption({ label: "Any" });
     simulateRoutingOutage = true;
     await page.locator("#trip-form button[type=submit]").click();
     await waitForRouteResults();
