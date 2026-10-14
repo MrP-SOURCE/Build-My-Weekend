@@ -323,6 +323,17 @@ const { chromium } = require("playwright");
     await page.locator("#trip-dialog .dialog-close").click();
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false, "Destination detail dialog did not close after weather failure.");
 
+    // The marine forecast must fail safely as well, without blocking the detail dialog.
+    await page.unroute("https://marine-api.open-meteo.com/**");
+    await page.route("https://marine-api.open-meteo.com/**", route => route.abort());
+    await page.locator("#recommendations .trip-card").filter({ hasText: /Hermanus|Gordon.?s Bay/i }).first().locator('button[data-action="view"]').click();
+    await page.locator("#marine-forecast").getByText("MARINE FORECAST TEMPORARILY UNAVAILABLE").waitFor({ timeout: 10000 });
+    assert((await page.locator("#marine-forecast").innerText()).includes("Check an official marine forecast"),
+      "Marine forecast failure did not show safe fallback guidance.");
+    assert((await page.locator("#marine-forecast").innerText()).includes("No fishing-day recommendation is inferred"),
+      "Marine forecast failure implied a fishing-day recommendation.");
+    await page.locator("#trip-dialog .dialog-close").click();
+
     await page.locator("#experience").selectOption({ label: "Camping Away" });
     assert.equal(await page.locator("#camping-controls").isVisible(), true, "Camping preferences did not appear.");
     assert.equal(await page.locator("#fishing-controls").isVisible(), false, "Fishing controls remained visible after switching activity.");
