@@ -2408,7 +2408,8 @@ function resetPlannerToDefaults() {
   document.querySelector("#result-count").textContent = "READY TO PLAN";
   document.querySelector("#results-summary").textContent =
     "All trip criteria and cost assumptions are back to defaults. Choose your preferences and build a new weekend.";
-  render();
+  // Keep the reset state genuinely empty. Calling render() here would immediately
+  // launch route requests and repopulate results before the user chooses new criteria.
 }
 document.querySelector("#reset-filters").addEventListener("click", resetPlannerToDefaults);
 
