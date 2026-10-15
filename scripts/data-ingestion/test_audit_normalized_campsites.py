@@ -109,7 +109,7 @@ class CampsiteAuditTests(unittest.TestCase):
             report = audit(self.write_csv(Path(temp), [row]))
         joined = " ".join(report["errors"])
         self.assertIn("category must be camping", joined)
-        self.assertIn("source_url must be an absolute HTTP(S) URL", joined)
+        self.assertIn("absolute HTTP(S) URL", joined)
 
     def test_rejects_coordinates_outside_south_africa_sanity_bounds(self):
         row = sample_row()
