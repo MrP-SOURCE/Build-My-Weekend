@@ -77,6 +77,13 @@ class CampsiteAuditTests(unittest.TestCase):
             report = audit(self.write_csv(Path(temp), [row]))
         self.assertIn("without embedded credentials", " ".join(report["errors"]))
 
+    def test_rejects_malformed_url_without_crashing_audit(self):
+        row = sample_row()
+        row["source_url"] = "https://[malformed.example/dataset"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        self.assertIn("valid absolute HTTP(S) URL", " ".join(report["errors"]))
+
     def test_detects_missing_provenance_and_malformed_tags(self):
         row = sample_row()
         row["source_url"] = ""

@@ -90,14 +90,19 @@ def audit(path: Path) -> dict[str, object]:
         if (row.get("category") or "").strip() != "camping":
             row_errors.append("category must be camping")
         source_url = (row.get("source_url") or "").strip()
-        parsed_url = urlparse(source_url)
-        if source_url and (
-            parsed_url.scheme not in {"http", "https"}
-            or not parsed_url.hostname
-            or parsed_url.username is not None
-            or parsed_url.password is not None
-        ):
-            row_errors.append("source_url must be an absolute HTTP(S) URL without embedded credentials")
+        try:
+            parsed_url = urlparse(source_url) if source_url else None
+            invalid_source_url = bool(source_url) and (
+                parsed_url is None
+                or parsed_url.scheme not in {"http", "https"}
+                or not parsed_url.hostname
+                or parsed_url.username is not None
+                or parsed_url.password is not None
+            )
+        except ValueError:
+            invalid_source_url = True
+        if invalid_source_url:
+            row_errors.append("source_url must be a valid absolute HTTP(S) URL without embedded credentials")
 
         try:
             latitude = float(row.get("latitude", ""))
