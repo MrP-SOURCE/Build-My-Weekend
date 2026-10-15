@@ -116,6 +116,28 @@ class OSMCampsiteImportTests(unittest.TestCase):
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["name"], "CSV Camp")
 
+    def test_failed_import_preserves_existing_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "invalid.geojson"
+            output = root / "normalized.csv"
+            source.write_text("[]", encoding="utf-8")
+            output.write_text("previous-valid-output\\n", encoding="utf-8")
+            script = Path(__file__).with_name("import_osm_campsites.py")
+            result = subprocess.run(
+                [
+                    sys.executable, str(script), str(source), str(output),
+                    "--source-id", self.meta["source_id"],
+                    "--source-url", self.meta["source_url"],
+                    "--licence-id", self.meta["licence_id"],
+                    "--attribution", self.meta["attribution_text"],
+                ],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(output.read_text(encoding="utf-8"), "previous-valid-output\\n")
+            self.assertEqual(list(root.glob(".normalized.csv.*.tmp")), [])
+
     def test_cli_deduplicates_repeated_source_ids(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

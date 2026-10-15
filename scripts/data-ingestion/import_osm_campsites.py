@@ -10,7 +10,9 @@ import argparse
 import csv
 import json
 import math
+import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 from urllib.parse import urlparse
@@ -189,6 +191,7 @@ def main() -> int:
     if args.input.resolve() == args.output.resolve():
         parser.error("Input and output paths must be different.")
 
+    temporary_output: Path | None = None
     try:
         validate_source_metadata(
             source_id=args.source_id, source_url=args.source_url,
@@ -199,7 +202,13 @@ def main() -> int:
         duplicates = 0
         seen_ids: set[str] = set()
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("w", encoding="utf-8", newline="") as handle:
+        # Write beside the destination, then atomically replace it only after a complete import.
+        # Invalid input or an interrupted write must not destroy a previously usable dataset.
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", newline="", dir=args.output.parent,
+            prefix=f".{args.output.name}.", suffix=".tmp", delete=False,
+        ) as handle:
+            temporary_output = Path(handle.name)
             writer = csv.DictWriter(handle, fieldnames=OUTPUT_FIELDS)
             writer.writeheader()
             for record in read_records(args.input):
@@ -218,6 +227,8 @@ def main() -> int:
                 seen_ids.add(normalized["id"])
                 writer.writerow(normalized)
                 accepted += 1
+        os.replace(temporary_output, args.output)
+        temporary_output = None
         print(
             f"Import complete: {accepted} unique campsite records accepted; "
             f"{rejected} records skipped; {duplicates} duplicate IDs skipped."
@@ -225,6 +236,11 @@ def main() -> int:
         print("Output is not live availability or proof of legal access, safety, amenities, or fishing permission.")
         return 0
     except (OSError, ValueError, json.JSONDecodeError) as exc:
+        if temporary_output is not None:
+            try:
+                temporary_output.unlink(missing_ok=True)
+            except OSError:
+                pass
         print(f"Import failed: {exc}", file=sys.stderr)
         return 2
 
