@@ -1,6 +1,14 @@
 # BUILD MY WEEKEND — Public Data Source Catalog
 
-Status: candidate sources only. A URL in this file does **not** mean the app currently integrates the source or that its data is suitable for commercial use.
+Status: mixed inventory. Sections explicitly marked **integrated** describe current application calls; the remaining entries are research candidates only. A source URL does **not** establish commercial reuse permission, data quality, complete geographic coverage, or live availability.
+
+## Current external data calls — integrated
+
+- **TomTom Routing API via the routing Worker** — used to check actual driving route distance/time for up to eight shortlisted destinations when the service is available. This does not make the destination catalogue nationwide or turn demo prices/activity matches into verified facts. Worker configuration, quotas, billing and production terms must be checked for the intended launch.
+- **Open-Meteo Forecast API** — used for general weather at configured destination coordinates and supported forecast dates. It may be unavailable or outside the forecast window. The free API is for non-commercial use; resolve a suitable commercial plan/provider before monetized launch: https://open-meteo.com/en/terms.
+- **Open-Meteo Marine API** — used by Fishing Away for modelled daily wave/swell height, period and swell direction at configured coastal locations. It is not used as a catch prediction, official warning, tide table, or a substitute for local river/estuary conditions. The marine model grid can be several kilometres from the requested location and coastal accuracy is limited. Commercial-use access and attribution requirements must be confirmed before monetized launch: https://open-meteo.com/en/docs/marine-weather-api.
+
+**Still demonstration-only in the current pilot:** destination catalogue coverage, accommodation availability/prices, activity suitability, and most destination/cost estimates. Search links are hand-offs, not booking inventory. Do not describe the app as having live accommodation, live campsite inventory, nationwide destination coverage, or verified fishing access.
 
 ## Mapping, geocoding and place queries
 
