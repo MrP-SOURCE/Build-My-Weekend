@@ -263,6 +263,30 @@ const { chromium } = require("playwright");
     assert((await page.locator("#marine-forecast").innerText()).includes("Max swell: 0.9 m"), "Marine swell forecast fixture was not rendered.");
     assert((await page.locator("#marine-forecast").innerText()).includes("Open-Meteo Marine API"), "Marine forecast is missing its source attribution.");
 
+    // Null measurements must stay unknown, not be coerced to zero.
+    await page.locator("#trip-dialog .dialog-close").click();
+    await page.unroute("https://marine-api.open-meteo.com/**");
+    await page.route("https://marine-api.open-meteo.com/**", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        daily: {
+          time: forecastDates,
+          wave_height_max: forecastDates.map(() => null),
+          swell_wave_height_max: forecastDates.map(() => null),
+          wave_period_max: forecastDates.map(() => null),
+          swell_wave_period_max: forecastDates.map(() => null),
+          swell_wave_direction_dominant: forecastDates.map(() => null)
+        }
+      })
+    }));
+    await coastalFishingCard.locator('button[data-action="view"]').click();
+    await page.locator("#marine-forecast .weather-day").first().waitFor({ timeout: 10000 });
+    const missingMarineText = await page.locator("#marine-forecast").innerText();
+    assert(missingMarineText.includes("Max wave: n/a"), "Missing wave measurements were not rendered as n/a.");
+    assert(missingMarineText.includes("Max swell: n/a"), "Missing swell measurements were not rendered as n/a.");
+    assert(!missingMarineText.includes("0.0 m"), "Missing marine measurements were incorrectly rendered as zero.");
+
     // Verify that fuel already paid for reduces only the remaining cash spend.
     const readAdditionalFuelLine = async () => page.locator("#dialog-content").evaluate(root => {
       const label = [...root.querySelectorAll("*")].find(element =>
