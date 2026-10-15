@@ -122,8 +122,13 @@ def validate_source_metadata(*, source_id: str, source_url: str, licence_id: str
     if missing:
         raise ValueError("Required provenance field(s) are blank: " + ", ".join(missing) + ".")
     parsed = urlparse(_text(source_url))
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        raise ValueError("Source URL must be an absolute HTTP(S) URL.")
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise ValueError("Source URL must be an absolute HTTP(S) URL without embedded credentials.")
 
 
 def normalize(
