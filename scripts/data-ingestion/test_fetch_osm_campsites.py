@@ -70,6 +70,20 @@ class OSMCampsiteFetcherTests(unittest.TestCase):
         self.assertEqual(result["metadata"]["status"], "REVIEW_REQUIRED_NOT_PUBLISHED")
         self.assertEqual(result["metadata"]["accepted_features"], 1)
 
+    def test_fetch_snapshot_rejects_insecure_or_credentialed_endpoint(self):
+        for endpoint in (
+            "http://overpass.example.test/api/interpreter",
+            "https://user:password@overpass.example.test/api/interpreter",
+            "not-a-url",
+        ):
+            with self.subTest(endpoint=endpoint):
+                with patch("fetch_osm_campsites.urlopen") as mocked:
+                    with self.assertRaisesRegex(ValueError, "HTTPS URL"):
+                        fetch_snapshot(
+                            -34.0, 18.0, -33.8, 18.3, endpoint=endpoint
+                        )
+                mocked.assert_not_called()
+
     def test_fetch_snapshot_rejects_invalid_timeout_without_network_call(self):
         with patch("fetch_osm_campsites.urlopen") as mocked:
             with self.assertRaisesRegex(ValueError, "between 5 and 60"):
