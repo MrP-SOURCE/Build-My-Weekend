@@ -79,6 +79,26 @@ class CampsiteAuditTests(unittest.TestCase):
             report = audit(path)
         self.assertTrue(any("Missing required column" in error for error in report["errors"]))
 
+    def test_rejects_non_camping_category_and_non_http_source_url(self):
+        row = sample_row()
+        row["category"] = "beach"
+        row["source_url"] = "javascript:alert(1)"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        joined = " ".join(report["errors"])
+        self.assertIn("category must be camping", joined)
+        self.assertIn("source_url must be an absolute HTTP(S) URL", joined)
+
+    def test_rejects_coordinates_outside_south_africa_sanity_bounds(self):
+        row = sample_row()
+        row["latitude"] = "40.7128"
+        row["longitude"] = "-74.0060"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        joined = " ".join(report["errors"])
+        self.assertIn("latitude outside South Africa sanity bounds", joined)
+        self.assertIn("longitude outside South Africa sanity bounds", joined)
+
     def test_missing_file_is_an_error(self):
         with tempfile.TemporaryDirectory() as temp:
             report = audit(Path(temp) / "missing.csv")
