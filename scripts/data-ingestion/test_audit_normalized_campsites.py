@@ -141,6 +141,16 @@ class CampsiteAuditTests(unittest.TestCase):
         self.assertIn("source_updated_at is not a recognized ISO date/timestamp", joined)
         self.assertIn("imported_at is not a recognized ISO date/timestamp", joined)
 
+    def test_warns_when_source_or_import_timestamps_are_in_the_future(self):
+        row = sample_row()
+        row["source_updated_at"] = "2099-01-01"
+        row["imported_at"] = "2099-01-02T12:00:00Z"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        joined = " ".join(report["warnings"])
+        self.assertIn("source_updated_at is in the future", joined)
+        self.assertIn("imported_at is in the future", joined)
+
     def test_missing_file_is_an_error(self):
         with tempfile.TemporaryDirectory() as temp:
             report = audit(Path(temp) / "missing.csv")
