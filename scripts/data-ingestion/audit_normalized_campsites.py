@@ -12,6 +12,9 @@ import json
 import math
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
+
+SA_BOUNDS = {"min_lat": -35.2, "max_lat": -22.0, "min_lon": 16.0, "max_lon": 33.5}
 
 REQUIRED_FIELDS = {
     "id", "name", "category", "latitude", "longitude", "tags_json",
@@ -55,6 +58,13 @@ def audit(path: Path) -> dict[str, object]:
             if not (row.get(field) or "").strip():
                 row_errors.append(f"blank {field}")
 
+        if (row.get("category") or "").strip() != "camping":
+            row_errors.append("category must be camping")
+        source_url = (row.get("source_url") or "").strip()
+        parsed_url = urlparse(source_url)
+        if source_url and (parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc):
+            row_errors.append("source_url must be an absolute HTTP(S) URL")
+
         try:
             latitude = float(row.get("latitude", ""))
             longitude = float(row.get("longitude", ""))
@@ -62,6 +72,10 @@ def audit(path: Path) -> dict[str, object]:
                 row_errors.append("invalid latitude")
             if not (math.isfinite(longitude) and -180 <= longitude <= 180):
                 row_errors.append("invalid longitude")
+            if math.isfinite(latitude) and not (SA_BOUNDS["min_lat"] <= latitude <= SA_BOUNDS["max_lat"]):
+                row_errors.append("latitude outside South Africa sanity bounds")
+            if math.isfinite(longitude) and not (SA_BOUNDS["min_lon"] <= longitude <= SA_BOUNDS["max_lon"]):
+                row_errors.append("longitude outside South Africa sanity bounds")
         except (TypeError, ValueError):
             row_errors.append("non-numeric coordinates")
 
