@@ -6,7 +6,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 
 - This is a test MVP. Destination prices, drive distances/times, activity matches and itineraries are demonstration estimates, not quotes or verified routes.
 - Accommodation links open external search pages. They do not confirm live availability or final prices.
-- Weather is requested from Open-Meteo for configured destination coordinates and supported forecast dates. It is not a marine forecast or a travel-safety warning.
+- General weather is requested from Open-Meteo for configured destination coordinates and supported forecast dates. Fishing Away has a separate modelled marine wave/swell panel for configured coastal destinations only. Neither forecast is a catch prediction, official warning or travel-safety assessment; offshore grid data is not substituted for inland rivers or estuaries.
 - Do not use the app as an emergency, medical, access-permission or outdoor-safety service. Verify details with the relevant provider or official authority.
 
 ## Core planner checks
@@ -27,6 +27,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 
 - [ ] **Fishing Away:** select shore/rock/estuary style, target species and preferred area. Confirm fishing controls appear only for Fishing Away. Read the demo-data warning and independently verify permits, tide, wind, swell, access and current conditions.
 - [ ] **Marine forecast:** for a coastal Fishing Away destination, confirm the selected-date panel shows modelled wave height, swell height, period and direction with Open-Meteo attribution. For inland/estuary destinations, confirm it does not substitute an offshore grid forecast for local conditions. Block the marine API and confirm a clear fallback; do not treat the forecast as a catch prediction or safety warning.
+- [ ] **Marine missing-data handling:** simulate a successful API response with one or more null wave/swell measurements. Confirm the UI shows `n/a` for missing measurements rather than displaying `0.0 m` or `0 s`.
 - [ ] **Camping Away:** try tent, caravan, off-grid and glamping settings. Review electricity, ablutions, shade and ground notes. Confirm the app clearly states that the actual campsite or glamping fee may be excluded from the estimate.
 - [ ] **Hiking Away / Climbing Away:** change difficulty, scenery, discipline and experience. Treat the map pin as a general-area preview, not a verified trail or climbing route.
 - [ ] Try Family Away, Couples Away, Beach Away, Wildlife Away, Cycling Away and Road Trip Away. Check that the shortlist and suitability notes change with the selected activity.
