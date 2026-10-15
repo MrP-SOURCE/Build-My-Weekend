@@ -99,6 +99,26 @@ class CampsiteAuditTests(unittest.TestCase):
         self.assertIn("latitude outside South Africa sanity bounds", joined)
         self.assertIn("longitude outside South Africa sanity bounds", joined)
 
+    def test_warns_when_source_dates_are_missing_or_stale(self):
+        row = sample_row()
+        row["source_updated_at"] = "2024-01-01"
+        row["imported_at"] = ""
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        joined = " ".join(report["warnings"])
+        self.assertIn("source_updated_at is over 365 days old", joined)
+        self.assertIn("imported_at is blank", joined)
+
+    def test_warns_on_unparseable_source_timestamps(self):
+        row = sample_row()
+        row["source_updated_at"] = "sometime recently"
+        row["imported_at"] = "not-a-date"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        joined = " ".join(report["warnings"])
+        self.assertIn("source_updated_at is not a recognized ISO date/timestamp", joined)
+        self.assertIn("imported_at is not a recognized ISO date/timestamp", joined)
+
     def test_missing_file_is_an_error(self):
         with tempfile.TemporaryDirectory() as temp:
             report = audit(Path(temp) / "missing.csv")
