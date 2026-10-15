@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from urllib.parse import urlparse
 
 DEFAULT_ENDPOINT = "https://overpass-api.de/api/interpreter"
 MAX_SPAN_DEGREES = 1.0
@@ -112,6 +113,9 @@ def overpass_to_geojson(payload: dict, *, snapshot_at: str, endpoint: str) -> di
 
 def fetch_snapshot(south: float, west: float, north: float, east: float, *,
                    endpoint: str = DEFAULT_ENDPOINT, timeout_s: int = 30) -> dict:
+    parsed_endpoint = urlparse(endpoint)
+    if parsed_endpoint.scheme != "https" or not parsed_endpoint.hostname or parsed_endpoint.username or parsed_endpoint.password:
+        raise ValueError("Overpass endpoint must be an HTTPS URL without embedded credentials.")
     if not 5 <= timeout_s <= 60:
         raise ValueError("Network timeout must be between 5 and 60 seconds.")
     query = overpass_query(south, west, north, east, min(timeout_s, 25))
