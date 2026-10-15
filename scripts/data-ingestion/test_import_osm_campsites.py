@@ -39,6 +39,15 @@ class OSMCampsiteImportTests(unittest.TestCase):
                 licence_id="reviewed", attribution_text="Attribution",
             )
 
+    def test_rejects_source_url_with_embedded_credentials(self):
+        with self.assertRaisesRegex(ValueError, "without embedded credentials"):
+            validate_source_metadata(
+                source_id="source",
+                source_url="https://user:secret@example.org/dataset",
+                licence_id="reviewed",
+                attribution_text="Attribution",
+            )
+
     def test_accepts_complete_source_provenance(self):
         validate_source_metadata(
             source_id=self.meta["source_id"], source_url=self.meta["source_url"],
