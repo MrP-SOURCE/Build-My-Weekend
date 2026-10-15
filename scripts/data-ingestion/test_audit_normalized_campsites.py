@@ -63,8 +63,8 @@ class CampsiteAuditTests(unittest.TestCase):
         self.assertIn("invalid latitude", joined)
 
     def test_detects_duplicate_source_identity_even_when_ids_differ(self):
-        first = sample_row("normalized:1")
-        second = sample_row("normalized:2")
+        first = sample_row("osm:node/1")
+        second = sample_row("osm:node/2")
         second["source_record_id"] = first["source_record_id"]
         with tempfile.TemporaryDirectory() as temp:
             report = audit(self.write_csv(Path(temp), [first, second]))
