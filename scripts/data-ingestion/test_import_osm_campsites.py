@@ -82,6 +82,13 @@ class OSMCampsiteImportTests(unittest.TestCase):
         record = {"tourism": "camp_site", "lat": "-33.9", "lon": "18.4"}
         self.assertIsNone(normalize(record, **self.meta))
 
+    def test_rejects_geojson_with_non_object_root(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "invalid-root.geojson"
+            path.write_text("[]", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "FeatureCollection object"):
+                list(read_records(path))
+
     def test_reads_geojson_point_features(self):
         feature_collection = {
             "type": "FeatureCollection",

@@ -86,8 +86,8 @@ def _read_csv(path: Path) -> Iterator[dict[str, Any]]:
 def _read_geojson(path: Path) -> Iterator[dict[str, Any]]:
     with path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
-    if data.get("type") != "FeatureCollection" or not isinstance(data.get("features"), list):
-        raise ValueError("GeoJSON input must be a FeatureCollection.")
+    if not isinstance(data, dict) or data.get("type") != "FeatureCollection" or not isinstance(data.get("features"), list):
+        raise ValueError("GeoJSON input must be a FeatureCollection object with a features list.")
     for feature in data["features"]:
         if not isinstance(feature, dict):
             continue
