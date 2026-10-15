@@ -62,6 +62,7 @@ def audit(path: Path) -> dict[str, object]:
         rows = list(reader)
 
     seen: set[str] = set()
+    seen_source_records: set[tuple[str, str]] = set()
     valid_rows = 0
     for line_number, row in enumerate(rows, start=2):
         row_errors: list[str] = []
@@ -77,12 +78,26 @@ def audit(path: Path) -> dict[str, object]:
             if not (row.get(field) or "").strip():
                 row_errors.append(f"blank {field}")
 
+        source_id = (row.get("source_id") or "").strip()
+        source_record_id = (row.get("source_record_id") or "").strip()
+        if source_id and source_record_id:
+            source_identity = (source_id, source_record_id)
+            if source_identity in seen_source_records:
+                row_errors.append(f"duplicate source record {source_id}/{source_record_id}")
+            else:
+                seen_source_records.add(source_identity)
+
         if (row.get("category") or "").strip() != "camping":
             row_errors.append("category must be camping")
         source_url = (row.get("source_url") or "").strip()
         parsed_url = urlparse(source_url)
-        if source_url and (parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc):
-            row_errors.append("source_url must be an absolute HTTP(S) URL")
+        if source_url and (
+            parsed_url.scheme not in {"http", "https"}
+            or not parsed_url.hostname
+            or parsed_url.username is not None
+            or parsed_url.password is not None
+        ):
+            row_errors.append("source_url must be an absolute HTTP(S) URL without embedded credentials")
 
         try:
             latitude = float(row.get("latitude", ""))
