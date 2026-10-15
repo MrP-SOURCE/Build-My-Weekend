@@ -11,10 +11,29 @@ import csv
 import json
 import math
 import sys
+from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
 SA_BOUNDS = {"min_lat": -35.2, "max_lat": -22.0, "min_lon": 16.0, "max_lon": 33.5}
+
+def _parse_timestamp(value: str) -> datetime | None:
+    """Parse ISO date or timestamp values; naive timestamps are treated as UTC."""
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            parsed_date = date.fromisoformat(raw)
+        except ValueError:
+            return None
+        parsed = datetime(parsed_date.year, parsed_date.month, parsed_date.day, tzinfo=timezone.utc)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
 
 REQUIRED_FIELDS = {
     "id", "name", "category", "latitude", "longitude", "tags_json",
@@ -90,6 +109,22 @@ def audit(path: Path) -> dict[str, object]:
             warnings.append(f"Row {line_number}: confidence label differs from expected unverified_source_record.")
         if (row.get("verified_at") or "").strip():
             warnings.append(f"Row {line_number}: verified_at is populated; independently confirm the verification process.")
+        imported_at = (row.get("imported_at") or "").strip()
+        if not imported_at:
+            warnings.append(f"Row {line_number}: imported_at is blank; import timing cannot be established.")
+        elif _parse_timestamp(imported_at) is None:
+            warnings.append(f"Row {line_number}: imported_at is not a recognized ISO date/timestamp.")
+
+        source_updated_at = (row.get("source_updated_at") or "").strip()
+        if not source_updated_at:
+            warnings.append(f"Row {line_number}: source_updated_at is blank; source freshness cannot be assessed.")
+        else:
+            source_time = _parse_timestamp(source_updated_at)
+            if source_time is None:
+                warnings.append(f"Row {line_number}: source_updated_at is not a recognized ISO date/timestamp.")
+            elif (datetime.now(timezone.utc) - source_time).days > 365:
+                warnings.append(f"Row {line_number}: source_updated_at is over 365 days old; review freshness before reuse.")
+
         if row_errors:
             errors.append(f"Row {line_number}: " + "; ".join(row_errors))
         else:
