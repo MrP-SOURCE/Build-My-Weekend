@@ -9,7 +9,7 @@ from audit_normalized_campsites import audit
 
 FIELDS = [
     "id", "name", "category", "latitude", "longitude", "tags_json",
-    "source_id", "source_record_id", "source_url", "licence_id",
+    "source_id", "source_record_id", "source_url", "source_updated_at", "imported_at", "licence_id",
     "attribution_text", "confidence", "verified_at",
 ]
 
