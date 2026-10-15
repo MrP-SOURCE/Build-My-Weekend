@@ -4,7 +4,7 @@
 
 Use the published GitHub Pages app: https://mrp-source.github.io/Build-My-Weekend/
 
-This is a **controlled Western Cape / Cape Town pilot**, not a nationwide routing engine. The planner currently uses demonstration destination and cost data. Treat accommodation links as search hand-offs, not confirmed availability. Weather is a forecast from an external provider when available; fishing suitability is a demonstration-level match, not a guaranteed catch forecast.
+This is a **controlled Western Cape / Cape Town pilot**, not a nationwide routing engine. The planner currently uses demonstration destination and cost data. Treat accommodation links as search hand-offs, not confirmed availability. General weather is forecast by an external provider when available. Fishing suitability remains a demonstration-level match, not a guaranteed catch forecast; Fishing Away may show a separate modelled marine wave/swell forecast for configured coastal destinations, but it is not a tide table, catch forecast or safety warning.
 
 Do not use the pilot to make safety-critical decisions. Confirm access rules, opening times, weather, fishing regulations, accommodation availability, fuel stops, and emergency services with authoritative sources.
 
@@ -29,6 +29,7 @@ Do not use the pilot to make safety-critical decisions. Confirm access rules, op
 | Existing fuel | Compare the same trip with a full/partly filled tank and an empty-tank estimate | Additional fuel to buy responds to the existing-fuel input; do not confuse fuel consumed with fuel that must be purchased |
 | Fishing filters | Select fishing style, target species and preferred spot; then try an incompatible combination | Results respect the selected constraints or clearly show no matching destination; no false fallback |
 | Weather fallback | Open destination details with network available, then with forecast access blocked | Forecast is labelled clearly when available; failure does not break the planner or imply verified conditions |
+| Marine forecast | For Fishing Away, open a coastal destination; then block marine API access and try an inland/estuary destination | Coastal wave/swell estimates have source attribution; outage is clearly disclosed; inland/estuary destinations are not given misleading offshore conditions |
 | Destination details | Open a result card | Estimated cost, fuel breakdown, origin basis and demonstration-data warning are visible |
 | Local services | Open hospital, pharmacy and fuel search links | Links search near the selected destination and do not claim that a particular facility is verified |
 | Share / navigation | Use share and navigation actions | Shared text and map hand-off state the Cape Town origin; no other origin is implied |
