@@ -62,6 +62,21 @@ class CampsiteAuditTests(unittest.TestCase):
         self.assertIn("duplicate id osm:node/1", joined)
         self.assertIn("invalid latitude", joined)
 
+    def test_detects_duplicate_source_identity_even_when_ids_differ(self):
+        first = sample_row("normalized:1")
+        second = sample_row("normalized:2")
+        second["source_record_id"] = first["source_record_id"]
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [first, second]))
+        self.assertIn("duplicate source record osm-test/node/1", " ".join(report["errors"]))
+
+    def test_rejects_source_url_with_embedded_credentials(self):
+        row = sample_row()
+        row["source_url"] = "https://user:secret@example.org/dataset"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        self.assertIn("without embedded credentials", " ".join(report["errors"]))
+
     def test_detects_missing_provenance_and_malformed_tags(self):
         row = sample_row()
         row["source_url"] = ""
