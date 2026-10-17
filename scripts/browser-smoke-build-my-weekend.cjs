@@ -106,6 +106,15 @@ const { chromium } = require("playwright");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
     assert(await page.locator("#reset-filters").isVisible(), "RESET TO DEFAULTS must remain visible while destination recommendations are displayed.");
+    const costBreakdown = firstCard.locator('[data-testid^="cost-breakdown-"]');
+    assert.equal(await costBreakdown.count(), 1, "Each destination must provide a cost-breakdown disclosure.");
+    assert((await costBreakdown.locator("summary").innerText()).includes("COST BREAKDOWN"), "Cost breakdown disclosure label is missing.");
+    await costBreakdown.locator("summary").click();
+    const costBreakdownText = await costBreakdown.innerText();
+    for (const label of ["Accommodation", "Food", "Activities", "Fuel consumed for return trip", "Fuel already paid for (credited)", "Estimated additional fuel to buy", "Estimated new spend"]) {
+      assert(costBreakdownText.includes(label), `Cost breakdown is missing the "${label}" line.`);
+    }
+    assert(costBreakdownText.includes("demonstration estimates, not live quotes"), "Cost breakdown must disclose estimated, non-quote values.");
     const firstCard = page.locator("#recommendations .trip-card").first();
     const mapLink = firstCard.locator('a[data-testid="destination-map-link"]');
     assert.equal(await mapLink.count(), 1, "Each destination result must include a direct map link.");
