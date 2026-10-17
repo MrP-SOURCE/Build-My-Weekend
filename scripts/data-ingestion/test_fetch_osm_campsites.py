@@ -1,5 +1,7 @@
 import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 from urllib.error import URLError
 
@@ -9,6 +11,7 @@ from fetch_osm_campsites import (
     overpass_query,
     overpass_to_geojson,
     validate_bbox,
+    write_snapshot,
 )
 
 
@@ -96,6 +99,22 @@ class OSMCampsiteFetcherTests(unittest.TestCase):
         with patch("fetch_osm_campsites.urlopen", side_effect=URLError("offline")):
             with self.assertRaisesRegex(ValueError, "Could not reach Overpass"):
                 fetch_snapshot(-34.0, 18.0, -33.8, 18.3)
+
+    def test_atomic_writer_writes_complete_json_snapshot(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "nested" / "snapshot.geojson"
+            write_snapshot(output, {"type": "FeatureCollection", "features": []})
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["features"], [])
+            self.assertEqual(list(output.parent.glob(".snapshot.geojson.*.tmp")), [])
+
+    def test_atomic_writer_preserves_previous_file_if_serialization_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "snapshot.geojson"
+            output.write_text("previous-valid-snapshot\n", encoding="utf-8")
+            with self.assertRaises(TypeError):
+                write_snapshot(output, {"not_json": object()})
+            self.assertEqual(output.read_text(encoding="utf-8"), "previous-valid-snapshot\n")
+            self.assertEqual(list(Path(temp).glob(".snapshot.geojson.*.tmp")), [])
 
     def test_rejects_missing_elements_list(self):
         with self.assertRaisesRegex(ValueError, "elements list"):

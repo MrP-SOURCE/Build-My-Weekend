@@ -10,7 +10,9 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -138,6 +140,27 @@ def fetch_snapshot(south: float, west: float, north: float, east: float, *,
     snapshot_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return overpass_to_geojson(payload, snapshot_at=snapshot_at, endpoint=endpoint)
 
+def write_snapshot(output: Path, data: dict) -> None:
+    """Atomically write a complete snapshot without damaging an older file on failure."""
+    serialized = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    temporary_output: Path | None = None
+    try:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", newline="", dir=output.parent,
+            prefix=f".{output.name}.", suffix=".tmp", delete=False,
+        ) as handle:
+            temporary_output = Path(handle.name)
+            handle.write(serialized)
+        os.replace(temporary_output, output)
+        temporary_output = None
+    finally:
+        if temporary_output is not None:
+            try:
+                temporary_output.unlink(missing_ok=True)
+            except OSError:
+                pass
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -152,8 +175,7 @@ def main() -> int:
     try:
         data = fetch_snapshot(args.south, args.west, args.north, args.east,
                               endpoint=args.endpoint, timeout_s=args.timeout)
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_snapshot(args.output, data)
         print(f"Snapshot complete: {data['metadata']['accepted_features']} campsite features.")
         print(f"Review file: {args.output}")
         print("Status: REVIEW_REQUIRED_NOT_PUBLISHED; confirm licence, attribution, access and record freshness.")
