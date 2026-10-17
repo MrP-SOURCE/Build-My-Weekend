@@ -9,6 +9,7 @@ const { chromium } = require("playwright");
   let simulateRoutingOutage = false;
   let delayNextRoute = false;
   let delayedRouteStarted = false;
+  let sawKogelBayRoute = false;
 
   page.on("pageerror", error => pageErrors.push(error.message));
   // Keep CI deterministic while exercising the real planner's route-response handling.
@@ -35,6 +36,11 @@ const { chromium } = require("playwright");
         });
       }
       const body = route.request().postDataJSON();
+      if (String(body.destination || "").startsWith("Kogel Bay")) {
+        assert.deepEqual(body.destinationCoordinates, { lat: -34.23646, lon: 18.85178 },
+          "Kogel Bay routing must use the campsite-area coordinates, not the inaccurate broad-area pin.");
+        sawKogelBayRoute = true;
+      }
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -366,6 +372,7 @@ const { chromium } = require("playwright");
     await page.locator("#trip-form button[type=submit]").click();
     await waitForRouteResults();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Camping plan returned no destination cards.");
+    assert.equal(sawKogelBayRoute, true, "Camping search did not exercise the Kogel Bay route-coordinate regression check.");
 
     // Verify specialist outdoor controls appear only for relevant trip types.
     await page.locator("#experience").selectOption({ label: "Hiking Away" });
