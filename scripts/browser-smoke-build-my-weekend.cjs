@@ -98,6 +98,7 @@ const { chromium } = require("playwright");
     assert(await page.locator("#origin").inputValue() === "Cape Town, South Africa", "Default departure location is missing.");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
+    assert(await page.locator("#reset-filters").isVisible(), "RESET TO DEFAULTS must remain visible while destination recommendations are displayed.");
 
     // Reject invalid inputs in the real browser before producing a plan.
     await page.locator("#budget").fill("0");
