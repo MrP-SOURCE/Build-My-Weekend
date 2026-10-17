@@ -198,6 +198,26 @@ const { chromium } = require("playwright");
     assert(fishingCards.some(text => /Gordon.?s Bay/i.test(text)),
       "A Shore/Galjoen/Bay search did not include the expected compatible Gordon's Bay result.");
 
+    // Reset clears trip criteria and stale results while retaining vehicle fuel assumptions.
+    await page.locator("#origin").fill("Stellenbosch, South Africa");
+    await page.locator("#budget").fill("7800");
+    await page.locator("#people").fill("2");
+    await page.locator("#experience").selectOption({ label: "Camping Away" });
+    await page.locator("#consumption").fill("7.2");
+    await page.locator("#fuel-price").fill("25.10");
+    await page.locator("#fuel-existing").fill("0");
+    await page.locator("#reset-filters").click();
+    assert.equal(await page.locator("#origin").inputValue(), "Cape Town, South Africa", "Reset did not restore the default origin.");
+    assert.equal(await page.locator("#budget").inputValue(), "3000", "Reset did not restore the default group budget.");
+    assert.equal(await page.locator("#people").inputValue(), "4", "Reset did not restore the default group size.");
+    assert.equal(await page.locator("#experience").inputValue(), "Any", "Reset did not clear the selected weekend type.");
+    assert.equal(await page.locator("#consumption").inputValue(), "7.2", "Reset must preserve the user's fuel-consumption assumption.");
+    assert.equal(await page.locator("#fuel-price").inputValue(), "25.10", "Reset must preserve the user's fuel-price assumption.");
+    assert.equal(await page.locator("#fuel-existing").inputValue(), "650", "Reset should restore the default fuel-already-in-tank value.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0, "Reset must clear old destination recommendations.");
+    assert.equal(await page.locator("#no-results").isVisible(), false, "Reset must hide stale no-results guidance.");
+    assert((await page.locator("#results-summary").innerText()).includes("Trip criteria are reset"), "Reset status message is missing.");
+
     // Each fresh page visit starts with clean defaults, not the previous trip's inputs.
     await page.reload({ waitUntil: "networkidle" });
     assert.equal(await page.locator("#budget").inputValue(), "3000", "Default budget was not restored after reload.");
