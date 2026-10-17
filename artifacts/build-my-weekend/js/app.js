@@ -238,9 +238,9 @@ const destinations = [
     remote: true
   }, 0),
   makeDestination({
-    name: "Kogel Bay", region: "Cape Helderberg", distance: 70, driveTime: 62,
-    // Canonical beach-area coordinate prevents ambiguous place-name geocoding.
-    routePosition: { lat: -34.20, lon: 18.86 },
+    name: "Kogel Bay", region: "Cape Helderberg", distance: 45, driveTime: 45,
+    // Pin the actual Kogel Bay Resort/campsite area, not a broad beach-area centroid.
+    routePosition: { lat: -34.23646, lon: 18.85178 },
     categories: ["Camping", "Outdoors", "Beach", "Family", "Fishing"],
     accommodation: [150, 200, 430], food: [120, 180, 320], activities: [20, 70, 200],
     description: "A close-to-Cape-Town coastal camping idea with sea views and outdoor time.",
