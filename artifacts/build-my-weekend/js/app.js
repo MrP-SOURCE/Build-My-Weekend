@@ -1678,6 +1678,7 @@ function card(destination, settings, badges) {
       <p class="ranking-reason"><strong>WHY IT RANKS HERE:</strong> ${esc(rankingReason(destination, badges, settings))}</p>
     </div>
     <div class="card-actions">
+      <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ", " + destination.region + ", Western Cape, South Africa")}" target="_blank" rel="noopener noreferrer" data-testid="destination-map-link" aria-label="Open map for ${esc(destination.name)}">VIEW MAP <span aria-hidden="true">↗</span></a>
       <button type="button" data-action="view" data-destination="${destination.id}" data-testid="view-${destination.id}">VIEW WEEKEND <span aria-hidden="true">↗</span></button>
       <button type="button" data-action="share" data-destination="${destination.id}" data-testid="share-${destination.id}">SHARE TRIP</button>
     </div>`;
