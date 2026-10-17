@@ -1783,38 +1783,55 @@ function budgetTradeoffPanel(candidates, settings) {
 
 const ROUTING_WORKER_URL = "https://go.build-my-weekend.workers.dev";
 const ROUTE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const ROUTE_REQUEST_TIMEOUT_MS = 12000;
 let latestRoutedCandidates = [];
 
 async function routeForDestination(origin, destination) {
   // Versioned key invalidates routes cached before the coordinate-distance sanity check.
   const key = "bmwRoute:v3:" + origin.trim().toLowerCase() + "::" + destination.id;
+  const now = Date.now();
   try {
     const cached = JSON.parse(localStorage.getItem(key) || "null");
-    if (cached && Number.isFinite(cached.distanceKmOneWay) &&
-        Number.isFinite(cached.driveMinutesOneWay) &&
-        Date.now() - cached.savedAt < ROUTE_CACHE_TTL_MS) return cached;
+    if (cached && cached.origin === origin && cached.destinationId === destination.id &&
+        Number.isFinite(cached.distanceKmOneWay) && cached.distanceKmOneWay > 0 &&
+        cached.distanceKmOneWay <= 2500 &&
+        Number.isFinite(cached.driveMinutesOneWay) && cached.driveMinutesOneWay > 0 &&
+        cached.driveMinutesOneWay <= 2400 &&
+        typeof cached.source === "string" && cached.source.length > 0 &&
+        Number.isFinite(cached.savedAt) && cached.savedAt <= now &&
+        now - cached.savedAt < ROUTE_CACHE_TTL_MS) return cached;
   } catch {}
-  const response = await fetch(ROUTING_WORKER_URL + "/api/route", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({
-      origin,
-      destination: destination.name + ", " + destination.region + ", Western Cape, South Africa",
-      destinationCoordinates: destination.routePosition || undefined
-    })
-  });
-  if (!response.ok) throw new Error("Route service returned HTTP " + response.status);
-  const route = await response.json();
-  if (!Number.isFinite(Number(route.distanceKmOneWay)) ||
-      !Number.isFinite(Number(route.driveMinutesOneWay)) ||
-      Number(route.distanceKmOneWay) <= 0 || Number(route.driveMinutesOneWay) <= 0) {
-    throw new Error("Route service returned incomplete distance/time data");
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ROUTE_REQUEST_TIMEOUT_MS);
+  let route;
+  try {
+    const response = await fetch(ROUTING_WORKER_URL + "/api/route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        origin,
+        destination: destination.name + ", " + destination.region + ", Western Cape, South Africa",
+        destinationCoordinates: destination.routePosition || undefined
+      }),
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error("Route service returned HTTP " + response.status);
+    route = await response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+  const distanceKmOneWay = Number(route?.distanceKmOneWay);
+  const driveMinutesOneWay = Number(route?.driveMinutesOneWay);
+  if (!Number.isFinite(distanceKmOneWay) || !Number.isFinite(driveMinutesOneWay) ||
+      distanceKmOneWay <= 0 || distanceKmOneWay > 2500 ||
+      driveMinutesOneWay <= 0 || driveMinutesOneWay > 2400) {
+    throw new Error("Route service returned implausible or incomplete distance/time data");
   }
   const saved = {
     origin,
     destinationId: destination.id,
-    distanceKmOneWay: Number(route.distanceKmOneWay),
-    driveMinutesOneWay: Number(route.driveMinutesOneWay),
+    distanceKmOneWay,
+    driveMinutesOneWay,
     source: String(route.source || "TomTom Routing API"),
     savedAt: Date.now()
   };
@@ -1823,13 +1840,11 @@ async function routeForDestination(origin, destination) {
 }
 
 async function addVerifiedRoutes(candidates, settings) {
-  // Cap live lookups to eight per planner run. Cache successful results for seven days.
+  // Cap live lookups to eight per planner run. Run them concurrently to keep outages bounded.
   const ranked = [...candidates].sort((a, b) =>
     b.valueScore - a.valueScore || a.cost.spend - b.cost.spend
   ).slice(0, 8);
-  const routed = [];
-  let failedLookups = 0;
-  for (const candidate of ranked) {
+  const outcomes = await Promise.all(ranked.map(async candidate => {
     try {
       const route = await routeForDestination(settings.origin, candidate);
       const withRoute = {
@@ -1843,15 +1858,19 @@ async function addVerifiedRoutes(candidates, settings) {
       withRoute.cost = calc(withRoute, settings);
       withRoute.valueScore = valueScore(withRoute, settings) +
         (settings.experience === "Fishing Away" ? (withRoute.fishingScore || 0) * 0.08 : 0);
-      if (withRoute.cost.remaining >= 0 &&
-          (settings.distance === "any" || withRoute.distance <= Number(settings.distance))) {
-        routed.push(withRoute);
-      }
+      return {
+        candidate: withRoute,
+        passed: withRoute.cost.remaining >= 0 &&
+          (settings.distance === "any" || withRoute.distance <= Number(settings.distance))
+      };
     } catch (error) {
-      failedLookups += 1;
       console.warn("Route check failed for " + candidate.name + ":", error);
+      return { failed: true };
     }
-  }
+  }));
+  const routed = outcomes.filter(outcome => outcome.candidate && outcome.passed)
+    .map(outcome => outcome.candidate);
+  const failedLookups = outcomes.filter(outcome => outcome.failed).length;
   return { routed, attempted: ranked.length, failedLookups };
 }
 

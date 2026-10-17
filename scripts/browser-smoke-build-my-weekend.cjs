@@ -7,6 +7,7 @@ const { chromium } = require("playwright");
   const pageErrors = [];
   const failedLocalAssets = [];
   let simulateRoutingOutage = false;
+  let simulateInvalidRouteResponse = false;
   let delayNextRoute = false;
   let delayedRouteStarted = false;
   let sawKogelBayRoute = false;
@@ -48,7 +49,7 @@ const { chromium } = require("playwright");
         body: JSON.stringify({
           origin: body.origin,
           destination: body.destination,
-          distanceKmOneWay: 45,
+          distanceKmOneWay: simulateInvalidRouteResponse ? "not-a-number" : 45,
           driveMinutesOneWay: 39,
           source: "TomTom Routing API",
           disclaimer: "Deterministic route fixture for browser testing."
@@ -492,6 +493,21 @@ const { chromium } = require("playwright");
       "Fallback detail view falsely implies that the route was verified.");
     await page.locator("#trip-dialog .dialog-close").click();
     simulateRoutingOutage = false;
+
+    // A nominally successful HTTP response with invalid route fields must not be trusted.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("bmwRoute:v3:")) localStorage.removeItem(key);
+      }
+    });
+    simulateInvalidRouteResponse = true;
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert((await page.locator("#results-summary").innerText()).includes("routing service is temporarily unavailable"),
+      "Malformed route data was treated as a verified route.");
+    assert((await page.locator(".trip-card").first().innerText()).includes("ROUTE NOT VERIFIED"),
+      "Malformed route data did not use the explicitly unverified fallback.");
+    simulateInvalidRouteResponse = false;
 
     // Re-check the production page at a common phone viewport.
     await page.setViewportSize({ width: 390, height: 844 });
