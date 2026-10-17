@@ -2463,11 +2463,14 @@ dialog.addEventListener("click", event => {
 function resetPlannerToDefaults() {
   // Invalidate pending route requests so they cannot repopulate results after Reset.
   renderSequence += 1;
-  // A full reset returns every field, including fuel assumptions, to the
-  // documented defaults so the user can start from a genuinely clean planner.
+  // Reset trip criteria and costs, but preserve the user's vehicle fuel assumptions.
+  const retainedFuelPrice = form.elements.fuelPrice.value;
+  const retainedConsumption = form.elements.consumption.value;
   try { localStorage.removeItem("buildMyWeekendTrip"); } catch {}
-  try { localStorage.removeItem("buildMyWeekendFuelSettings"); } catch {}
   form.reset();
+  form.elements.fuelPrice.value = retainedFuelPrice;
+  form.elements.consumption.value = retainedConsumption;
+  saveFuelSettings();
   initDates();
   form.elements.return.min = form.elements.depart.value || localDate(new Date());
   if (form.elements.return.value < form.elements.depart.value) {
@@ -2489,7 +2492,7 @@ function resetPlannerToDefaults() {
   document.querySelector("#no-results").hidden = true;
   document.querySelector("#result-count").textContent = "READY TO PLAN";
   document.querySelector("#results-summary").textContent =
-    "All trip criteria and cost assumptions are back to defaults. Choose your preferences and build a new weekend.";
+    "Trip criteria are reset. Your fuel price and consumption are retained; choose your preferences and build a new weekend.";
   // Keep the reset state genuinely empty. Calling render() here would immediately
   // launch route requests and repopulate results before the user chooses new criteria.
 }
