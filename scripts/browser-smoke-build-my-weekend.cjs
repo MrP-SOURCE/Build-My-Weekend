@@ -105,6 +105,14 @@ const { chromium } = require("playwright");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
     assert(await page.locator("#reset-filters").isVisible(), "RESET TO DEFAULTS must remain visible while destination recommendations are displayed.");
+    const firstCard = page.locator("#recommendations .trip-card").first();
+    const mapLink = firstCard.locator('a[data-testid="destination-map-link"]');
+    assert.equal(await mapLink.count(), 1, "Each destination result must include a direct map link.");
+    const mapHref = await mapLink.getAttribute("href");
+    assert(mapHref && mapHref.startsWith("https://www.google.com/maps/search/?api=1&query="),
+      "Destination map link must use the HTTPS Google Maps search endpoint.");
+    assert(decodeURIComponent(mapHref).includes(await firstCard.locator("h3").innerText()),
+      "Destination map link must search for the actual recommended destination.");
 
     // Reject invalid inputs in the real browser before producing a plan.
     await page.locator("#budget").fill("0");
