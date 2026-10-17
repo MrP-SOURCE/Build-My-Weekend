@@ -391,7 +391,9 @@ const { chromium } = require("playwright");
     await page.locator("#budget").fill("3000");
     await page.locator("#people").fill("2");
     await page.locator("#fuel-price").fill("29.99");
+    await page.locator("#fuel-price").dispatchEvent("change");
     await page.locator("#consumption").fill("8.1");
+    await page.locator("#consumption").dispatchEvent("change");
     await page.locator("#fuel-existing").fill("125");
     await page.locator("#origin").fill("Stellenbosch, South Africa");
     await page.locator("#depart").fill("2026-11-10");
@@ -411,8 +413,8 @@ const { chromium } = require("playwright");
     assert.notEqual(await page.locator("#depart").inputValue(), "2026-11-10", "Reset did not restore the default departure date.");
     assert.notEqual(await page.locator("#return").inputValue(), "2026-11-12", "Reset did not restore the default return date.");
     assert.equal(await page.locator("#fuel-existing").inputValue(), "650", "Reset did not restore the default value of fuel already in the tank.");
-    assert.equal(await page.locator("#fuel-price").inputValue(), "24.50", "Reset did not restore the default fuel price.");
-    assert.equal(await page.locator("#consumption").inputValue(), "8", "Reset did not restore the default fuel consumption.");
+    assert.equal(await page.locator("#fuel-price").inputValue(), "29.99", "Reset did not preserve the user fuel price.");
+    assert.equal(await page.locator("#consumption").inputValue(), "8.1", "Reset did not preserve the user fuel consumption.");
     assert.equal(await page.locator("#camping-setup").inputValue(), "Any", "Reset did not clear camping setup preferences.");
     assert.equal(await page.locator("#camping-power").inputValue(), "Any", "Reset did not clear camping power preferences.");
     assert.equal(await page.locator("#camping-ablutions").inputValue(), "Any", "Reset did not clear camping ablution preferences.");
@@ -421,7 +423,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#camping-controls").isVisible(), false, "Reset left camping specialist controls open.");
     assert.equal(await page.locator("#no-results").isVisible(), false, "Reset did not restore the default result state.");
     assert.equal(await page.locator("#recommendations .trip-card").count(), 0, "Reset should leave results empty until the user submits new criteria.");
-    assert((await page.locator("#results-summary").innerText()).includes("back to defaults"), "Reset did not explain that the planner is ready for new criteria.");
+    assert((await page.locator("#results-summary").innerText()).includes("fuel price and consumption are retained"), "Reset did not explain that fuel assumptions are retained.");
 
     // A slower response from an older submission must not overwrite a newer plan.
     // Remove route-cache entries so this regression test guarantees a fresh request.
@@ -480,8 +482,8 @@ const { chromium } = require("playwright");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: "networkidle" });
     await page.locator("#trip-form").waitFor();
-    assert.equal(await page.locator("#fuel-price").inputValue(), "24.5", "Reset fuel price did not remain at the default after reload.");
-    assert.equal(await page.locator("#consumption").inputValue(), "8", "Reset fuel consumption did not remain at the default after reload.");
+    assert.equal(await page.locator("#fuel-price").inputValue(), "29.99", "Fuel price retained through Reset did not persist after reload.");
+    assert.equal(await page.locator("#consumption").inputValue(), "8.1", "Fuel consumption retained through Reset did not persist after reload.");
 
     // Separately verify that user-edited fuel assumptions still persist when the user chooses to keep them.
     await page.locator("#fuel-price").fill("27.15");
