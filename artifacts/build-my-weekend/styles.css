@@ -178,5 +178,6 @@
 .fishing-observation-records ol{padding-left:22px}
 .fishing-observation-records li{padding:10px 0;border-bottom:1px solid #dce2d9}
 .fishing-observation-records li:last-child{border-bottom:0}
+.fishing-observation-records .observation-delete-one{float:right;margin:0 0 8px 10px;min-height:32px;padding:6px 9px;border:1px solid #b7a7a0;border-radius:6px;background:#fff8f5;color:#75463d;font:inherit;font-size:.72rem;font-weight:750;cursor:pointer}
 .fishing-observation-records p,.fishing-observation-records small{overflow-wrap:anywhere}
 @media(max-width:560px){.fishing-observation-actions{display:grid;grid-template-columns:1fr}.fishing-observation-actions button{width:100%}}
