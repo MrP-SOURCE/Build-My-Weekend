@@ -2529,6 +2529,30 @@ dialog.addEventListener("submit", event => {
 });
 dialog.addEventListener("click", event => {
   if (event.target === dialog || event.target.closest(".dialog-close")) dialog.close();
+  const singleDeleteButton = event.target.closest("button[data-observation-delete]");
+  if (singleDeleteButton) {
+    const key = "bmw.fishing-observations.v1";
+    const index = Number(singleDeleteButton.dataset.observationDelete);
+    let entries = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+      if (Array.isArray(parsed)) entries = parsed;
+    } catch {}
+    if (!Number.isInteger(index) || index < 0 || index >= entries.length) {
+      toastMessage("That note is no longer available. Refresh the saved notes list.");
+      return;
+    }
+    if (window.confirm("Delete this one locally saved fishing observation? This cannot be undone.")) {
+      entries.splice(index, 1);
+      if (entries.length) localStorage.setItem(key, JSON.stringify(entries));
+      else localStorage.removeItem(key);
+      const viewButton = dialogContent.querySelector('button[data-observation-action="view"]');
+      if (viewButton) viewButton.click();
+      const feedback = dialogContent.querySelector(".fishing-observation-feedback");
+      if (feedback) feedback.textContent = "One local observation was deleted. Remaining notes are still unverified and stored only in this browser.";
+    }
+    return;
+  }
   const observationButton = event.target.closest("button[data-observation-action]");
   if (observationButton) {
     const key = "bmw.fishing-observations.v1";
@@ -2543,8 +2567,8 @@ dialog.addEventListener("click", event => {
     if (action === "view") {
       recordsPanel.hidden = false;
       recordsPanel.innerHTML = entries.length
-        ? "<h5>SAVED PERSONAL NOTES · UNVERIFIED</h5><ol>" + entries.slice().reverse().map(entry =>
-            "<li><strong>" + esc(entry.spot || "Fishing spot") + " · " + esc(entry.observedDate || "Date not set") + "</strong>" +
+        ? "<h5>SAVED PERSONAL NOTES · UNVERIFIED</h5><ol>" + entries.slice().reverse().map((entry, reverseIndex) =>
+            "<li><button type=\"button\" class=\"observation-delete-one\" data-observation-delete=\"" + (entries.length - 1 - reverseIndex) + "\">Delete this note</button><strong>" + esc(entry.spot || "Fishing spot") + " · " + esc(entry.observedDate || "Date not set") + "</strong>" +
             "<p>Baitfish: " + esc(entry.baitfishStatus || "not recorded") +
             " · Security: " + esc(entry.securityStatus || "not recorded") +
             " · Method: " + esc(entry.method || "not recorded") + "</p>" +
