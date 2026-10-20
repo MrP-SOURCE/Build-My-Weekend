@@ -2318,8 +2318,14 @@ function detail(destination, settings) {
             <label>Notes (optional) <input name="notes" maxlength="300" placeholder="Conditions, approximate time, source"></label>
             <button type="submit">SAVE TO THIS DEVICE</button>
           </form>
-          <p class="fishing-observation-feedback" role="status" aria-live="polite">No observation saved from this form in this session.</p>
-          <small>Personal notes are not a verified security assessment or a measure of baitfish prevalence. “None observed” does not prove security is absent.</small>
+          <p class="fishing-observation-feedback" role="status" aria-live="polite">Your entries are stored locally in this browser only.</p>
+          <div class="fishing-observation-actions">
+            <button type="button" data-observation-action="view">VIEW SAVED NOTES</button>
+            <button type="button" data-observation-action="export">EXPORT JSON</button>
+            <button type="button" data-observation-action="delete">DELETE ALL NOTES</button>
+          </div>
+          <div class="fishing-observation-records" data-testid="fishing-observation-records" hidden></div>
+          <small>Personal notes are not a verified security assessment or a measure of baitfish prevalence. “None observed” does not prove security is absent. Export before clearing if you want to keep a copy.</small>
         </section>
         <div>Tide: ${esc(m.tide)}</div>
         <p>${esc(m.conditions)}</p>
@@ -2523,6 +2529,56 @@ dialog.addEventListener("submit", event => {
 });
 dialog.addEventListener("click", event => {
   if (event.target === dialog || event.target.closest(".dialog-close")) dialog.close();
+  const observationButton = event.target.closest("button[data-observation-action]");
+  if (observationButton) {
+    const key = "bmw.fishing-observations.v1";
+    const feedback = dialogContent.querySelector(".fishing-observation-feedback");
+    const recordsPanel = dialogContent.querySelector(".fishing-observation-records");
+    let entries = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+      if (Array.isArray(parsed)) entries = parsed;
+    } catch {}
+    const action = observationButton.dataset.observationAction;
+    if (action === "view") {
+      recordsPanel.hidden = false;
+      recordsPanel.innerHTML = entries.length
+        ? "<h5>SAVED PERSONAL NOTES · UNVERIFIED</h5><ol>" + entries.slice().reverse().map(entry =>
+            "<li><strong>" + esc(entry.spot || "Fishing spot") + " · " + esc(entry.observedDate || "Date not set") + "</strong>" +
+            "<p>Baitfish: " + esc(entry.baitfishStatus || "not recorded") +
+            " · Security: " + esc(entry.securityStatus || "not recorded") +
+            " · Method: " + esc(entry.method || "not recorded") + "</p>" +
+            (entry.baitfishDescription ? "<p>" + esc(entry.baitfishDescription) + "</p>" : "") +
+            (entry.notes ? "<p>" + esc(entry.notes) + "</p>" : "") +
+            "<small>Saved " + esc(entry.savedAt || "time not recorded") + " · " + esc(entry.evidenceStatus || "USER_RECORDED_UNVERIFIED") + "</small></li>"
+          ).join("") + "</ol>"
+        : "<p>No saved notes in this browser.</p>";
+      if (feedback) feedback.textContent = entries.length + " personal note(s) found on this device. These are not independently verified.";
+    } else if (action === "export") {
+      if (!entries.length) {
+        if (feedback) feedback.textContent = "There are no saved notes to export.";
+      } else {
+        const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), evidenceStatus: "USER_RECORDED_UNVERIFIED", observations: entries }, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "build-my-weekend-fishing-observations.json";
+        link.click();
+        URL.revokeObjectURL(url);
+        if (feedback) feedback.textContent = entries.length + " note(s) exported as an unverified personal record.";
+      }
+    } else if (action === "delete") {
+      if (!entries.length) {
+        if (feedback) feedback.textContent = "There are no saved notes to delete.";
+      } else if (window.confirm("Delete all " + entries.length + " locally saved fishing observations from this browser? This cannot be undone.")) {
+        localStorage.removeItem(key);
+        recordsPanel.hidden = true;
+        recordsPanel.replaceChildren();
+        if (feedback) feedback.textContent = "All locally saved fishing observations were deleted from this browser.";
+      }
+    }
+    return;
+  }
   const button = event.target.closest("button[data-action]");
   if (!button) return;
   if (button.dataset.action === "availability") {

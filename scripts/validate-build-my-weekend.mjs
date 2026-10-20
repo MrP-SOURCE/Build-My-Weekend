@@ -33,6 +33,9 @@ assert(app.includes("fishing-observation-form") && app.includes("USER_RECORDED_U
 assert(app.includes("bmw.fishing-observations.v1") && app.includes("localStorage.setItem"), "Fishing observations must be stored locally on the user device, not uploaded.");
 assert(app.includes("No visible security observed during this visit") && app.includes("does not prove security is absent"), "Security observations must distinguish not observed from confirmed absence.");
 assert(app.includes("existing.slice(-100)"), "The local observation log must cap stored entries.");
+assert(app.includes('data-observation-action="view"') && app.includes('data-observation-action="export"') && app.includes('data-observation-action="delete"'), "Fishing observations must be viewable, exportable and deletable by the user.");
+assert(app.includes("build-my-weekend-fishing-observations.json") && app.includes("Delete all "), "Fishing observation export and explicit delete confirmation must be implemented.");
+assert(app.includes("USER_RECORDED_UNVERIFIED") && app.includes("not independently verified"), "Exported and displayed observations must retain unverified evidence labels.");
 
 assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
 assert(app.includes('const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa")'), "Google Maps directions must use the departure location entered in the planner.");

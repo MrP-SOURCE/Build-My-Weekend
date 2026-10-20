@@ -170,3 +170,13 @@
 .fishing-observation-form button{align-self:end;min-height:42px;padding:10px 14px;border:0;border-radius:7px;background:#506e60;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .fishing-observation-feedback{font-weight:650;font-size:.84rem}
 @media(max-width:560px){.fishing-observation-form{grid-template-columns:1fr}}
+
+.fishing-observation-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.fishing-observation-actions button{min-height:38px;padding:8px 11px;border:1px solid #8fa18f;border-radius:7px;background:#f8faf6;color:#304638;font:inherit;font-size:.76rem;font-weight:750;cursor:pointer}
+.fishing-observation-actions button:last-child{border-color:#b7a7a0;color:#75463d}
+.fishing-observation-records{max-height:280px;overflow:auto;margin:12px 0;padding:12px;border-radius:8px;background:#f7f8f3;border:1px solid #d6dfd3}
+.fishing-observation-records ol{padding-left:22px}
+.fishing-observation-records li{padding:10px 0;border-bottom:1px solid #dce2d9}
+.fishing-observation-records li:last-child{border-bottom:0}
+.fishing-observation-records p,.fishing-observation-records small{overflow-wrap:anywhere}
+@media(max-width:560px){.fishing-observation-actions{display:grid;grid-template-columns:1fr}.fishing-observation-actions button{width:100%}}
