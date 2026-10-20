@@ -2306,6 +2306,21 @@ function detail(destination, settings) {
           <article><strong>LOCAL BAITFISH PREVALENCE</strong><p><b>UNVERIFIED</b> for this exact spot and trip date.</p><small>No validated local baitfish observation feed is connected. Species presence and abundance must not be inferred from this destination match.</small></article>
           <article><strong>ON-SITE SECURITY</strong><p><b>UNVERIFIED</b> for this exact access point.</p><small>No verified site-operator or security source is connected. Contact the site operator or local authority before relying on security being present.</small></article>
         </div>
+        <section class="fishing-observation-log" aria-label="Personal fishing observation log">
+          <h4>ADD A LOCAL OBSERVATION</h4>
+          <p>Record what you personally observe at this spot. Entries stay in this browser on this device; they are not uploaded or independently verified.</p>
+          <form data-testid="fishing-observation-form" class="fishing-observation-form">
+            <label>Observation date <input name="observedDate" type="date" required></label>
+            <label>Baitfish observation <select name="baitfishStatus" required><option value="not-checked">Not checked</option><option value="observed">Baitfish observed</option><option value="not-observed">No baitfish observed during this check</option></select></label>
+            <label>Species / description <input name="baitfishDescription" maxlength="160" placeholder="If known; do not guess"></label>
+            <label>Method <select name="method" required><option value="visual">Visual observation</option><option value="cast-net">Cast-net attempt</option><option value="local-report">Another angler told me</option></select></label>
+            <label>Security observed <select name="securityStatus" required><option value="not-checked">Not checked</option><option value="guard-observed">Guard / patrol observed</option><option value="access-control-observed">Access control observed</option><option value="none-observed">No visible security observed during this visit</option></select></label>
+            <label>Notes (optional) <input name="notes" maxlength="300" placeholder="Conditions, approximate time, source"></label>
+            <button type="submit">SAVE TO THIS DEVICE</button>
+          </form>
+          <p class="fishing-observation-feedback" role="status" aria-live="polite">No observation saved from this form in this session.</p>
+          <small>Personal notes are not a verified security assessment or a measure of baitfish prevalence. “None observed” does not prove security is absent.</small>
+        </section>
         <div>Tide: ${esc(m.tide)}</div>
         <p>${esc(m.conditions)}</p>
         <p><strong>ANGLER / COMMUNITY INFORMATION:</strong> ${esc(m.community)}</p>
@@ -2475,6 +2490,37 @@ results.addEventListener("click", event => {
   if (button.dataset.action === "share") share(candidate || destination, settings);
 });
 
+dialog.addEventListener("submit", event => {
+  const form = event.target.closest(".fishing-observation-form");
+  if (!form) return;
+  event.preventDefault();
+  const values = new FormData(form);
+  const entry = {
+    spot: dialogContent.querySelector(".fishing-detail strong")?.textContent?.replace("Best matching area: ", "") || "Fishing spot",
+    observedDate: String(values.get("observedDate") || ""),
+    baitfishStatus: String(values.get("baitfishStatus") || "not-checked"),
+    baitfishDescription: String(values.get("baitfishDescription") || "").trim(),
+    method: String(values.get("method") || "visual"),
+    securityStatus: String(values.get("securityStatus") || "not-checked"),
+    notes: String(values.get("notes") || "").trim(),
+    savedAt: new Date().toISOString(),
+    evidenceStatus: "USER_RECORDED_UNVERIFIED"
+  };
+  if (!entry.observedDate) { form.elements.observedDate.focus(); return; }
+  try {
+    const key = "bmw.fishing-observations.v1";
+    const existing = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(existing)) throw new Error("Invalid saved data");
+    existing.push(entry);
+    localStorage.setItem(key, JSON.stringify(existing.slice(-100)));
+    const feedback = dialogContent.querySelector(".fishing-observation-feedback");
+    if (feedback) feedback.textContent = "Saved on this device as USER-RECORDED / UNVERIFIED. " + existing.length + " personal observation(s) stored in this browser.";
+    form.reset();
+  } catch (error) {
+    const feedback = dialogContent.querySelector(".fishing-observation-feedback");
+    if (feedback) feedback.textContent = "Could not save locally. Browser storage may be disabled or full; no entry was uploaded."; 
+  }
+});
 dialog.addEventListener("click", event => {
   if (event.target === dialog || event.target.closest(".dialog-close")) dialog.close();
   const button = event.target.closest("button[data-action]");
