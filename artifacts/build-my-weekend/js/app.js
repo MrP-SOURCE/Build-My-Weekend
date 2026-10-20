@@ -1724,18 +1724,13 @@ function rankingReason(destination, badges, settings) {
 }
 
 function noResultsMessage(settings) {
-  const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
-  const nearbyCount = destinations.filter(destination => destination.distance <= distanceLimit).length;
   const affordableAnywhere = destinations.some(destination =>
     calc(destination, settings).remaining >= 0
   );
-  if (!nearbyCount) {
-    return `There are no demonstration destinations within ${settings.distance} km of the Cape Town starting point. Widen the distance setting to see more options.`;
-  }
   if (!affordableAnywhere) {
-    return `Typical demonstration costs for ${settings.people} ${settings.people === 1 ? "person" : "people"} are above your ${money(settings.budget)} group budget at every listed destination.`;
+    return `Typical demonstration costs for ${settings.people} ${settings.people === 1 ? "person" : "people"} are above your ${money(settings.budget)} group budget at every listed destination. Increase the budget or reduce the group size; all cost figures are estimates.`;
   }
-  return `No destination matches all your current filters (weekend type, distance and budget). Try widening the distance, increasing the group budget, or choosing a broader weekend type. These are demonstration estimates, so confirm real prices before booking.`;
+  return `No destination passed all your current filters after route checks (weekend type, distance and budget). Try widening the distance, increasing the group budget, or choosing a broader weekend type. If live routing is unavailable, the catalogue's Cape Town-based distances are estimates and are not verified for your departure area. Confirm real prices before booking.`;
 }
 
 function budgetTradeoffPanel(candidates, settings) {
