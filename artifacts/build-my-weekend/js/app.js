@@ -2006,6 +2006,13 @@ function weatherDateLabel(value) {
   });
 }
 
+function netCastingWindNote(speedKmh) {
+  if (!Number.isFinite(Number(speedKmh))) return "Wind reading unavailable; net-casting suitability cannot be assessed.";
+  const speed = Math.round(Number(speedKmh));
+  const band = speed < 15 ? "LOWER-WIND SCREEN" : speed < 25 ? "CAUTION SCREEN" : "HIGHER-WIND SCREEN";
+  return `${band} · ${speed} km/h maximum. Rough planning heuristic only, not an official or validated net-casting limit. Check gusts, crosswind, surf/current, local conditions and netting rules.`;
+}
+
 async function loadMarineForecast(destination, settings) {
   const panel = document.querySelector("#marine-forecast");
   if (!panel || settings.experience !== "Fishing Away") return;
@@ -2117,6 +2124,7 @@ async function loadDestinationWeather(destination, settings) {
         <span>${Number.isFinite(Number(day.max)) && Number.isFinite(Number(day.min)) ? `${Math.round(Number(day.min))}–${Math.round(Number(day.max))}°C` : "Temperature unavailable"}</span>
         <small>Rain chance: ${day.rain == null ? "n/a" : `${Math.round(Number(day.rain))}%`}</small>
         <small>Max wind: ${day.wind == null ? "n/a" : `${Math.round(Number(day.wind))} km/h`}</small>
+        ${settings.experience === "Fishing Away" ? `<small class="net-casting-screen">NET-CASTING WIND SCREEN: ${esc(netCastingWindNote(day.wind == null ? NaN : Number(day.wind)))}</small>` : ""}
       </div>`).join("")}</div>
       <small>Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Retrieved ${esc(retrieved)}. Forecasts can change; check again before departure.</small>`;
   } catch {
@@ -2293,6 +2301,11 @@ function detail(destination, settings) {
         <strong>Best matching area: ${esc(m.name)}</strong>
         <div>${esc(m.area)} · ${esc(m.spotType)} · ${esc(m.styles.join(", "))}</div>
         <div>Target species: ${esc(m.species.join(", "))}</div>
+        <div class="fishing-evidence-grid">
+          <article><strong>MOON / LUNAR CYCLE</strong><p>Departure: ${esc(window.BMWFishing.lunarPhase(settings.depart).label)} · ${window.BMWFishing.lunarPhase(settings.depart).illumination == null ? "illumination unavailable" : window.BMWFishing.lunarPhase(settings.depart).illumination + "% illuminated"}</p><p>Return: ${esc(window.BMWFishing.lunarPhase(settings.returnDate || settings.depart).label)} · ${window.BMWFishing.lunarPhase(settings.returnDate || settings.depart).illumination == null ? "illumination unavailable" : window.BMWFishing.lunarPhase(settings.returnDate || settings.depart).illumination + "% illuminated"}</p><small>Approximate calculated lunar phase; useful context, not a catch prediction.</small></article>
+          <article><strong>LOCAL BAITFISH PREVALENCE</strong><p><b>UNVERIFIED</b> for this exact spot and trip date.</p><small>No validated local baitfish observation feed is connected. Species presence and abundance must not be inferred from this destination match.</small></article>
+          <article><strong>ON-SITE SECURITY</strong><p><b>UNVERIFIED</b> for this exact access point.</p><small>No verified site-operator or security source is connected. Contact the site operator or local authority before relying on security being present.</small></article>
+        </div>
         <div>Tide: ${esc(m.tide)}</div>
         <p>${esc(m.conditions)}</p>
         <p><strong>ANGLER / COMMUNITY INFORMATION:</strong> ${esc(m.community)}</p>
