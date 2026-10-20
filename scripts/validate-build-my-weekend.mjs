@@ -24,6 +24,10 @@ function idsFromHtml(source) {
 
 assert(app.includes("No destination passed all your current filters after route checks (weekend type, distance and budget)."), "No-results guidance must describe the combined filters accurately without assuming the departure point is Cape Town.");
 assert(app.includes("choosing a broader weekend type"), "No-results guidance must suggest practical ways to recover.");
+assert(fishing.includes("function lunarPhase") && fishing.includes("synodicMonth"), "Fishing Away must calculate an approximate lunar phase without claiming catch prediction.");
+assert(app.includes("MOON / LUNAR CYCLE") && app.includes("LOCAL BAITFISH PREVALENCE") && app.includes("ON-SITE SECURITY"), "Fishing Away must show lunar context and explicitly label unverified baitfish/security evidence.");
+assert(app.includes("NET-CASTING WIND SCREEN") && app.includes("not an official or validated net-casting limit"), "Fishing Away must show forecast wind context with an explicit non-authoritative heuristic caveat.");
+
 assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
 assert(app.includes('const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa")'), "Google Maps directions must use the departure location entered in the planner.");
 assert(app.includes("const returnDistance = destination.distance * 2"), "Fuel estimates must remain visibly tied to the maintained Cape Town destination-distance dataset until routing data supports other origins.");

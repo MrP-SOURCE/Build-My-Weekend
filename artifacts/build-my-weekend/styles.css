@@ -150,3 +150,12 @@
 /* Keep the primary planner actions visible and usable on desktop and mobile. */
 .planner-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 @media(max-width:560px){.planner-actions{width:100%;flex-direction:column-reverse;align-items:stretch}.planner-actions .button{width:100%}}
+
+/* Fishing Away evidence and condition guidance */
+.fishing-evidence-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+.fishing-evidence-grid article{padding:12px;border:1px solid rgba(20,35,30,.14);background:#fffdf7;min-width:0}
+.fishing-evidence-grid article>strong{display:block;font-size:10px;letter-spacing:.08em;color:#40594a}
+.fishing-evidence-grid article p{font-size:12px;line-height:1.5;margin:8px 0}
+.fishing-evidence-grid article small,.net-casting-screen{display:block;font-size:10px;line-height:1.5;color:#68796d}
+.net-casting-screen{margin-top:5px}
+@media(max-width:700px){.fishing-evidence-grid{grid-template-columns:1fr}}

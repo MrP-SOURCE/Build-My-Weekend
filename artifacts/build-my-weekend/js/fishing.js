@@ -80,12 +80,30 @@
     return scores.length ? Math.max(...scores) : 0;
   }
 
+  // Approximate lunar phase from a known new-moon epoch. This is astronomy context,
+  // not a claim that lunar phase predicts catches.
+  function lunarPhase(dateString) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateString || ""))) {
+      return { label: "Date unavailable", illumination: null };
+    }
+    const date = new Date(dateString + "T12:00:00Z");
+    if (!Number.isFinite(date.getTime())) return { label: "Date unavailable", illumination: null };
+    const synodicMonth = 29.530588853;
+    const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+    const age = ((date.getTime() - knownNewMoon) / 86400000 % synodicMonth + synodicMonth) % synodicMonth;
+    const phaseIndex = Math.round((age / synodicMonth) * 8) % 8;
+    const labels = ["New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous", "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"];
+    const illumination = Math.round((1 - Math.cos(2 * Math.PI * age / synodicMonth)) * 50);
+    return { label: labels[phaseIndex], illumination };
+  }
+
   window.BMWFishing = {
     spots,
     getSpots,
     bestSpot,
     destinationMatch,
     matchSpot,
+    lunarPhase,
     styles: ["Any","Shore","Rock","Estuary"],
     species: ["Any","Galjoen","Steenbras"],
     spotPreferences: ["Let the app choose","Bay","Beach","Rocks","Point","Estuary","Lagoon","Harbour","River Mouth"]
