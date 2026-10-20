@@ -2314,9 +2314,15 @@ function detail(destination, settings) {
         <div class="fishing-reference-panel">
           <h4>FISHING RESEARCH & OFFICIAL GUIDANCE</h4>
           <p>Use these external sources to research charter options, specialist fishing information and official guidance. They do not confirm availability, current conditions or legal access for this specific spot.</p>
+          <h5>MARINE / FISH OBSERVATION RESEARCH</h5>
+          <ul>
+            <li><a href="https://www.sanbi.org/fishforlife/" target="_blank" rel="noopener noreferrer">SANBI FishForLife — recreational catch and fish-observation context</a><small>Citizen-science project information; not a verified live baitfish feed.</small></li>
+            <li><a href="https://data.ocean.gov.za/" target="_blank" rel="noopener noreferrer">DFFE Marine Information Management System (MIMS)</a><small>Marine datasets and observation archives; check each dataset’s date, coverage and update frequency.</small></li>
+            <li><a href="https://www.gbif.org/dataset/2a47dd25-4813-4d3c-99c1-1bc1aeb774e7" target="_blank" rel="noopener noreferrer">SANBI / GBIF South African fish occurrence records</a><small>Occurrence records can establish documented presence, not current abundance or baitfish prevalence.</small></li>
+          </ul>
+          <h5>CHARTERS / LOCAL INFORMATION</h5>
           <ul>
             <li><a href="https://fishingbooker.com" target="_blank" rel="noopener noreferrer">FishingBooker — South Africa fishing charters</a></li>
-            <li><a href="https://fishingbooker.com" target="_blank" rel="noopener noreferrer">Cape Town / Simon’s Town charter search</a></li>
             <li><a href="https://fishthefly.co.za" target="_blank" rel="noopener noreferrer">Fish the Fly SA — inland river and fly-fishing</a></li>
             <li><a href="https://www.westerncape.gov.za/" target="_blank" rel="noopener noreferrer">Western Cape Government — official information starting point</a></li>
           </ul>

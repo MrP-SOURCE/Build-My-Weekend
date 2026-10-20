@@ -304,6 +304,7 @@ const { chromium } = require("playwright");
     assert(fishingDetailText.includes("MOON / LUNAR CYCLE"), "Fishing detail is missing lunar-cycle context.");
     assert(fishingDetailText.includes("LOCAL BAITFISH PREVALENCE") && fishingDetailText.includes("UNVERIFIED"), "Fishing detail must not imply baitfish prevalence is verified.");
     assert(fishingDetailText.includes("ON-SITE SECURITY"), "Fishing detail is missing site-security verification status.");
+    assert(fishingDetailText.includes("SANBI FishForLife") && fishingDetailText.includes("Marine Information Management System (MIMS)"), "Fishing detail is missing the marine evidence research links.");
     assert((await page.locator("#dialog-content").innerText()).includes("km one way from Cape Town, South Africa"), "Destination detail does not show the selected departure origin.");
     await page.locator("#live-weather .weather-day").first().waitFor({ timeout: 10000 });
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
