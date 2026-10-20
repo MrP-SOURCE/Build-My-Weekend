@@ -428,12 +428,14 @@ const { chromium } = require("playwright");
 
     // Verify a restrictive search explains no matches and the recovery action widens the search.
     await page.locator("#budget").fill("1");
+    await page.locator("#origin").fill("George, South Africa");
     await page.locator("#experience").selectOption({ label: "Wildlife Away" });
     await page.locator('label:has(input[name="distance"][value="100"]) span').click();
     assert.equal(await page.locator('input[name="distance"][value="100"]').isChecked(), true, "The 100 km distance filter was not selected.");
     await page.locator("#trip-form button[type=submit]").click();
     await waitForRouteResults();
     assert.equal(await page.locator("#no-results").isVisible(), true, "An impossible activity/distance combination did not show the no-results guidance.");
+    assert(!(await page.locator("#no-results").innerText()).includes("Cape Town starting point"), "Custom-origin no-results guidance must not claim the departure point is Cape Town.");
     await page.locator("#budget").fill("3000");
     await page.locator("#people").fill("2");
     await page.locator("#fuel-price").fill("29.99");
