@@ -1840,10 +1840,16 @@ async function routeForDestination(origin, destination) {
 }
 
 async function addVerifiedRoutes(candidates, settings) {
-  // Cap live lookups to eight per planner run. Run them concurrently to keep outages bounded.
-  const ranked = [...candidates].sort((a, b) =>
-    b.valueScore - a.valueScore || a.cost.spend - b.cost.spend
-  ).slice(0, 8);
+  // Prefer catalogue estimates within the requested radius for the limited live-route shortlist.
+  // These estimates are only a prioritisation hint: every displayed route is still checked live.
+  // Keep out-of-radius candidates eligible so a custom origin can still produce useful results.
+  const distanceLimit = settings.distance === "any" ? Infinity : Number(settings.distance);
+  const ranked = [...candidates].sort((a, b) => {
+    const aWithinEstimate = a.distance <= distanceLimit;
+    const bWithinEstimate = b.distance <= distanceLimit;
+    return Number(bWithinEstimate) - Number(aWithinEstimate) ||
+      b.valueScore - a.valueScore || a.cost.spend - b.cost.spend;
+  }).slice(0, 8);
   const outcomes = await Promise.all(ranked.map(async candidate => {
     try {
       const route = await routeForDestination(settings.origin, candidate);
