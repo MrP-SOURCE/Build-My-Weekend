@@ -22,7 +22,7 @@ function idsFromHtml(source) {
   return [...source.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 }
 
-assert(app.includes("No destination matches all your current filters (weekend type, distance and budget)."), "No-results guidance must describe the combined filters accurately.");
+assert(app.includes("No destination passed all your current filters after route checks (weekend type, distance and budget)."), "No-results guidance must describe the combined filters accurately without assuming the departure point is Cape Town.");
 assert(app.includes("choosing a broader weekend type"), "No-results guidance must suggest practical ways to recover.");
 assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
 assert(app.includes('const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa")'), "Google Maps directions must use the departure location entered in the planner.");
