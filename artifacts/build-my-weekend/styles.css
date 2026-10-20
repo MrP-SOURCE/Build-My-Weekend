@@ -159,3 +159,14 @@
 .fishing-evidence-grid article small,.net-casting-screen{display:block;font-size:10px;line-height:1.5;color:#68796d}
 .net-casting-screen{margin-top:5px}
 @media(max-width:700px){.fishing-evidence-grid{grid-template-columns:1fr}}
+
+/* User-recorded Fishing Away evidence: clearly separated from verified/live data. */
+.fishing-observation-log{margin:18px 0;padding:16px;border:1px solid rgba(20,35,30,.2);border-radius:12px;background:rgba(255,255,255,.45)}
+.fishing-observation-log h4{margin:0 0 8px;font-size:.78rem;letter-spacing:.1em}
+.fishing-observation-log>p,.fishing-observation-log>small{line-height:1.5;color:#46564b}
+.fishing-observation-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.fishing-observation-form label{display:grid;gap:6px;font-size:.82rem;font-weight:650}
+.fishing-observation-form input,.fishing-observation-form select{width:100%;min-width:0;padding:10px;border:1px solid #aab7a8;border-radius:7px;background:#fff;color:#26382e;font:inherit}
+.fishing-observation-form button{align-self:end;min-height:42px;padding:10px 14px;border:0;border-radius:7px;background:#506e60;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.fishing-observation-feedback{font-weight:650;font-size:.84rem}
+@media(max-width:560px){.fishing-observation-form{grid-template-columns:1fr}}

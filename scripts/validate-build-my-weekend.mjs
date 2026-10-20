@@ -29,6 +29,10 @@ assert(app.includes("MOON / LUNAR CYCLE") && app.includes("LOCAL BAITFISH PREVAL
 assert(app.includes("NET-CASTING WIND SCREEN") && app.includes("not an official or validated net-casting limit"), "Fishing Away must show forecast wind context with an explicit non-authoritative heuristic caveat.");
 assert(app.includes("https://www.sanbi.org/fishforlife/") && app.includes("https://data.ocean.gov.za/") && app.includes("https://www.gbif.org/dataset/2a47dd25-4813-4d3c-99c1-1bc1aeb774e7"), "Fishing Away must provide traceable marine and fish-occurrence research sources.");
 assert(app.includes("not a verified live baitfish feed") && app.includes("not current abundance or baitfish prevalence"), "Fishing Away source links must not overstate historical occurrence data as live prevalence.");
+assert(app.includes("fishing-observation-form") && app.includes("USER_RECORDED_UNVERIFIED"), "Fishing Away must support explicitly unverified user-recorded observations.");
+assert(app.includes("bmw.fishing-observations.v1") && app.includes("localStorage.setItem"), "Fishing observations must be stored locally on the user device, not uploaded.");
+assert(app.includes("No visible security observed during this visit") && app.includes("does not prove security is absent"), "Security observations must distinguish not observed from confirmed absence.");
+assert(app.includes("existing.slice(-100)"), "The local observation log must cap stored entries.");
 
 assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
 assert(app.includes('const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa")'), "Google Maps directions must use the departure location entered in the planner.");
