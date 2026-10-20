@@ -83,7 +83,7 @@
   // Approximate lunar phase from a known new-moon epoch. This is astronomy context,
   // not a claim that lunar phase predicts catches.
   function lunarPhase(dateString) {
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(dateString || ""))) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateString || ""))) {
       return { label: "Date unavailable", illumination: null };
     }
     const date = new Date(dateString + "T12:00:00Z");
