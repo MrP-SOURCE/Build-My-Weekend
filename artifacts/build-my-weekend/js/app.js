@@ -2533,6 +2533,19 @@ dialog.addEventListener("submit", event => {
     if (feedback) feedback.textContent = "Could not save locally. Browser storage may be disabled or full; no entry was uploaded."; 
   }
 });
+function fishingObservationFreshness(entry) {
+  const date = String(entry.observedDate || "").trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return "Observation age unknown — date missing or invalid";
+  const time = String(entry.observedTime || "").trim();
+  const observedAt = new Date(date + "T" + (/^\\d{2}:\\d{2}$/.test(time) ? time : "12:00") + ":00");
+  if (!Number.isFinite(observedAt.getTime())) return "Observation age unknown — date invalid";
+  const ageMs = Date.now() - observedAt.getTime();
+  if (ageMs < -24 * 60 * 60 * 1000) return "Future observation date — check entry";
+  if (ageMs < 24 * 60 * 60 * 1000) return "Recent observation — less than 24 hours old";
+  if (ageMs <= 7 * 24 * 60 * 60 * 1000) return "Recent observation — 1 to 7 days old";
+  return "Historical observation — older than 7 days";
+}
+
 dialog.addEventListener("click", event => {
   if (event.target === dialog || event.target.closest(".dialog-close")) dialog.close();
   const singleDeleteButton = event.target.closest("button[data-observation-delete]");
@@ -2575,12 +2588,16 @@ dialog.addEventListener("click", event => {
       recordsPanel.innerHTML = entries.length
         ? "<h5>SAVED PERSONAL NOTES · UNVERIFIED</h5><ol>" + entries.slice().reverse().map((entry, reverseIndex) =>
             "<li><button type=\"button\" class=\"observation-delete-one\" data-observation-delete=\"" + (entries.length - 1 - reverseIndex) + "\">Delete this note</button><strong>" + esc(entry.spot || "Fishing spot") + " · " + esc(entry.observedDate || "Date not set") + "</strong>" +
+            "<p><strong>" + esc(fishingObservationFreshness(entry)) + "</strong></p>" +
+            "<p>Observed: " + esc(entry.observedDate || "date not recorded") + (entry.observedTime ? " at " + esc(entry.observedTime) : " · time not recorded") + "</p>" +
+            "<p>Wind: " + (entry.windSpeedKmh === null || entry.windSpeedKmh === undefined || entry.windSpeedKmh === "" ? "not recorded" : esc(entry.windSpeedKmh) + " km/h") +
+            " · Tide / water: " + esc(entry.waterState || "not recorded") + "</p>" +
             "<p>Baitfish: " + esc(entry.baitfishStatus || "not recorded") +
             " · Security: " + esc(entry.securityStatus || "not recorded") +
             " · Method: " + esc(entry.method || "not recorded") + "</p>" +
             (entry.baitfishDescription ? "<p>" + esc(entry.baitfishDescription) + "</p>" : "") +
             (entry.notes ? "<p>" + esc(entry.notes) + "</p>" : "") +
-            "<small>Saved " + esc(entry.savedAt || "time not recorded") + " · " + esc(entry.evidenceStatus || "USER_RECORDED_UNVERIFIED") + "</small></li>"
+            "<small>Saved separately: " + esc(entry.savedAt || "save time not recorded") + " · " + esc(entry.evidenceStatus || "USER_RECORDED_UNVERIFIED") + " · Personal report, not independently verified</small></li>"
           ).join("") + "</ol>"
         : "<p>No saved notes in this browser.</p>";
       if (feedback) feedback.textContent = entries.length + " personal note(s) found on this device. These are not independently verified.";

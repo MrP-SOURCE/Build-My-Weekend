@@ -39,6 +39,8 @@ assert(app.includes("data-observation-delete") && app.includes("Delete this one 
 assert(app.includes('name="observedTime"') && app.includes('name="windSpeedKmh"') && app.includes('name="waterState"'), "Fishing observation form must capture optional time, wind speed and tide/water state.");
 assert(app.includes('observedTime: String(values.get("observedTime") || "")') && app.includes('windSpeedKmh:') && app.includes('waterState: String(values.get("waterState") || "not-checked")'), "Fishing observations must persist time, wind and water-state context.");
 assert(app.includes("USER_RECORDED_UNVERIFIED") && app.includes("not independently verified"), "Exported and displayed observations must retain unverified evidence labels.");
+assert(app.includes("function fishingObservationFreshness(entry)") && app.includes("Historical observation — older than 7 days") && app.includes("Future observation date — check entry"), "Fishing observations must show age/freshness without presenting old or future-dated reports as current.");
+assert(app.includes('Observed: "') && app.includes('Wind: "') && app.includes("Tide / water: ") && app.includes("Saved separately:"), "Saved fishing observations must distinguish observation time from save time and show recorded wind and water context.");
 
 assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
 assert(app.includes('const origin = encodeURIComponent(settings.origin || "Cape Town, South Africa")'), "Google Maps directions must use the departure location entered in the planner.");
