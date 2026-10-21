@@ -291,7 +291,8 @@ const { chromium } = require("playwright");
           temperature_2m_max: forecastDates.map(() => 22),
           temperature_2m_min: forecastDates.map(() => 14),
           precipitation_probability_max: forecastDates.map(() => 10),
-          wind_speed_10m_max: forecastDates.map(() => 18)
+          wind_speed_10m_max: forecastDates.map(() => 18),
+          wind_gusts_10m_max: forecastDates.map(() => 28)
         }
       })
     }));
@@ -343,7 +344,8 @@ const { chromium } = require("playwright");
     assert((await page.locator("#live-weather").innerText()).includes("Mainly clear / partly cloudy"), "Successful weather data was not rendered.");
     assert((await page.locator("#live-weather").innerText()).includes("Open-Meteo"), "Rendered weather is missing its source attribution.");
     assert((await page.locator("#live-weather").innerText()).includes("NET-CASTING WIND SCREEN"), "Fishing weather must include the wind-only bait-net screen.");
-    assert((await page.locator("#live-weather").innerText()).includes("18 km/h maximum"), "Fishing wind screen did not use the returned forecast wind speed.");
+    assert((await page.locator("#live-weather").innerText()).includes("max wind 18 km/h"), "Fishing wind screen did not use the returned forecast wind speed.");
+    assert((await page.locator("#live-weather").innerText()).includes("max gust 28 km/h"), "Fishing wind screen did not use the returned forecast gust.");
     await page.locator("#marine-forecast .weather-day").first().waitFor({ timeout: 10000 });
     assert((await page.locator("#marine-forecast").innerText()).includes("Max wave: 1.4 m"), "Marine wave forecast fixture was not rendered.");
     assert((await page.locator("#marine-forecast").innerText()).includes("Max swell: 0.9 m"), "Marine swell forecast fixture was not rendered.");
