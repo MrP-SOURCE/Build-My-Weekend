@@ -2311,6 +2311,9 @@ function detail(destination, settings) {
           <p>Record what you personally observe at this spot. Entries stay in this browser on this device; they are not uploaded or independently verified.</p>
           <form data-testid="fishing-observation-form" class="fishing-observation-form">
             <label>Observation date <input name="observedDate" type="date" required></label>
+            <label>Approximate time <input name="observedTime" type="time"></label>
+            <label>Wind speed (km/h, if known) <input name="windSpeedKmh" type="number" min="0" max="250" step="1" placeholder="Optional"></label>
+            <label>Tide / water state <select name="waterState" required><option value="not-checked">Not checked</option><option value="low">Low tide</option><option value="rising">Rising tide</option><option value="high">High tide</option><option value="falling">Falling tide</option><option value="estuary-mouth-unknown">Estuary / mouth state unknown</option></select></label>
             <label>Baitfish observation <select name="baitfishStatus" required><option value="not-checked">Not checked</option><option value="observed">Baitfish observed</option><option value="not-observed">No baitfish observed during this check</option></select></label>
             <label>Species / description <input name="baitfishDescription" maxlength="160" placeholder="If known; do not guess"></label>
             <label>Method <select name="method" required><option value="visual">Visual observation</option><option value="cast-net">Cast-net attempt</option><option value="local-report">Another angler told me</option></select></label>
@@ -2504,6 +2507,9 @@ dialog.addEventListener("submit", event => {
   const entry = {
     spot: dialogContent.querySelector(".fishing-detail strong")?.textContent?.replace("Best matching area: ", "") || "Fishing spot",
     observedDate: String(values.get("observedDate") || ""),
+    observedTime: String(values.get("observedTime") || ""),
+    windSpeedKmh: String(values.get("windSpeedKmh") || "").trim() === "" ? null : Number(values.get("windSpeedKmh")),
+    waterState: String(values.get("waterState") || "not-checked"),
     baitfishStatus: String(values.get("baitfishStatus") || "not-checked"),
     baitfishDescription: String(values.get("baitfishDescription") || "").trim(),
     method: String(values.get("method") || "visual"),
