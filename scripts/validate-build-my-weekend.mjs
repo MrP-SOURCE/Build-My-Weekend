@@ -36,6 +36,8 @@ assert(app.includes("existing.slice(-100)"), "The local observation log must cap
 assert(app.includes('data-observation-action="view"') && app.includes('data-observation-action="export"') && app.includes('data-observation-action="delete"'), "Fishing observations must be viewable, exportable and deletable by the user.");
 assert(app.includes("build-my-weekend-fishing-observations.json") && app.includes("Delete all "), "Fishing observation export and explicit delete confirmation must be implemented.");
 assert(app.includes("data-observation-delete") && app.includes("Delete this one locally saved fishing observation") && app.includes("entries.splice(index, 1)"), "Fishing observations must support confirmed individual deletion without clearing other notes.");
+assert(app.includes('name="observedTime"') && app.includes('name="windSpeedKmh"') && app.includes('name="waterState"'), "Fishing observation form must capture optional time, wind speed and tide/water state.");
+assert(app.includes('observedTime: String(values.get("observedTime") || "")') && app.includes('windSpeedKmh:') && app.includes('waterState: String(values.get("waterState") || "not-checked")'), "Fishing observations must persist time, wind and water-state context.");
 assert(app.includes("USER_RECORDED_UNVERIFIED") && app.includes("not independently verified"), "Exported and displayed observations must retain unverified evidence labels.");
 
 assert(html.includes("<strong>WESTERN CAPE DESTINATION PILOT · LIVE ROUTE CHECKS</strong>") && html.includes("not a nationwide destination directory"), "The planner must disclose live route checks and the current Western Cape destination-catalogue limit.");
