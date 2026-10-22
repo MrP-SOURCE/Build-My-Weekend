@@ -60,6 +60,17 @@ for (const marker of ["Hermanus", "Gordon's Bay", "budget", "Fishing"]) {
   assert(bundle.includes(marker), "Production JavaScript is missing expected planner content: " + marker);
 }
 
+const guidePath = "TESTING_GUIDE.md";
+assert(fs.existsSync(guidePath), "Release-readiness checklist is missing: " + guidePath);
+const guide = fs.readFileSync(guidePath, "utf8");
+for (const [label, marker] of [
+  ["explicit weather API commercial-use release gate", "Weather API licence"],
+  ["explicit marine forecast commercial-use release gate", "Marine forecast licence and attribution"],
+  ["external data licence review gate", "Commercial data review"]
+]) {
+  assert(guide.includes(marker), "Release-readiness checklist is missing " + label + ".");
+}
+
 const cssFiles = files.filter((file) => file.endsWith(".css"));
 assert(cssFiles.length > 0, "Production output contains no CSS files.");
 console.log("Production artifact smoke: PASS");
