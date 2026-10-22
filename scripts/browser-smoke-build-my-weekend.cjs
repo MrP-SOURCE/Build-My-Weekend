@@ -609,6 +609,25 @@ const { chromium } = require("playwright");
     assert(mobileLayout.documentWidth <= mobileLayout.viewportWidth + 1,
       "Mobile layout has horizontal overflow: " + JSON.stringify(mobileLayout));
 
+    // Verify the custom departure origin reaches live-route planning and destination detail.
+    await page.locator("#origin").fill("Stellenbosch, South Africa");
+    await page.locator("#experience").selectOption({ label: "Any" });
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert((await page.locator("#results-summary").innerText()).includes("route-verified destination"),
+      "Custom-origin planning did not produce a route-verified result.");
+    const customOriginCard = page.locator("#recommendations .trip-card").first();
+    await customOriginCard.locator('button[data-action="view"]').click();
+    const customOriginDetail = await page.locator("#dialog-content").innerText();
+    assert(customOriginDetail.includes("from Stellenbosch, South Africa"),
+      "Destination detail distance/header did not use the custom departure origin.");
+    assert(customOriginDetail.includes("Suggested departure from Stellenbosch, South Africa") ||
+      customOriginDetail.includes("Suggested day-trip departure from Stellenbosch, South Africa"),
+      "Generated itinerary did not use the custom departure origin.");
+    assert(!/Suggested (?:day-trip )?departure from Cape Town, South Africa/.test(customOriginDetail),
+      "Generated itinerary incorrectly retained the Cape Town default after changing origin.");
+    await page.locator("#trip-dialog .dialog-close").click();
+
     // Exercise the standalone shoreline topography page with a deterministic API fixture.
     const explorerUrl = new URL("shoreline-explorer.html", process.env.BMW_BASE_URL || "http://127.0.0.1:4173/Build-My-Weekend/").toString();
     const explorerResponse = await page.goto(explorerUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
