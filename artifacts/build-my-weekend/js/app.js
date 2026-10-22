@@ -2549,9 +2549,9 @@ dialog.addEventListener("submit", event => {
 });
 function fishingObservationFreshness(entry) {
   const date = String(entry.observedDate || "").trim();
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return "Observation age unknown — date missing or invalid";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return "Observation age unknown — date missing or invalid";
   const time = String(entry.observedTime || "").trim();
-  const observedAt = new Date(date + "T" + (/^\\d{2}:\\d{2}$/.test(time) ? time : "12:00") + ":00");
+  const observedAt = new Date(date + "T" + (/^\d{2}:\d{2}$/.test(time) ? time : "12:00") + ":00");
   if (!Number.isFinite(observedAt.getTime())) return "Observation age unknown — date invalid";
   const ageMs = Date.now() - observedAt.getTime();
   if (ageMs < -24 * 60 * 60 * 1000) return "Future observation date — check entry";
