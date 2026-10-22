@@ -2006,11 +2006,16 @@ function weatherDateLabel(value) {
   });
 }
 
-function netCastingWindNote(speedKmh) {
-  if (!Number.isFinite(Number(speedKmh))) return "Wind reading unavailable; net-casting suitability cannot be assessed.";
-  const speed = Math.round(Number(speedKmh));
-  const band = speed < 15 ? "LOWER-WIND SCREEN" : speed < 25 ? "CAUTION SCREEN" : "HIGHER-WIND SCREEN";
-  return `${band} · ${speed} km/h maximum. Rough planning heuristic only, not an official or validated net-casting limit. Check gusts, crosswind, surf/current, local conditions and netting rules.`;
+function netCastingWindNote(speedKmh, gustKmh) {
+  const speedAvailable = speedKmh !== null && speedKmh !== undefined && speedKmh !== "" && Number.isFinite(Number(speedKmh));
+  const gustAvailable = gustKmh !== null && gustKmh !== undefined && gustKmh !== "" && Number.isFinite(Number(gustKmh));
+  if (!speedAvailable && !gustAvailable) return "Wind and gust readings unavailable; net-casting suitability cannot be assessed.";
+  const speed = speedAvailable ? Math.round(Number(speedKmh)) : null;
+  const gust = gustAvailable ? Math.round(Number(gustKmh)) : null;
+  const screeningSpeed = Math.max(speed === null ? 0 : speed, gust === null ? 0 : gust);
+  const band = screeningSpeed < 15 ? "LOWER-WIND SCREEN" : screeningSpeed < 25 ? "CAUTION SCREEN" : "HIGHER-WIND SCREEN";
+  const readings = [speed === null ? "sustained wind n/a" : `max wind ${speed} km/h`, gust === null ? "gusts n/a" : `max gust ${gust} km/h`].join(" · ");
+  return `${band} · ${readings}. Rough planning heuristic only, not an official or validated net-casting limit. Gusts may be more important than the daily wind average; check crosswind, surf/current, local conditions and netting rules.`;
 }
 
 async function loadMarineForecast(destination, settings) {
@@ -2093,7 +2098,7 @@ async function loadDestinationWeather(destination, settings) {
     const params = new URLSearchParams({
       latitude: String(coords[0]),
       longitude: String(coords[1]),
-      daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max",
+      daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max",
       timezone: "auto",
       forecast_days: "16"
     });
@@ -2109,7 +2114,8 @@ async function loadDestinationWeather(destination, settings) {
       max: data.daily.temperature_2m_max?.[index],
       min: data.daily.temperature_2m_min?.[index],
       rain: data.daily.precipitation_probability_max?.[index],
-      wind: data.daily.wind_speed_10m_max?.[index]
+      wind: data.daily.wind_speed_10m_max?.[index],
+      gust: data.daily.wind_gusts_10m_max?.[index]
     })).filter(day => day.date >= startDate && day.date <= endDate);
     const retrieved = new Date().toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
     if (!dates.length) {
@@ -2124,7 +2130,7 @@ async function loadDestinationWeather(destination, settings) {
         <span>${Number.isFinite(Number(day.max)) && Number.isFinite(Number(day.min)) ? `${Math.round(Number(day.min))}–${Math.round(Number(day.max))}°C` : "Temperature unavailable"}</span>
         <small>Rain chance: ${day.rain == null ? "n/a" : `${Math.round(Number(day.rain))}%`}</small>
         <small>Max wind: ${day.wind == null ? "n/a" : `${Math.round(Number(day.wind))} km/h`}</small>
-        ${settings.experience === "Fishing Away" ? `<small class="net-casting-screen">NET-CASTING WIND SCREEN: ${esc(netCastingWindNote(day.wind == null ? NaN : Number(day.wind)))}</small>` : ""}
+        ${settings.experience === "Fishing Away" ? `<small>Max wind gust: ${day.gust == null ? "n/a" : `${Math.round(Number(day.gust))} km/h`}</small><small class="net-casting-screen">NET-CASTING WIND SCREEN: ${esc(netCastingWindNote(day.wind, day.gust))}</small>` : ""}
       </div>`).join("")}</div>
       <small>Source: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Retrieved ${esc(retrieved)}. Forecasts can change; check again before departure.</small>`;
   } catch {
