@@ -996,13 +996,21 @@ function testShareSummaryBudgetNextSteps() {
 function testDirectionsUrl() {
   const destination = destinations.find(item => item.name === "Gordon's Bay");
   if (!destination) throw new Error("Gordon's Bay destination required for directions regression.");
-  const url = directionsUrl(destination);
-  if (!url.startsWith("https://www.google.com/maps/dir/?api=1&origin=") || !url.includes("&travelmode=driving")) {
+  const defaultUrl = directionsUrl(destination);
+  if (!defaultUrl.startsWith("https://www.google.com/maps/dir/?api=1&origin=") || !defaultUrl.includes("&travelmode=driving")) {
     throw new Error("Navigation handoff must use Google Maps driving directions.");
   }
-  const decoded = decodeURIComponent(url);
-  if (!decoded.includes("Cape Town, South Africa") || !decoded.includes("Gordon's Bay, Cape Helderberg, Western Cape, South Africa")) {
-    throw new Error("Navigation handoff must include the app origin and selected destination.");
+  const defaultDecoded = decodeURIComponent(defaultUrl);
+  if (!defaultDecoded.includes("Cape Town, South Africa") || !defaultDecoded.includes("Gordon's Bay, Cape Helderberg, Western Cape, South Africa")) {
+    throw new Error("Default navigation handoff must include its origin and selected destination.");
+  }
+  const customOrigin = "Stellenbosch, Western Cape, South Africa";
+  const customUrl = directionsUrl(destination, { origin: customOrigin });
+  const customDecoded = decodeURIComponent(customUrl);
+  if (!customDecoded.includes("origin=" + customOrigin) ||
+      !customDecoded.includes("destination=Gordon's Bay, Cape Helderberg, Western Cape, South Africa") ||
+      !customUrl.includes("&travelmode=driving")) {
+    throw new Error("Custom-origin navigation handoff must preserve the selected origin and destination.");
   }
   return true;
 }
