@@ -46,6 +46,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 - [ ] Try **NAVIGATE** with the default origin and confirm Google Maps receives Cape Town plus the selected destination.
 - [ ] Change the departure area (for example, Stellenbosch), generate a plan and use **NAVIGATE**; confirm Google Maps receives the selected origin, selected destination and driving mode, not the Cape Town default.
 - [ ] **Custom-origin route and cost consistency:** when live routing succeeds, confirm route distance/time and distance-limit filtering use the selected origin, and the return-trip fuel estimate recalculates from that route distance. When routing fails, confirm the fallback remains explicitly unverified and does not present catalogue distances as live route results. Verify the actual route before travelling.
+- [ ] **Custom-origin itinerary consistency:** after changing the departure area, confirm the trip detail header and generated itinerary use that same origin for the outbound and return-drive guidance; no Cape Town departure wording should remain unless Cape Town is the selected origin.
 - [ ] Try **SHARE TRIP** and confirm the summary includes the group budget, estimated cost range, fuel calculation and important caveats.
 - [ ] Use the hospital, pharmacy and fuel-station map searches as search starting points only; verify the actual service and opening hours independently.
 
