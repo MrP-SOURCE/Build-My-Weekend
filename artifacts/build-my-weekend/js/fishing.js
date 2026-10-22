@@ -84,17 +84,17 @@
   // not a claim that lunar phase predicts catches.
   function lunarPhase(dateString) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateString || ""))) {
-      return { label: "Date unavailable", illumination: null };
+      return { label: "Date unavailable", illumination: null, ageDays: null, cycleLengthDays: 29.530588853 };
     }
     const date = new Date(dateString + "T12:00:00Z");
-    if (!Number.isFinite(date.getTime())) return { label: "Date unavailable", illumination: null };
+    if (!Number.isFinite(date.getTime())) return { label: "Date unavailable", illumination: null, ageDays: null, cycleLengthDays: 29.530588853 };
     const synodicMonth = 29.530588853;
     const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
     const age = ((date.getTime() - knownNewMoon) / 86400000 % synodicMonth + synodicMonth) % synodicMonth;
     const phaseIndex = Math.round((age / synodicMonth) * 8) % 8;
     const labels = ["New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous", "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"];
     const illumination = Math.round((1 - Math.cos(2 * Math.PI * age / synodicMonth)) * 50);
-    return { label: labels[phaseIndex], illumination };
+    return { label: labels[phaseIndex], illumination, ageDays: Math.round(age * 10) / 10, cycleLengthDays: synodicMonth };
   }
 
   window.BMWFishing = {
