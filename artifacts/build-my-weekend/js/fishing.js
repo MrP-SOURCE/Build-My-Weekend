@@ -87,7 +87,9 @@
       return { label: "Date unavailable", illumination: null, ageDays: null, cycleLengthDays: 29.530588853 };
     }
     const date = new Date(dateString + "T12:00:00Z");
-    if (!Number.isFinite(date.getTime())) return { label: "Date unavailable", illumination: null, ageDays: null, cycleLengthDays: 29.530588853 };
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== dateString) {
+      return { label: "Date unavailable", illumination: null, ageDays: null, cycleLengthDays: 29.530588853 };
+    }
     const synodicMonth = 29.530588853;
     const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
     const age = ((date.getTime() - knownNewMoon) / 86400000 % synodicMonth + synodicMonth) % synodicMonth;
