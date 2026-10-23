@@ -184,6 +184,15 @@ vm.createContext(context);
 vm.runInContext(fishing, context);
 const fishingApi = context.window.BMWFishing;
 assert(fishingApi && fishingApi.spots.length >= 15, "Fishing demo dataset is unexpectedly small.");
+const validLunarDate = fishingApi.lunarPhase("2026-10-23");
+assert(validLunarDate.label !== "Date unavailable" && Number.isFinite(validLunarDate.illumination) && validLunarDate.illumination >= 0 && validLunarDate.illumination <= 100, "A valid date must return a usable approximate lunar phase and illumination.");
+assert(Number.isFinite(validLunarDate.ageDays) && validLunarDate.ageDays >= 0 && validLunarDate.ageDays < validLunarDate.cycleLengthDays, "Lunar age must stay within one synodic cycle.");
+assert(fishingApi.lunarPhase("2024-02-29").label !== "Date unavailable", "A valid leap-day date must be accepted.");
+for (const invalidDate of ["", "not-a-date", "2026-02-31", "2026-13-01", "2026-04-31"]) {
+  const result = fishingApi.lunarPhase(invalidDate);
+  assert(result.label === "Date unavailable" && result.illumination === null && result.ageDays === null, "Invalid lunar date must fail closed without fabricated values: " + invalidDate);
+}
+
 assert(fishingApi.bestSpot("hermanus", { fishingStyle: "Shore", targetSpecies: "Galjoen", spotPreference: "Let the app choose" }), "Hermanus fishing match failed.");
 assert(!fishingApi.bestSpot("hermanus", { fishingStyle: "Freshwater", targetSpecies: "Any", spotPreference: "Let the app choose" }), "Unsupported freshwater style must not return a spot.");
 assert(!fishingApi.bestSpot("hermanus", { fishingStyle: "Any", targetSpecies: "Other", spotPreference: "Let the app choose" }), "Unsupported species must not return a spot.");
