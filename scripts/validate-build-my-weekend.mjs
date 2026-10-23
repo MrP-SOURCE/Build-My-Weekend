@@ -25,6 +25,7 @@ function idsFromHtml(source) {
 assert(app.includes("No destination passed all your current filters after route checks (weekend type, distance and budget)."), "No-results guidance must describe the combined filters accurately without assuming the departure point is Cape Town.");
 assert(app.includes("choosing a broader weekend type"), "No-results guidance must suggest practical ways to recover.");
 assert(fishing.includes("function lunarPhase") && fishing.includes("synodicMonth"), "Fishing Away must calculate an approximate lunar phase without claiming catch prediction.");
+assert(fishing.includes('date.toISOString().slice(0, 10) !== dateString'), "Lunar phase must reject impossible calendar dates instead of silently normalising them.");
 assert(app.includes("MOON / LUNAR CYCLE") && app.includes("LOCAL BAITFISH PREVALENCE") && app.includes("ON-SITE SECURITY"), "Fishing Away must show lunar context and explicitly label unverified baitfish/security evidence.");
 assert(app.includes("NET-CASTING WIND SCREEN") && app.includes("not an official or validated net-casting limit"), "Fishing Away must show forecast wind context with an explicit non-authoritative heuristic caveat.");
 assert(app.includes("wind_gusts_10m_max") && app.includes("Max wind gust:") && app.includes("netCastingWindNote(day.wind, day.gust)"), "Fishing Away must show available forecast gusts alongside wind speed and include gusts in its explicitly heuristic screen.");
