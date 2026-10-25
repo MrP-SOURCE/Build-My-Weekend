@@ -2552,7 +2552,8 @@ function fishingObservationFreshness(entry) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return "Observation age unknown — date missing or invalid";
   const time = String(entry.observedTime || "").trim();
   const observedAt = new Date(date + "T" + (/^\d{2}:\d{2}$/.test(time) ? time : "12:00") + ":00");
-  if (!Number.isFinite(observedAt.getTime())) return "Observation age unknown — date invalid";
+  const [year, month, day] = date.split("-").map(Number);
+  if (!Number.isFinite(observedAt.getTime()) || observedAt.getFullYear() !== year || observedAt.getMonth() !== month - 1 || observedAt.getDate() !== day) return "Observation age unknown — date invalid";
   const ageMs = Date.now() - observedAt.getTime();
   if (ageMs < -24 * 60 * 60 * 1000) return "Future observation date — check entry";
   if (ageMs < 24 * 60 * 60 * 1000) return "Recent observation — less than 24 hours old";
