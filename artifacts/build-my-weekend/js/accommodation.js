@@ -35,6 +35,9 @@
     const parts = [area + " accommodation South Africa"];
     if (people) parts.push(people + " guests");
     if (budget) parts.push("budget R" + Math.round(budget));
+    if (settings?.depart && settings?.returnDate) {
+      parts.push("check-in " + settings.depart, "check-out " + settings.returnDate);
+    }
     return parts.join(" ");
   }
 
