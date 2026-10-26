@@ -514,7 +514,7 @@ function findCandidates(settings, options = {}) {
       const fishingScore = settings.experience === "Fishing Away" && window.BMWFishing
         ? window.BMWFishing.destinationMatch(destination.id, settings)
         : 0;
-      const candidate = { ...destination, cost, experienceScore, fishingScore, fishingPriority: settings.fishingPriority };
+      const candidate = { ...destination, cost, experienceScore, fishingScore, fishingPriority: settings.experience === "Fishing Away" ? settings.fishingPriority : null };
       candidate.valueScore = valueScore(candidate, settings) + (settings.experience === "Fishing Away" ? fishingScore * 0.08 : 0);
       return candidate;
     })
@@ -545,7 +545,7 @@ function buildShortlist(candidates, settings = {}) {
   const nearRole = stayFeeExcluded ? "CLOSEST BASE-ESTIMATE FIT" : "CLOSEST AFFORDABLE";
   const farRole = stayFeeExcluded ? "FURTHEST BASE-ESTIMATE FIT" : "FURTHEST AFFORDABLE";
   const byValue = (a, b) => {
-    if (candidates[0]?.fishingScore) {
+    if (candidates[0]?.fishingPriority && Number.isFinite(candidates[0]?.fishingScore)) {
       const priority = candidates[0].fishingPriority || "Best Overall Weekend";
       if (priority === "Best Fishing Opportunity" && b.fishingScore !== a.fishingScore) return b.fishingScore - a.fishingScore;
       if (priority === "Lowest Cost" && b.cost.spend !== a.cost.spend) return a.cost.spend - b.cost.spend;
@@ -590,7 +590,7 @@ function buildShortlist(candidates, settings = {}) {
 
 function settingsForShortlist(candidates) {
   const first = candidates[0];
-  if (!first?.fishingScore) {
+  if (!first?.fishingPriority || !Number.isFinite(first?.fishingScore)) {
     return (a, b) => b.valueScore - a.valueScore || a.cost.spend - b.cost.spend || a.distance - b.distance;
   }
   const priority = first.fishingPriority || "Best Overall Weekend";
@@ -1141,10 +1141,31 @@ function testFishingPriorities() {
     const candidates = findCandidates({ ...base, fishingPriority });
     if (!candidates.length) throw new Error("Fishing priority test has no candidates: " + fishingPriority);
     const shortlist = buildShortlist(candidates, { ...base, fishingPriority });
-    const expectedFirst = sortBy(candidates, settingsForShortlist(candidates))[0].id;
+    const compare = fishingPriority === "Best Fishing Opportunity"
+      ? (a, b) => b.fishingScore - a.fishingScore || b.valueScore - a.valueScore || a.distance - b.distance
+      : fishingPriority === "Lowest Cost"
+        ? (a, b) => a.cost.spend - b.cost.spend || b.fishingScore - a.fishingScore || a.distance - b.distance
+        : fishingPriority === "Shortest Drive"
+          ? (a, b) => a.distance - b.distance || b.fishingScore - a.fishingScore || b.valueScore - a.valueScore
+          : (a, b) => b.valueScore - a.valueScore || b.fishingScore - a.fishingScore || a.cost.spend - b.cost.spend;
+    const expectedFirst = [...candidates].sort(compare)[0].id;
     if (shortlist[0]?.destination.id !== expectedFirst) throw new Error("Fishing priority order failed: " + fishingPriority);
     return { priority: fishingPriority, first: shortlist[0].destination.name };
   });
+}
+
+function testZeroFishingScorePriority() {
+  const candidates = [
+    { id: "value-first", name: "Value First", distance: 30, valueScore: 0.99, fishingScore: 0, fishingPriority: "Lowest Cost", cost: { spend: 500 } },
+    { id: "nearest", name: "Nearest", distance: 10, valueScore: 0.1, fishingScore: 0, fishingPriority: "Lowest Cost", cost: { spend: 800 } },
+    { id: "cheapest", name: "Cheapest", distance: 20, valueScore: 0.5, fishingScore: 0, fishingPriority: "Lowest Cost", cost: { spend: 300 } }
+  ];
+  const cheapest = buildShortlist(candidates, { experience: "Fishing Away", fishingPriority: "Lowest Cost" });
+  if (cheapest[0]?.destination.id !== "cheapest") throw new Error("Lowest Cost fishing priority failed when all fishing scores were zero.");
+  const shortestDriveCandidates = candidates.map(candidate => ({ ...candidate, fishingPriority: "Shortest Drive" }));
+  const nearest = buildShortlist(shortestDriveCandidates, { experience: "Fishing Away", fishingPriority: "Shortest Drive" });
+  if (nearest[0]?.destination.id !== "nearest") throw new Error("Shortest Drive fishing priority failed when all fishing scores were zero.");
+  return true;
 }
 if (typeof window !== "undefined") {
   window.testHermanusCalculation = testHermanusCalculation;
@@ -1164,6 +1185,7 @@ if (typeof window !== "undefined") {
   window.testActivityPanelState = testActivityPanelState;
   window.testWeekendScenarios = testRecommendationScenarios;
   window.testFishingPriorities = testFishingPriorities;
+  window.testZeroFishingScorePriority = testZeroFishingScorePriority;
 }
 
 function applySavedSettings(saved, targetForm, getElementById) {

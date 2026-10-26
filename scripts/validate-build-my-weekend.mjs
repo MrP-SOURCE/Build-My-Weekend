@@ -331,6 +331,7 @@ for (const prefix of ["Wildlife", "Couples", "Road trip"]) assert(plannerScenari
 assert(plannerScenarios.length >= 11, "Activity-category regression coverage is unexpectedly small.");
 const fishingPriorities = context.window.testFishingPriorities();
 assert(fishingPriorities.length === 4, "Fishing priority coverage changed.");
+assert(context.window.testZeroFishingScorePriority(), "Zero-score fishing priority regression checks failed.");
 console.log("Planner calculation tests: PASS");
 console.log("Trip date validation cases: 6 PASS");
 console.log("Saved preference save and restore mapping: 22 PASS");
