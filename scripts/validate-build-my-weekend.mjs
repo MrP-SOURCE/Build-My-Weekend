@@ -221,6 +221,12 @@ assert(bookingLink.includes("checkin=2026-10-09") && bookingLink.includes("check
 assert(bookingLink.includes("group_adults=4"), "Booking.com search must retain group size.");
 const airbnbLink = links.find(link => link.name === "Airbnb").url;
 assert(airbnbLink.includes("adults=4") && airbnbLink.includes("checkin=2026-10-09") && airbnbLink.includes("checkout=2026-10-11"), "Airbnb search must retain group size and selected dates.");
+const searchOnlyStayLinks = links.filter(link => ["LekkeSlaap", "SafariNow", "SA-Venues"].includes(link.name));
+assert(searchOnlyStayLinks.length === 3, "Date-aware accommodation search coverage changed.");
+assert(searchOnlyStayLinks.every(link => {
+  const query = decodeURIComponent(link.url);
+  return query.includes("check-in 2026-10-09") && query.includes("check-out 2026-10-11") && query.includes("4 guests") && query.includes("budget R3000");
+}), "Search-only accommodation providers must receive the selected dates, group size and budget as search context.");
 
 console.log("BUILD MY WEEKEND structural smoke test: PASS");
 console.log("HTML ids:", ids.length);
