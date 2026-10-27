@@ -634,6 +634,15 @@ const { chromium } = require("playwright");
       "Generated itinerary did not use the custom departure origin.");
     assert(!/Suggested (?:day-trip )?departure from Cape Town, South Africa/.test(customOriginDetail),
       "Generated itinerary incorrectly retained the Cape Town default after changing origin.");
+
+    // The custom route must also drive the return-fuel calculation, not just the displayed distance.
+    // Fixture values: 25 km one way × 2 × 7.2 L/100 km × R25.10/L = R90.36.
+    assert(customOriginDetail.includes("Fuel consumed for return trip"),
+      "Custom-origin detail is missing the route-based fuel calculation.");
+    assert(customOriginDetail.includes("90,36"),
+      "Fuel consumption was not recalculated from the 25 km custom-origin route (expected R90.36).");
+    assert(!customOriginDetail.includes("162,65"),
+      "Fuel consumption appears to reuse the 45 km non-Stellenbosch fixture route.");
     await page.locator("#trip-dialog .dialog-close").click();
 
     // Exercise the standalone shoreline topography page with a deterministic API fixture.
