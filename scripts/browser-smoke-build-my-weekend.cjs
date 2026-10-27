@@ -49,7 +49,7 @@ const { chromium } = require("playwright");
         body: JSON.stringify({
           origin: body.origin,
           destination: body.destination,
-          distanceKmOneWay: simulateInvalidRouteResponse ? "not-a-number" : 45,
+          distanceKmOneWay: simulateInvalidRouteResponse ? "not-a-number" : (String(body.origin || "").startsWith("Stellenbosch") ? 25 : 45),
           driveMinutesOneWay: 39,
           source: "TomTom Routing API",
           disclaimer: "Deterministic route fixture for browser testing."
@@ -609,7 +609,13 @@ const { chromium } = require("playwright");
     assert(mobileLayout.documentWidth <= mobileLayout.viewportWidth + 1,
       "Mobile layout has horizontal overflow: " + JSON.stringify(mobileLayout));
 
-    // Verify the custom departure origin reaches live-route planning and destination detail.
+    // Verify a changed departure origin triggers a fresh route lookup and uses its returned distance.
+    // Remove only this origin’s cache entries so the fixture proves recalculation, not stale-cache reuse.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("bmwRoute:v3:stellenbosch, south africa::")) localStorage.removeItem(key);
+      }
+    });
     await page.locator("#origin").fill("Stellenbosch, South Africa");
     await page.locator("#experience").selectOption({ label: "Any" });
     await page.locator("#trip-form button[type=submit]").click();
@@ -619,6 +625,8 @@ const { chromium } = require("playwright");
     const customOriginCard = page.locator("#recommendations .trip-card").first();
     await customOriginCard.locator('button[data-action="view"]').click();
     const customOriginDetail = await page.locator("#dialog-content").innerText();
+    assert(customOriginDetail.includes("25 km one way from Stellenbosch, South Africa"),
+      "Changing origin did not recalculate and display the route service’s new distance.");
     assert(customOriginDetail.includes("from Stellenbosch, South Africa"),
       "Destination detail distance/header did not use the custom departure origin.");
     assert(customOriginDetail.includes("Suggested departure from Stellenbosch, South Africa") ||
