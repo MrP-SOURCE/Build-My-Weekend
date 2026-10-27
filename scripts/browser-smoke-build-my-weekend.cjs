@@ -637,10 +637,10 @@ const { chromium } = require("playwright");
 
     // Compare the rendered fuel line with the selected vehicle assumptions.
     // The route fixture returns 25 km from Stellenbosch; the stale non-Stellenbosch route is 45 km.
-    const fuelLine = page.locator("#dialog-content .cost-line").filter({ hasText: /^Fuel consumed \\(/ });
+    const fuelLine = page.locator("#dialog-content .cost-line").filter({ hasText: /^Fuel consumed \(/ });
     assert.equal(await fuelLine.count(), 1, "Custom-origin detail is missing its route-based fuel calculation.");
     const fuelLineText = await fuelLine.locator("strong").innerText();
-    const parseZar = value => Number(value.replace(/[^\\d,.-]/g, "").replace(/\\./g, "").replace(",", "."));
+    const parseZar = value => Number(value.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
     const consumption = Number(await page.locator("#consumption").inputValue());
     const fuelPrice = Number(await page.locator("#fuel-price").inputValue());
     const displayedFuel = parseZar(fuelLineText);
