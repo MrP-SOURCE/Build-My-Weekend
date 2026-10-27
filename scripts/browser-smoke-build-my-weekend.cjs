@@ -637,7 +637,7 @@ const { chromium } = require("playwright");
 
     // The custom route must also drive the return-fuel calculation, not just the displayed distance.
     // Fixture values: 25 km one way × 2 × 7.2 L/100 km × R25.10/L = R90.36.
-    assert(customOriginDetail.includes("Fuel consumed for return trip"),
+    assert(customOriginDetail.includes("Fuel consumed ("),
       "Custom-origin detail is missing the route-based fuel calculation.");
     assert(customOriginDetail.includes("90,36"),
       "Fuel consumption was not recalculated from the 25 km custom-origin route (expected R90.36).");
