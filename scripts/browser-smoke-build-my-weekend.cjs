@@ -697,6 +697,11 @@ const { chromium } = require("playwright");
     await page.evaluate(() => {
       window.__bmwOpenedUrl = null;
       window.__bmwSharedPayload = null;
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async payload => { window.__bmwSharedPayload = payload; }
+      });
+      window.open = url => { window.__bmwOpenedUrl = url; return null; };
     });
     await page.locator('[data-testid="navigate-button"]').click();
     const customOriginRoute = await page.evaluate(() => window.__bmwOpenedUrl);
