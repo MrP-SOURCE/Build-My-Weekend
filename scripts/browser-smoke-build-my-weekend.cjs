@@ -634,6 +634,22 @@ const { chromium } = require("playwright");
       "Generated itinerary did not use the custom departure origin.");
     assert(!/Suggested (?:day-trip )?departure from Cape Town, South Africa/.test(customOriginDetail),
       "Generated itinerary incorrectly retained the Cape Town default after changing origin.");
+
+    // Compare the rendered fuel line with the selected vehicle assumptions.
+    // The route fixture returns 25 km from Stellenbosch; the stale non-Stellenbosch route is 45 km.
+    const fuelLine = page.locator("#dialog-content .cost-line").filter({ hasText: /^Fuel consumed \(/ });
+    assert.equal(await fuelLine.count(), 1, "Custom-origin detail is missing its route-based fuel calculation.");
+    const fuelLineText = await fuelLine.locator("strong").innerText();
+    const parseZar = value => Number(value.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
+    const consumption = Number(await page.locator("#consumption").inputValue());
+    const fuelPrice = Number(await page.locator("#fuel-price").inputValue());
+    const displayedFuel = parseZar(fuelLineText);
+    const expectedCustomOriginFuel = 50 * consumption * fuelPrice / 100;
+    const staleCapeTownFuel = 90 * consumption * fuelPrice / 100;
+    assert(Math.abs(displayedFuel - expectedCustomOriginFuel) < 0.011,
+      "Fuel consumption was not recalculated from the 25 km custom-origin route. Displayed: " + fuelLineText);
+    assert(Math.abs(displayedFuel - staleCapeTownFuel) >= 0.011,
+      "Fuel consumption appears to reuse the 45 km non-Stellenbosch fixture route.");
     await page.locator("#trip-dialog .dialog-close").click();
 
     // Exercise the standalone shoreline topography page with a deterministic API fixture.
