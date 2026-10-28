@@ -59,7 +59,7 @@ jobs:
           node --check artifacts/build-my-weekend/js/camping.js
 
       - name: Test Fishing Away domain rules
-        run: node --test scripts/test-fishing-away.cjs
+        run: node --test scripts/test-fishing-away.mjs
 
   structural-smoke:
     runs-on: ubuntu-latest
