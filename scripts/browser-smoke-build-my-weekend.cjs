@@ -692,6 +692,29 @@ const { chromium } = require("playwright");
       "Fuel consumption was not recalculated from the 25 km custom-origin route. Displayed: " + fuelLineText);
     assert(Math.abs(displayedFuel - staleCapeTownFuel) >= 0.011,
       "Fuel consumption appears to reuse the 45 km non-Stellenbosch fixture route.");
+
+    // The selected custom origin must also survive navigation and share hand-offs.
+    await page.evaluate(() => {
+      window.__bmwOpenedUrl = null;
+      window.__bmwSharedPayload = null;
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async payload => { window.__bmwSharedPayload = payload; }
+      });
+      window.open = url => { window.__bmwOpenedUrl = url; return null; };
+    });
+    await page.locator('[data-testid="navigate-button"]').click();
+    const customOriginRoute = await page.evaluate(() => window.__bmwOpenedUrl);
+    assert(customOriginRoute && customOriginRoute.includes("google.com/maps/dir"),
+      "Custom-origin Navigate did not hand off to Google Maps.");
+    assert(decodeURIComponent(customOriginRoute || "").includes("Stellenbosch, South Africa"),
+      "Custom-origin Google Maps hand-off did not use Stellenbosch as the route origin.");
+    await page.locator('[data-testid="detail-share-button"]').click();
+    const customOriginShare = await page.evaluate(() => window.__bmwSharedPayload);
+    assert(customOriginShare?.text.includes("DRIVING ROUTE FROM Stellenbosch, South Africa"),
+      "Custom-origin share summary did not retain the selected departure origin.");
+    assert(customOriginShare?.text.includes("origin=Stellenbosch%2C%20South%20Africa"),
+      "Custom-origin shared route URL did not encode the selected departure origin.");
     await page.locator("#trip-dialog .dialog-close").click();
 
     // Exercise the standalone shoreline topography page with a deterministic API fixture.
