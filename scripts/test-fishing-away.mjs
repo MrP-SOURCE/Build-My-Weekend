@@ -65,3 +65,19 @@ test("lunar phase accepts real calendar dates and rejects invalid input", () => 
   assert.equal(fishing.lunarPhase("2026-02-30").label, "Date unavailable");
   assert.equal(fishing.lunarPhase("").illumination, null);
 });
+
+test("fishing condition planning labels wind, baitfish and security without claiming live data", () => {
+  const lowerWind = fishing.assessFishingConditions({ windSpeedKph: 9, baitfishObserved: true, securityStatus: "on-site" });
+  assert.equal(lowerWind.liveData, false);
+  assert.equal(lowerWind.netCasting.level, "LOWER_WIND");
+  assert.equal(lowerWind.baitfish.status, "USER_OBSERVED_PRESENT");
+  assert.equal(lowerWind.security.status, "USER_REPORTED_ON_SITE");
+
+  assert.equal(fishing.assessFishingConditions({ windSpeedKph: 10 }).netCasting.level, "CAUTION");
+  assert.equal(fishing.assessFishingConditions({ windSpeedKph: 20 }).netCasting.level, "CAUTION");
+  assert.equal(fishing.assessFishingConditions({ windSpeedKph: 20.1 }).netCasting.level, "HIGH_WIND");
+  assert.equal(fishing.assessFishingConditions({ windSpeedKph: -1 }).netCasting.level, "UNKNOWN");
+  assert.equal(fishing.assessFishingConditions({ windSpeedKph: "12", baitfishObserved: false }).baitfish.status, "USER_OBSERVED_NOT_SEEN");
+  assert.equal(fishing.assessFishingConditions({}).security.status, "UNVERIFIED");
+  assert.equal(fishing.assessFishingConditions({ securityStatus: "none-reported" }).security.status, "NONE_REPORTED");
+});
