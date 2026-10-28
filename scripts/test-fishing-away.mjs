@@ -66,6 +66,17 @@ test("lunar phase accepts real calendar dates and rejects invalid input", () => 
   assert.equal(fishing.lunarPhase("").illumination, null);
 });
 
+test("fishing condition planning includes cautious lunar context for the selected date", () => {
+  const withDate = fishing.assessFishingConditions({ date: "2026-10-28" });
+  assert.equal(withDate.liveData, false);
+  assert.notEqual(withDate.lunar.label, "Date unavailable");
+  assert.match(withDate.lunar.note, /does not predict catches/i);
+
+  const withoutDate = fishing.assessFishingConditions({});
+  assert.equal(withoutDate.lunar.label, "Date unavailable");
+  assert.match(withoutDate.lunar.note, /valid date/i);
+});
+
 test("fishing condition planning labels wind, baitfish and security without claiming live data", () => {
   const lowerWind = fishing.assessFishingConditions({ windSpeedKph: 9, baitfishObserved: true, securityStatus: "on-site" });
   assert.equal(lowerWind.liveData, false);

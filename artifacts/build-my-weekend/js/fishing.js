@@ -101,7 +101,7 @@
 
 
   // Planning helpers only. Inputs are user-supplied observations, not live conditions.
-  function assessFishingConditions({ windSpeedKph, baitfishObserved, securityStatus } = {}) {
+  function assessFishingConditions({ windSpeedKph, baitfishObserved, securityStatus, date } = {}) {
     const validWind = typeof windSpeedKph === "number" && Number.isFinite(windSpeedKph) && windSpeedKph >= 0;
     let netCasting = { level: "UNKNOWN", message: "Wind data unavailable; check local conditions and applicable safety guidance." };
     if (validWind) {
@@ -119,12 +119,20 @@
       : securityStatus === "none-reported"
         ? { status: "NONE_REPORTED", message: "No on-site security was reported; confirm directly with the venue or site manager." }
         : { status: "UNVERIFIED", message: "Site security is unverified; confirm directly before visiting, especially at remote locations." };
+    const lunar = lunarPhase(date);
+    const lunarPlanning = {
+      ...lunar,
+      note: lunar.label === "Date unavailable"
+        ? "Add a valid date to show approximate lunar context."
+        : "Astronomy context only: lunar phase does not predict catches. Check local tides, weather, regulations and reliable current reports."
+    };
     return {
       evidence: "USER_INPUT_OR_PLANNING_BAND",
       liveData: false,
       netCasting,
       baitfish,
-      security
+      security,
+      lunar: lunarPlanning
     };
   }
 
