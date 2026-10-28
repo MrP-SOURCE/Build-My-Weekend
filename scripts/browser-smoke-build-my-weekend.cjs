@@ -209,6 +209,24 @@ const { chromium } = require("playwright");
     assert(fishingCards.some(text => /Gordon.?s Bay/i.test(text)),
       "A Shore/Galjoen/Bay search did not include the expected compatible Gordon's Bay result.");
 
+    // Vehicle profiles must set consumption, allow manual override, and persist on this device.
+    const vehicleProfile = page.locator("#vehicle-profile");
+    assert.equal(await vehicleProfile.count(), 1, "Vehicle profile selector is missing.");
+    await vehicleProfile.selectOption("toyota-starlet");
+    assert.equal(await page.locator("#consumption").inputValue(), "5.5",
+      "Selecting the Toyota Starlet profile did not apply its labelled planning estimate.");
+    await page.locator("#consumption").fill("7.2");
+    assert.equal(await vehicleProfile.inputValue(), "manual",
+      "Editing consumption manually did not switch the vehicle selector to manual mode.");
+    await vehicleProfile.selectOption("toyota-hilux-diesel");
+    assert.equal(await page.locator("#consumption").inputValue(), "9",
+      "Selecting the Hilux diesel profile did not update fuel consumption.");
+    await page.reload({ waitUntil: "networkidle" });
+    assert.equal(await page.locator("#vehicle-profile").inputValue(), "toyota-hilux-diesel",
+      "Selected vehicle profile was not restored after reload.");
+    assert.equal(await page.locator("#consumption").inputValue(), "9",
+      "Saved vehicle consumption was not restored after reload.");
+
     // Reset clears trip criteria and stale results while retaining vehicle fuel assumptions.
     await page.locator("#origin").fill("Stellenbosch, South Africa");
     await page.locator("#budget").fill("7800");
