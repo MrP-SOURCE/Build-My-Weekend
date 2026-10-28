@@ -7,6 +7,7 @@ const { chromium } = require("playwright");
   const pageErrors = [];
   const failedLocalAssets = [];
   let simulateRoutingOutage = false;
+  let simulateLongRoute = false;
   let simulateInvalidRouteResponse = false;
   let delayNextRoute = false;
   let delayedRouteStarted = false;
@@ -49,7 +50,7 @@ const { chromium } = require("playwright");
         body: JSON.stringify({
           origin: body.origin,
           destination: body.destination,
-          distanceKmOneWay: simulateInvalidRouteResponse ? "not-a-number" : (String(body.origin || "").startsWith("Stellenbosch") ? 25 : 45),
+          distanceKmOneWay: simulateInvalidRouteResponse ? "not-a-number" : (simulateLongRoute ? 125 : (String(body.origin || "").startsWith("Stellenbosch") ? 25 : 45)),
           driveMinutesOneWay: 39,
           source: "TomTom Routing API",
           disclaimer: "Deterministic route fixture for browser testing."
@@ -543,6 +544,29 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
       "A stale route response repopulated cards after a newer no-results plan.");
     delayNextRoute = false;
+
+    // A live route beyond the selected radius must be excluded even when catalogue estimates differ.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("bmwRoute:v3:")) localStorage.removeItem(key);
+      }
+    });
+    await page.locator("#origin").fill("George, South Africa");
+    await page.locator("#experience").selectOption({ label: "Any" });
+    await page.locator("#budget").fill("100000");
+    await page.locator('label:has(input[name="distance"][value="100"]) span').click();
+    assert.equal(await page.locator('input[name="distance"][value="100"]').isChecked(), true,
+      "The live-route distance regression test did not select the 100 km limit.");
+    simulateLongRoute = true;
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    assert((await page.locator("#results-summary").innerText()).includes("0 route-verified destinations"),
+      "A 125 km live route incorrectly passed the selected 100 km distance limit.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
+      "A destination outside the live-route distance limit was displayed as a match.");
+    assert.equal(await page.locator("#no-results").isVisible(), true,
+      "The planner did not explain that no destination passed the live-route filters.");
+    simulateLongRoute = false;
 
     // Simulate a temporary route-service outage. Trip ideas must remain visible,
     // with clear labels that the route, distance filter and origin-based costs are unverified.
