@@ -99,6 +99,35 @@
     return { label: labels[phaseIndex], illumination, ageDays: Math.round(age * 10) / 10, cycleLengthDays: synodicMonth };
   }
 
+
+  // Planning helpers only. Inputs are user-supplied observations, not live conditions.
+  function assessFishingConditions({ windSpeedKph, baitfishObserved, securityStatus } = {}) {
+    const validWind = typeof windSpeedKph === "number" && Number.isFinite(windSpeedKph) && windSpeedKph >= 0;
+    let netCasting = { level: "UNKNOWN", message: "Wind data unavailable; check local conditions and applicable safety guidance." };
+    if (validWind) {
+      if (windSpeedKph < 10) netCasting = { level: "LOWER_WIND", message: "Lower wind band for planning only; this does not confirm net-casting safety or permission." };
+      else if (windSpeedKph <= 20) netCasting = { level: "CAUTION", message: "Wind may complicate net casting; assess local gusts, surf, rules and conditions before deciding." };
+      else netCasting = { level: "HIGH_WIND", message: "High-wind planning flag; do not treat this as suitable net-casting conditions. Check local safety guidance." };
+    }
+    const baitfish = baitfishObserved === true
+      ? { status: "USER_OBSERVED_PRESENT", message: "Baitfish presence recorded from a user observation; not independently verified." }
+      : baitfishObserved === false
+        ? { status: "USER_OBSERVED_NOT_SEEN", message: "Baitfish not seen in the user's observation; this does not prove absence." }
+        : { status: "UNKNOWN", message: "No baitfish observation supplied; availability is unknown." };
+    const security = securityStatus === "on-site"
+      ? { status: "USER_REPORTED_ON_SITE", message: "On-site security is user-reported and has not been verified." }
+      : securityStatus === "none-reported"
+        ? { status: "NONE_REPORTED", message: "No on-site security was reported; confirm directly with the venue or site manager." }
+        : { status: "UNVERIFIED", message: "Site security is unverified; confirm directly before visiting, especially at remote locations." };
+    return {
+      evidence: "USER_INPUT_OR_PLANNING_BAND",
+      liveData: false,
+      netCasting,
+      baitfish,
+      security
+    };
+  }
+
   window.BMWFishing = {
     spots,
     getSpots,
@@ -106,6 +135,7 @@
     destinationMatch,
     matchSpot,
     lunarPhase,
+    assessFishingConditions,
     styles: ["Any","Shore","Rock","Estuary"],
     species: ["Any","Galjoen","Steenbras"],
     spotPreferences: ["Let the app choose","Bay","Beach","Rocks","Point","Estuary","Lagoon","Harbour","River Mouth"]
