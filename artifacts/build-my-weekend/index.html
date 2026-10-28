@@ -20,6 +20,7 @@
     <script type="module" src="./js/fishing.js"></script>
     <script type="module" src="./js/accommodation.js"></script>
     <script type="module" src="./js/camping.js"></script>
+    <script type="module" src="./js/vehicles.js"></script>
     <script type="module" src="./js/app.js"></script>
   </head>
   <body>
@@ -134,6 +135,13 @@
               <small class="field-error" id="return-error"></small>
             </div>
             <div class="field field-wide vehicle-heading"><span class="mini-rule"></span><span>YOUR VEHICLE & FUEL</span><span class="mini-rule"></span></div>
+            <div class="field field-wide">
+              <label for="vehicle-profile">Select your vehicle (optional)</label>
+              <div class="select-wrap"><select id="vehicle-profile" name="vehicleProfile" aria-describedby="vehicle-profile-help">
+                <option value="manual">Choose vehicle / enter consumption manually</option>
+              </select><span class="select-chevron" aria-hidden="true">⌄</span></div>
+              <small id="vehicle-profile-help">Starter estimates only, not verified for every year or engine. Selecting a vehicle fills the consumption field; you can edit it. Your choice is saved on this device.</small>
+            </div>
             <div class="field">
               <label for="consumption">Fuel consumption <span class="unit">L / 100 km</span></label>
               <div class="input-wrap"><input id="consumption" name="consumption" type="number" min="0.1" step="0.1" value="8" inputmode="decimal" required data-testid="consumption-input"><span class="input-suffix">L / 100 km</span></div>
