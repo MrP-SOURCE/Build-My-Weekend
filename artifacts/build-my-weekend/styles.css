@@ -181,3 +181,14 @@
 .fishing-observation-records .observation-delete-one{float:right;margin:0 0 8px 10px;min-height:32px;padding:6px 9px;border:1px solid #b7a7a0;border-radius:6px;background:#fff8f5;color:#75463d;font:inherit;font-size:.72rem;font-weight:750;cursor:pointer}
 .fishing-observation-records p,.fishing-observation-records small{overflow-wrap:anywhere}
 @media(max-width:560px){.fishing-observation-actions{display:grid;grid-template-columns:1fr}.fishing-observation-actions button{width:100%}}
+
+/* Mobile detail-dialog overflow guard: allow every nested grid/flex item to shrink. */
+.trip-dialog,
+.trip-dialog *{box-sizing:border-box;min-width:0}
+.trip-dialog .dialog-inner{width:100%;max-width:100%;overflow-x:clip}
+.trip-dialog .detail-callout{grid-template-columns:minmax(0,1fr) minmax(0,auto);gap:8px}
+.trip-dialog .detail-callout>*,
+.trip-dialog .cost-line>*,
+.trip-dialog .itinerary li>*{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+.trip-dialog .cost-line{gap:8px;flex-wrap:wrap}
+.trip-dialog .itinerary li{grid-template-columns:minmax(0,45px) minmax(0,1fr)}
