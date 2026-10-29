@@ -19,7 +19,7 @@ Live test site: https://mrp-source.github.io/Build-My-Weekend/
 - [ ] Change fuel consumption and fuel price. Confirm fuel is calculated for the return journey, not multiplied by the number of travellers.
 - [ ] Change “Fuel already in the tank”. Confirm only the estimated amount of fuel still to buy is counted as new spend.
 - [ ] Compare the lowest-spend and farther-away options. Read the estimated cost range and budget caveats.
-- [ ] **Clean start and reset:** open a fresh page and confirm no trip results are prefilled; submit a plan, change fuel price/consumption, then reload and confirm only those fuel assumptions persist; use Reset and confirm defaults return and result cards remain empty until a new submission.
+- [ ] **Clean start and reset:** open a fresh page and confirm the planner inputs use defaults and no previous user-submitted trip criteria are restored; the default destination catalogue cards may be visible before submission. Submit a plan, change fuel price/consumption, then reload and confirm only those fuel assumptions persist; use Reset and confirm defaults return and result cards remain empty until a new submission.
 - [ ] **Route request race:** submit a plan, quickly change to a different set of criteria and submit again; confirm the older, slower route response never replaces the newer plan or repopulates results after Reset.
 - [ ] **Routing outage fallback:** when route lookup is unavailable, confirm results are explicitly labelled as unverified trip ideas, the distance limit is disclosed as not route-checked, and the app instructs users to confirm routes in Maps. Never label catalogue distances as live-verified during an outage.
 
