@@ -105,6 +105,17 @@ const { chromium } = require("playwright");
     assert((await originScope.innerText()).includes("not a nationwide destination directory"), "Origin disclosure does not explain the Western Cape destination-catalogue limit.");
     assert(await page.locator("#origin").inputValue() === "Cape Town, South Africa", "Default departure location is missing.");
     assert((await page.title()).includes("Build My Weekend"), "Unexpected page title.");
+
+    // Keep visible planner controls discoverable to screen readers and label-based automation.
+    const unlabeledControls = await page.locator("#trip-form input, #trip-form select, #trip-form textarea").evaluateAll(controls =>
+      controls.filter(control => {
+        if (control.closest("[hidden]") || control.type === "hidden" || control.disabled) return false;
+        const hasNativeLabel = Boolean(control.labels && control.labels.length);
+        const hasAriaLabel = Boolean(control.getAttribute("aria-label") || control.getAttribute("aria-labelledby"));
+        return !hasNativeLabel && !hasAriaLabel;
+      }).map(control => "#" + (control.id || control.name || control.type || control.tagName.toLowerCase()))
+    );
+    assert.deepEqual(unlabeledControls, [], "Visible planner inputs must have an associated label or accessible name.");
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Initial destination cards did not render.");
     assert(await page.locator("#reset-filters").isVisible(), "RESET TO DEFAULTS must remain visible while destination recommendations are displayed.");
 
