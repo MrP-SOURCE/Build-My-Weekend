@@ -2245,6 +2245,13 @@ function testPracticalItineraryDateCoverage() {
   if (dayTrip.length !== 5 || !dayTrip.every(item => item[0].startsWith("DAY "))) {
     throw new Error("Same-day itinerary must use the day-trip schedule.");
   }
+  const customOrigin = "Stellenbosch, Western Cape";
+  const customOriginTrip = buildPracticalItinerary(destination, {
+    depart: "2026-10-14", returnDate: "2026-10-16", origin: customOrigin
+  }, cost);
+  if (!customOriginTrip[0][1].includes(customOrigin) || customOriginTrip[0][1].includes("Cape Town")) {
+    throw new Error("The itinerary must use the selected custom origin instead of silently reverting to Cape Town.");
+  }
   const invalid = buildPracticalItinerary(destination, { depart: "2026-10-16", returnDate: "2026-10-14" }, cost);
   if (invalid.length !== 1 || !invalid[0][0].includes("SCHEDULE TO CONFIRM")) {
     throw new Error("Invalid date ranges must not receive a misleading itinerary.");
