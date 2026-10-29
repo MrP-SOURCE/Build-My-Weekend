@@ -67,6 +67,35 @@ test("returns 429 before routing when the rate limit is exceeded", async () => {
 });
 
 
+test("matches accented TomTom place names after diacritic normalization", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async input => {
+    const url = new URL(input);
+    if (url.pathname.includes("/geocode/")) {
+      const query = decodeURIComponent(url.pathname.split("/").pop().replace(/\\.json$/, ""));
+      if (query.startsWith("Sao Bento")) {
+        return Response.json({ results: [
+          { position: { lat: -33.9, lon: 18.4 }, address: { freeformAddress: "São Bento, Western Cape" } }
+        ] });
+      }
+      return Response.json({ results: [
+        { position: { lat: -34.4, lon: 19.2 }, address: { freeformAddress: "Hermanus, Western Cape" } }
+      ] });
+    }
+    return Response.json({ routes: [{ summary: { lengthInMeters: 110000, travelTimeInSeconds: 7200 } }] });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://worker.example/api/route", {
+      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.15" },
+      body: JSON.stringify({ origin: "Sao Bento, South Africa", destination: "Hermanus, Western Cape, South Africa" })
+    }), env);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).distanceKmOneWay, 110);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("chooses matching TomTom place results instead of an unrelated first result", async () => {
   const originalFetch = globalThis.fetch;
   const routeCalls = [];
