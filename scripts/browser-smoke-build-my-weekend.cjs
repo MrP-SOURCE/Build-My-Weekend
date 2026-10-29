@@ -616,6 +616,30 @@ const { chromium } = require("playwright");
       "A stale route response repopulated cards after a newer no-results plan.");
     delayNextRoute = false;
 
+    // Reset must invalidate an in-flight route lookup, not just a newer submission.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("bmwRoute:v3:")) localStorage.removeItem(key);
+      }
+    });
+    delayNextRoute = true;
+    delayedRouteStarted = false;
+    const pendingResetRoute = page.waitForRequest(request => request.url().includes("/api/route"));
+    await page.locator("#experience").selectOption({ label: "Any" });
+    await page.locator("#trip-form button[type=submit]").click();
+    await pendingResetRoute;
+    await page.waitForTimeout(100);
+    await page.locator("#reset-filters").click();
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
+      "Reset did not clear results while a route request was pending.");
+    await page.waitForTimeout(1700);
+    assert.equal(delayedRouteStarted, true, "The test did not delay the route response during Reset.");
+    assert.equal(await page.locator("#recommendations .trip-card").count(), 0,
+      "A pending route response repopulated destination cards after Reset.");
+    assert((await page.locator("#results-summary").innerText()).includes("Trip criteria are reset"),
+      "A pending route response overwrote the Reset status.");
+    delayNextRoute = false;
+
     // A live route beyond the selected radius must be excluded even when catalogue estimates differ.
     await page.evaluate(() => {
       for (const key of Object.keys(localStorage)) {
