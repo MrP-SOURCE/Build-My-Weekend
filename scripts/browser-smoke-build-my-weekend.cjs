@@ -501,6 +501,39 @@ const { chromium } = require("playwright");
     await page.locator("#trip-form button[type=submit]").click();
     await waitForRouteResults();
     assert(await page.locator("#recommendations .trip-card").count() > 0, "Hiking plan returned no destination cards.");
+
+    // Open a real destination detail at the narrowest supported phone width.
+    // The dialog must stay inside the viewport and remain dismissible without horizontal scrolling.
+    await page.setViewportSize({ width: 320, height: 740 });
+    await page.locator("#recommendations .trip-card").first().locator('button[data-action="view"]').click();
+    await page.locator("#trip-dialog[open]").waitFor();
+    const mobileDialogLayout = await page.evaluate(() => {
+      const dialog = document.querySelector("#trip-dialog");
+      const content = document.querySelector("#dialog-content");
+      const dialogRect = dialog.getBoundingClientRect();
+      return {
+        viewportWidth: document.documentElement.clientWidth,
+        dialogLeft: dialogRect.left,
+        dialogRight: dialogRect.right,
+        dialogWidth: dialogRect.width,
+        contentWidth: content.clientWidth,
+        contentScrollWidth: content.scrollWidth,
+        closeVisible: (() => {
+          const close = dialog.querySelector(".dialog-close");
+          const rect = close.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && rect.left >= 0 && rect.right <= document.documentElement.clientWidth;
+        })()
+      };
+    });
+    assert(mobileDialogLayout.dialogLeft >= -1 && mobileDialogLayout.dialogRight <= 321,
+      "Destination detail dialog exceeds the 320px viewport: " + JSON.stringify(mobileDialogLayout));
+    assert(mobileDialogLayout.contentScrollWidth <= mobileDialogLayout.contentWidth + 1,
+      "Destination detail content has horizontal overflow at 320px: " + JSON.stringify(mobileDialogLayout));
+    assert(mobileDialogLayout.closeVisible,
+      "Destination detail close control is not fully visible at 320px: " + JSON.stringify(mobileDialogLayout));
+    await page.locator("#trip-dialog .dialog-close").click();
+    await page.setViewportSize({ width: 390, height: 844 });
+
     await page.locator("#experience").selectOption({ label: "Climbing Away" });
     assert.equal(await page.locator("#outdoor-controls").isVisible(), true, "Climbing preferences did not appear.");
     await page.locator("#experience").selectOption({ label: "Family Away" });
