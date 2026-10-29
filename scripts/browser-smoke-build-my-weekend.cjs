@@ -664,6 +664,20 @@ const { chromium } = require("playwright");
     assert(mobileLayout.documentWidth <= mobileLayout.viewportWidth + 1,
       "Mobile layout has horizontal overflow: " + JSON.stringify(mobileLayout));
 
+    // Exercise narrow phones as well as the original 390px baseline.
+    for (const width of [320, 360, 390, 768]) {
+      await page.setViewportSize({ width, height: 900 });
+      const responsiveLayout = await page.evaluate(() => ({
+        viewportWidth: document.documentElement.clientWidth,
+        documentWidth: document.documentElement.scrollWidth
+      }));
+      assert(responsiveLayout.documentWidth <= responsiveLayout.viewportWidth + 1,
+        "Planner has horizontal overflow at " + width + "px: " + JSON.stringify(responsiveLayout));
+      assert(await page.locator("#budget").isVisible(), "Budget input is not visible at " + width + "px.");
+      assert(await page.locator("#experience").isVisible(), "Weekend type selector is not visible at " + width + "px.");
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+
     // Verify a changed departure origin triggers a fresh route lookup and uses its returned distance.
     // Remove only this origin’s cache entries so the fixture proves recalculation, not stale-cache reuse.
     await page.evaluate(() => {
