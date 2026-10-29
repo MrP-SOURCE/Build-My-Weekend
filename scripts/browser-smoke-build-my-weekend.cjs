@@ -660,6 +660,10 @@ const { chromium } = require("playwright");
     await page.locator('.trip-card button[data-action="view"]').first().click();
     assert((await page.locator("#trip-dialog").innerText()).includes("ROUTE STATUS: NOT VERIFIED"),
       "Fallback detail view falsely implies that the route was verified.");
+    assert((await page.locator("#trip-dialog .detail-sub").innerText()).includes("catalogue estimate (Cape Town basis)"),
+      "Unverified route details must not attribute Cape Town-based catalogue distance to the custom origin.");
+    assert((await page.locator("#trip-dialog .detail-sub").innerText()).includes("route time not verified"),
+      "Unverified route details must not present catalogue drive time as route-checked.");
     await page.locator("#trip-dialog .dialog-close").click();
     simulateRoutingOutage = false;
 
