@@ -640,6 +640,8 @@ const { chromium } = require("playwright");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: "networkidle" });
     await page.locator("#trip-form").waitFor();
+    const mobileWidth = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
+    assert(mobileWidth.content <= mobileWidth.viewport, `Mobile planner overflows horizontally: content ${mobileWidth.content}px, viewport ${mobileWidth.viewport}px.`);
     assert.equal(await page.locator("#fuel-price").inputValue(), "29.99", "Fuel price retained through Reset did not persist after reload.");
     assert.equal(await page.locator("#consumption").inputValue(), "8.1", "Fuel consumption retained through Reset did not persist after reload.");
 
