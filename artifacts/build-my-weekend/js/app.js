@@ -822,6 +822,12 @@ function testFuelAndGroupScaling() {
   const destination = destinations.find(item => item.id === "hermanus");
   const base = { budget: 10000, people: 2, consumption: 8, fuelExisting: 0, fuelPrice: 24.5, depart: "2026-10-09", returnDate: "2026-10-11" };
   const noFuelInTank = calc(destination, base);
+  // Live routing replaces the catalogue distance before calc(); protect that hand-off so
+  // return-trip fuel estimates use the route-checked distance, not a stale catalogue value.
+  const routeAdjusted = calc({ ...destination, distance: 100 }, base);
+  if (routeAdjusted.returnDistance !== 200 || routeAdjusted.consumed !== 392) {
+    throw new Error("Fuel estimates must recalculate from the current route-adjusted one-way distance.");
+  }
   const partlyCovered = calc(destination, { ...base, fuelExisting: 200 });
   const fullyCovered = calc(destination, { ...base, fuelExisting: noFuelInTank.consumed });
   const overCovered = calc(destination, { ...base, fuelExisting: noFuelInTank.consumed + 100 });
