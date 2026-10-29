@@ -331,6 +331,15 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), true, "Destination detail dialog did not open.");
     assert((await page.locator("#dialog-content").innerText()).includes("DEMONSTRATION DATA"), "Destination detail is missing its demonstration-data warning.");
     assert((await page.locator("#dialog-content").innerText()).includes("Additional fuel to buy"), "Destination detail is missing the fuel breakdown.");
+    // Native dialog keyboard dismissal must close the modal and restore focus to its opener.
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#trip-dialog").open);
+    assert.equal(await page.locator("#trip-dialog").evaluate(dialog => dialog.open), false,
+      "Pressing Escape did not close the destination detail dialog.");
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("data-action")),
+      "view", "Closing the detail dialog with Escape did not restore focus to its opener.");
+    await coastalFishingCard.locator('button[data-action="view"]').click();
+    await page.waitForFunction(() => document.querySelector("#trip-dialog").open);
     const fishingDetailText = await page.locator("#dialog-content").innerText();
     assert(fishingDetailText.includes("MOON / LUNAR CYCLE"), "Fishing detail is missing lunar-cycle context.");
     assert(fishingDetailText.includes("LOCAL BAITFISH PREVALENCE") && fishingDetailText.includes("UNVERIFIED"), "Fishing detail must not imply baitfish prevalence is verified.");
