@@ -2311,7 +2311,7 @@ function detail(destination, settings) {
     ${campingSelected ? `<p class="detail-demo-note">${glampingSelected ? "The property-specific glamping stay price is excluded." : "The accommodation amount is a generic demonstration allowance, not a campsite tariff; the actual campsite/site fee is not verified or included."} The displayed remainder is only before that stay/site fee. Confirm the complete price for your selected dates and ${settings.people} ${settings.people === 1 ? "person" : "people"} before deciding whether this trip fits your budget.</p>` : ""}
     <h2 id="detail-title" class="detail-title">${esc(destination.name)}</h2>
     <p class="detail-sub">${esc(destination.region)} · ${esc(destination.province)} · ${esc(categories)}</p>
-    <p class="detail-sub">${destination.distance} km one way from ${esc(settings.origin || "Cape Town, South Africa")} · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving</p>
+    <p class="detail-sub">${destination.routeVerified === false ? `${destination.distance} km one-way catalogue estimate (Cape Town basis) · route time not verified · ${cost.returnDistance} km estimated return` : `${destination.distance} km one way from ${esc(settings.origin || "Cape Town, South Africa")} · ${cost.returnDistance} km return · approximately ${driveLabel(destination.driveTime)} driving`}</p>
     <p class="detail-sub">${esc(destination.description)} Suitable for: ${esc(suitability)}.</p>
     <section id="live-weather" class="live-weather" aria-live="polite"><strong>LIVE WEATHER FORECAST</strong><p>Loading the latest available forecast…</p></section>
     ${outdoorMapPreview(destination, settings)}
