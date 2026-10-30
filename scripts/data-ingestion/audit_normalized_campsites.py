@@ -37,7 +37,7 @@ def _parse_timestamp(value: str) -> datetime | None:
 
 REQUIRED_FIELDS = {
     "id", "name", "category", "latitude", "longitude", "tags_json",
-    "source_id", "source_record_id", "source_url", "licence_id",
+    "source_id", "source_record_id", "source_url", "source_record_url", "licence_id",
     "attribution_text", "confidence",
 }
 
@@ -89,6 +89,23 @@ def audit(path: Path) -> dict[str, object]:
 
         if (row.get("category") or "").strip() != "camping":
             row_errors.append("category must be camping")
+        record_url = (row.get("source_record_url") or "").strip()
+        if record_url:
+            try:
+                parsed_record_url = urlparse(record_url)
+                invalid_record_url = (
+                    parsed_record_url.scheme not in {"http", "https"}
+                    or not parsed_record_url.hostname
+                    or parsed_record_url.username is not None
+                    or parsed_record_url.password is not None
+                )
+            except ValueError:
+                invalid_record_url = True
+            if invalid_record_url:
+                row_errors.append("source_record_url must be a valid absolute HTTP(S) URL without embedded credentials")
+        else:
+            warnings.append(f"Row {line_number}: source_record_url is blank; direct source-record inspection is unavailable.")
+
         source_url = (row.get("source_url") or "").strip()
         try:
             parsed_url = urlparse(source_url) if source_url else None
