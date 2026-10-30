@@ -9,7 +9,7 @@ from audit_normalized_campsites import audit
 
 FIELDS = [
     "id", "name", "category", "latitude", "longitude", "tags_json",
-    "source_id", "source_record_id", "source_url", "source_updated_at", "imported_at", "licence_id",
+    "source_id", "source_record_id", "source_url", "source_record_url", "source_updated_at", "imported_at", "licence_id",
     "attribution_text", "confidence", "verified_at",
 ]
 
@@ -25,6 +25,7 @@ def sample_row(record_id="osm:node/1"):
         "source_id": "osm-test",
         "source_record_id": record_id.removeprefix("osm:"),
         "source_url": "https://example.org/dataset",
+        "source_record_url": "https://www.openstreetmap.org/node/1",
         "licence_id": "review-required",
         "attribution_text": "© OpenStreetMap contributors",
         "confidence": "unverified_source_record",
@@ -69,6 +70,20 @@ class CampsiteAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             report = audit(self.write_csv(Path(temp), [first, second]))
         self.assertIn("duplicate source record osm-test/node/1", " ".join(report["errors"]))
+
+    def test_rejects_malformed_record_url(self):
+        row = sample_row()
+        row["source_record_url"] = "https://[malformed.example/node/1"
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        self.assertIn("source_record_url must be a valid absolute HTTP(S) URL", " ".join(report["errors"]))
+
+    def test_warns_when_record_url_is_missing(self):
+        row = sample_row()
+        row["source_record_url"] = ""
+        with tempfile.TemporaryDirectory() as temp:
+            report = audit(self.write_csv(Path(temp), [row]))
+        self.assertIn("source_record_url is blank", " ".join(report["warnings"]))
 
     def test_rejects_source_url_with_embedded_credentials(self):
         row = sample_row()
