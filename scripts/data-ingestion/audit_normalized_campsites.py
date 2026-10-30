@@ -149,6 +149,7 @@ def audit(path: Path, stale_after_days: int = 365) -> dict[str, object]:
             warnings.append(f"Row {line_number}: confidence label differs from expected unverified_source_record.")
         if (row.get("verified_at") or "").strip():
             warnings.append(f"Row {line_number}: verified_at is populated; independently confirm the verification process.")
+        now = datetime.now(timezone.utc)
         imported_at = (row.get("imported_at") or "").strip()
         if not imported_at:
             warnings.append(f"Row {line_number}: imported_at is blank; import timing cannot be established.")
