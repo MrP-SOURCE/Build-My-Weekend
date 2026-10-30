@@ -581,7 +581,7 @@ const { chromium } = require("playwright");
     assert.equal(await page.locator("#people").inputValue(), "4", "Reset did not restore the default group size.");
     assert.notEqual(await page.locator("#depart").inputValue(), "2026-11-10", "Reset did not restore the default departure date.");
     assert.notEqual(await page.locator("#return").inputValue(), "2026-11-12", "Reset did not restore the default return date.");
-    assert.equal(await page.locator("#fuel-existing").inputValue(), "650", "Reset did not restore the default value of fuel already in the tank.");
+    assert.equal(await page.locator("#fuel-existing").inputValue(), "0", "Reset did not restore the conservative zero fuel-credit default.");
     assert.equal(await page.locator("#fuel-price").inputValue(), "29.99", "Reset did not preserve the user fuel price.");
     assert.equal(await page.locator("#consumption").inputValue(), "8.1", "Reset did not preserve the user fuel consumption.");
     assert.equal(await page.locator("#camping-setup").inputValue(), "Any", "Reset did not clear camping setup preferences.");
