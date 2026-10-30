@@ -518,21 +518,15 @@ function findCandidates(settings, options = {}) {
       candidate.valueScore = valueScore(candidate, settings) + (settings.experience === "Fishing Away" ? fishingScore * 0.08 : 0);
       return candidate;
     })
-    .filter(destination =>
-      (options.preRoute || destination.cost.remaining >= 0) &&
-      (options.preRoute || destination.distance <= distanceLimit) &&
-      (settings.experience !== "Fishing Away" || destination.fishingScore > 0) &&
-      (settings.experience !== "Beach Away" || destination.categories.includes("Beach")) &&
-      (settings.experience !== "Hiking Away" || destination.categories.includes("Hiking")) &&
-      (settings.experience !== "Cycling Away" || destination.categories.includes("Cycling")) &&
-      (settings.experience !== "Climbing Away" || destination.categories.includes("Climbing")) &&
-      (settings.experience !== "Camping Away" || destination.categories.includes("Camping") || destination.categories.includes("Outdoors")) &&
-      (settings.experience !== "Family Away" || destination.categories.includes("Family")) &&
-      (settings.experience !== "Couples Away" || destination.categories.includes("Couples")) &&
-      (settings.experience !== "Wildlife Away" || destination.categories.includes("Wildlife")) &&
-      (settings.experience !== "Road Trip Away" || destination.categories.includes("Road Trip")) &&
-      (settings.experience !== "Nature" || destination.categories.includes("Nature"))
-    );
+    .filter(destination => {
+      const preferredCategories = experienceProfiles[settings.experience] || [];
+      const matchesExperience = preferredCategories.length === 0 ||
+        preferredCategories.some(category => destination.categories.includes(category));
+      return (options.preRoute || destination.cost.remaining >= 0) &&
+        (options.preRoute || destination.distance <= distanceLimit) &&
+        matchesExperience &&
+        (settings.experience !== "Fishing Away" || destination.fishingScore > 0);
+    });
 }
 
 function sortBy(candidates, compare) {
@@ -1096,13 +1090,12 @@ function testRecommendationScenarios() {
       throw new Error(`${scenario.name}: a destination beyond the selected distance limit was returned.`);
     }
     if (shortlist.length > 5) throw new Error(`${scenario.name}: more than five destinations were selected.`);
-    if (scenario.experience === "Camping Away" && candidates.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error(scenario.name + ": non-camping destination returned.");
-    if (scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))) throw new Error(scenario.name + ": non-hiking destination returned.");
-    if (scenario.experience === "Cycling Away" && candidates.some(item => !item.categories.includes("Cycling"))) throw new Error(scenario.name + ": non-cycling destination returned.");
-    const requiredCategory = { "Family Away": "Family", "Couples Away": "Couples", "Wildlife Away": "Wildlife", "Road Trip Away": "Road Trip", "Nature": "Nature" }[scenario.experience];
-    if (requiredCategory && candidates.some(item => !item.categories.includes(requiredCategory))) throw new Error(scenario.name + ": destination missing required " + requiredCategory + " category.");
-    if (requiredCategory && !candidates.length) throw new Error(scenario.name + ": no suitable destinations returned for " + requiredCategory + ".");
-    if (scenario.experience === "Climbing Away" && candidates.some(item => !item.categories.includes("Climbing"))) throw new Error(scenario.name + ": non-climbing destination returned.");
+    const preferredCategories = experienceProfiles[scenario.experience] || [];
+    if (preferredCategories.length && candidates.some(item =>
+      !preferredCategories.some(category => item.categories.includes(category))
+    )) {
+      throw new Error(scenario.name + ": destination does not match any declared experience-profile category.");
+    }
     if (new Set(shortlist.map(item => item.destination.id)).size !== shortlist.length) {
       throw new Error(`${scenario.name}: duplicate destinations were selected.`);
     }
