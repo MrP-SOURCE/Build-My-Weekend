@@ -55,7 +55,7 @@ The importer retains records tagged `tourism=camp_site` or `tourism=caravan_site
 
 ## Output and limitations
 
-The output includes coordinates, observed tags, source record ID, source URL, licence label, attribution, snapshot/import dates, and a confidence value of `unverified_source_record`. Review the output before any downstream use.
+The output includes coordinates, observed tags, source record ID, dataset source URL, a direct source-record URL when available (including generated OpenStreetMap element links), licence label, attribution, snapshot/import dates, and a confidence value of `unverified_source_record`. A missing direct record URL is reported as an audit warning; it does not invalidate otherwise traceable dataset provenance. Review the output before any downstream use.
 
 - Missing amenity tags mean **unknown**, not that an amenity is absent or present.
 - A mapped point does not prove the campsite is operating, bookable, publicly accessible, safe, or currently maintained.
