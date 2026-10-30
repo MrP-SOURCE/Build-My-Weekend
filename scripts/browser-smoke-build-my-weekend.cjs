@@ -422,6 +422,12 @@ const { chromium } = require("playwright");
       );
       return label?.parentElement?.innerText.trim() || "";
     });
+    await page.locator("#trip-dialog .dialog-close").click();
+    // Start with an explicit non-zero tank credit; the new default is deliberately R0.
+    await page.locator("#fuel-existing").fill("650");
+    await page.locator("#trip-form button[type=submit]").click();
+    await waitForRouteResults();
+    await page.locator('#recommendations button[data-action="view"]').first().click();
     const additionalFuelWithTankCredit = await readAdditionalFuelLine();
     assert(additionalFuelWithTankCredit.includes("Additional fuel to buy"), "Could not read the additional-fuel cost row.");
     await page.locator("#trip-dialog .dialog-close").click();
