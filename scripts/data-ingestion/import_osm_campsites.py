@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 OUTPUT_FIELDS = [
     "id", "name", "category", "latitude", "longitude", "tags_json",
-    "region_id", "source_id", "source_record_id", "source_url",
+    "region_id", "source_id", "source_record_id", "source_url", "source_record_url",
     "source_updated_at", "imported_at", "verified_at", "licence_id",
     "attribution_text", "confidence",
 ]
@@ -151,6 +151,16 @@ def normalize(
     raw_id = _first(record, "osm_id", "@id", "id", "source_record_id")
     if not raw_id:
         return None
+    record_url = _first(record, "source_url", "record_url")
+    if not record_url and "/" in raw_id:
+        element_type, element_id = raw_id.split("/", 1)
+        if element_type in {"node", "way", "relation"} and element_id.isdigit():
+            record_url = f"https://www.openstreetmap.org/{element_type}/{element_id}"
+    if record_url:
+        parsed_record_url = urlparse(record_url)
+        if (parsed_record_url.scheme not in {"http", "https"} or not parsed_record_url.hostname
+                or parsed_record_url.username is not None or parsed_record_url.password is not None):
+            record_url = ""
     name = _first(record, "name", "name:en") or "Unnamed campsite"
     # Keep only observed tags. Missing amenity fields remain unknown, not false.
     evidence_tags = {key: value for key, value in tags.items() if key not in {"name", "name:en"}}
@@ -165,6 +175,7 @@ def normalize(
         "source_id": source_id,
         "source_record_id": raw_id,
         "source_url": source_url,
+        "source_record_url": record_url,
         "source_updated_at": source_updated_at,
         "imported_at": imported_at,
         "verified_at": "",

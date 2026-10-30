@@ -64,6 +64,7 @@ class OSMCampsiteImportTests(unittest.TestCase):
         self.assertEqual(result["category"], "camping")
         self.assertEqual(result["source_record_id"], "node/123")
         self.assertEqual(result["source_url"], self.meta["source_url"])
+        self.assertEqual(result["source_record_url"], "https://www.openstreetmap.org/node/123")
         self.assertEqual(result["confidence"], "unverified_source_record")
         self.assertEqual(json.loads(result["tags_json"])["toilets"], "yes")
         self.assertEqual(result["verified_at"], "")
@@ -95,7 +96,8 @@ class OSMCampsiteImportTests(unittest.TestCase):
             "features": [{
                 "type": "Feature", "id": "node/77",
                 "geometry": {"type": "Point", "coordinates": [18.4, -33.9]},
-                "properties": {"name": "Geo Camp", "tourism": "camp_site", "toilets": "yes"},
+                "properties": {"name": "Geo Camp", "tourism": "camp_site", "toilets": "yes",
+                               "source_url": "https://www.openstreetmap.org/node/77"},
             }],
         }
         with tempfile.TemporaryDirectory() as temp:
@@ -107,6 +109,7 @@ class OSMCampsiteImportTests(unittest.TestCase):
         self.assertEqual(result["name"], "Geo Camp")
         self.assertEqual(result["latitude"], "-33.900000")
         self.assertEqual(result["longitude"], "18.400000")
+        self.assertEqual(result["source_record_url"], "https://www.openstreetmap.org/node/77")
 
     def test_reads_csv(self):
         with tempfile.TemporaryDirectory() as temp:
