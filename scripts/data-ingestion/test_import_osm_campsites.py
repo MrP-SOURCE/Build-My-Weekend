@@ -173,5 +173,39 @@ class OSMCampsiteImportTests(unittest.TestCase):
 
 
 
+
+    def test_cli_rejects_conflicting_duplicate_and_preserves_existing_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "conflicting-campsites.csv"
+            output = root / "normalized.csv"
+            source.write_text(
+                "osm_id,name,tourism,lat,lon,toilets\n"
+                "node/42,First Camp,camp_site,-33.9,18.4,yes\n"
+                "node/42,Second Camp,camp_site,-34.0,18.5,no\n",
+                encoding="utf-8",
+            )
+            output.write_text("previous-valid-output\n", encoding="utf-8")
+            script = Path(__file__).with_name("import_osm_campsites.py")
+            result = subprocess.run(
+                [
+                    sys.executable, str(script), str(source), str(output),
+                    "--source-id", self.meta["source_id"],
+                    "--source-url", self.meta["source_url"],
+                    "--licence-id", self.meta["licence_id"],
+                    "--attribution", self.meta["attribution_text"],
+                    "--source-updated-at", self.meta["source_updated_at"],
+                    "--imported-at", self.meta["imported_at"],
+                ],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("Conflicting duplicate source record node/42", result.stderr)
+            self.assertIn("latitude", result.stderr)
+            self.assertEqual(output.read_text(encoding="utf-8"), "previous-valid-output\n")
+            self.assertEqual(list(root.glob(".normalized.csv.*.tmp")), [])
+
+
+
 if __name__ == "__main__":
     unittest.main()
