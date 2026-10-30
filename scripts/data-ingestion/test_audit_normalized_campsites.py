@@ -146,6 +146,26 @@ class CampsiteAuditTests(unittest.TestCase):
         self.assertIn("source_updated_at is over 365 days old", joined)
         self.assertIn("imported_at is blank", joined)
 
+    def test_reports_source_freshness_summary_and_custom_threshold(self):
+        row = sample_row()
+        row["source_updated_at"] = "2024-01-01"
+        with tempfile.TemporaryDirectory() as temp:
+            path = self.write_csv(Path(temp), [row])
+            report = audit(path, stale_after_days=30)
+            relaxed = audit(path, stale_after_days=5000)
+        freshness = report["source_freshness"]
+        self.assertEqual(freshness["dated"], 1)
+        self.assertEqual(freshness["older_than_threshold"], 1)
+        self.assertEqual(freshness["stale_after_days"], 30)
+        self.assertIn("not facility operating status", freshness["basis"])
+        self.assertEqual(relaxed["source_freshness"]["older_than_threshold"], 0)
+
+    def test_rejects_non_positive_freshness_threshold(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = self.write_csv(Path(temp), [sample_row()])
+            with self.assertRaisesRegex(ValueError, "at least 1"):
+                audit(path, stale_after_days=0)
+
     def test_warns_on_unparseable_source_timestamps(self):
         row = sample_row()
         row["source_updated_at"] = "sometime recently"
