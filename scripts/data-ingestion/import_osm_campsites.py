@@ -211,7 +211,7 @@ def main() -> int:
         accepted = 0
         rejected = 0
         duplicates = 0
-        seen_ids: set[str] = set()
+        seen_records: dict[str, dict[str, str]] = {}
         args.output.parent.mkdir(parents=True, exist_ok=True)
         # Write beside the destination, then atomically replace it only after a complete import.
         # Invalid input or an interrupted write must not destroy a previously usable dataset.
@@ -231,11 +231,20 @@ def main() -> int:
                 if normalized is None:
                     rejected += 1
                     continue
-                # Bulk POI exports can contain repeated OSM IDs; emit each source record once.
-                if normalized["id"] in seen_ids:
+                # Exact repeated rows are harmless; conflicting copies of one source ID
+                # make the snapshot ambiguous and must not silently select a winner.
+                previous = seen_records.get(normalized["id"])
+                if previous is not None:
+                    comparable_fields = ("name", "latitude", "longitude", "tags_json", "source_record_url")
+                    conflicts = [field for field in comparable_fields if previous[field] != normalized[field]]
+                    if conflicts:
+                        raise ValueError(
+                            f"Conflicting duplicate source record {normalized['source_record_id']}: "
+                            + ", ".join(conflicts) + ". Resolve the source snapshot before importing."
+                        )
                     duplicates += 1
                     continue
-                seen_ids.add(normalized["id"])
+                seen_records[normalized["id"]] = normalized
                 writer.writerow(normalized)
                 accepted += 1
         os.replace(temporary_output, args.output)
