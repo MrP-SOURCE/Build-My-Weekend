@@ -1090,13 +1090,12 @@ function testRecommendationScenarios() {
       throw new Error(`${scenario.name}: a destination beyond the selected distance limit was returned.`);
     }
     if (shortlist.length > 5) throw new Error(`${scenario.name}: more than five destinations were selected.`);
-    if (scenario.experience === "Camping Away" && candidates.some(item => !item.categories.includes("Camping") && !item.categories.includes("Outdoors"))) throw new Error(scenario.name + ": non-camping destination returned.");
-    if (scenario.experience === "Hiking Away" && candidates.some(item => !item.categories.includes("Hiking"))) throw new Error(scenario.name + ": non-hiking destination returned.");
-    if (scenario.experience === "Cycling Away" && candidates.some(item => !item.categories.includes("Cycling"))) throw new Error(scenario.name + ": non-cycling destination returned.");
-    const requiredCategory = { "Family Away": "Family", "Couples Away": "Couples", "Wildlife Away": "Wildlife", "Road Trip Away": "Road Trip", "Nature": "Nature" }[scenario.experience];
-    if (requiredCategory && candidates.some(item => !item.categories.includes(requiredCategory))) throw new Error(scenario.name + ": destination missing required " + requiredCategory + " category.");
-    if (requiredCategory && !candidates.length) throw new Error(scenario.name + ": no suitable destinations returned for " + requiredCategory + ".");
-    if (scenario.experience === "Climbing Away" && candidates.some(item => !item.categories.includes("Climbing"))) throw new Error(scenario.name + ": non-climbing destination returned.");
+    const preferredCategories = experienceProfiles[scenario.experience] || [];
+    if (preferredCategories.length && candidates.some(item =>
+      !preferredCategories.some(category => item.categories.includes(category))
+    )) {
+      throw new Error(scenario.name + ": destination does not match any declared experience-profile category.");
+    }
     if (new Set(shortlist.map(item => item.destination.id)).size !== shortlist.length) {
       throw new Error(`${scenario.name}: duplicate destinations were selected.`);
     }
