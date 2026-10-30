@@ -28,7 +28,7 @@ function validPlace(value) {
 }
 
 function normalizePlace(value) {
-  return String(value || "").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+  return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, " ").trim();
 }
 
