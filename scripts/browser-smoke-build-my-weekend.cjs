@@ -681,6 +681,8 @@ const { chromium } = require("playwright");
       "Routing outage incorrectly left the user with no trip ideas.");
     assert((await page.locator(".trip-card").first().innerText()).includes("ROUTE NOT VERIFIED"),
       "Fallback card did not clearly label its route as unverified.");
+    assert((await page.locator(".trip-card").first().innerText()).includes("not adjusted for your selected origin (Stellenbosch, Western Cape)"),
+      "Fallback card must disclose that Cape Town catalogue estimates are not adjusted for the selected custom origin.");
     await page.locator('.trip-card button[data-action="view"]').first().click();
     assert((await page.locator("#trip-dialog").innerText()).includes("ROUTE STATUS: NOT VERIFIED"),
       "Fallback detail view falsely implies that the route was verified.");
@@ -688,8 +690,8 @@ const { chromium } = require("playwright");
     assert.equal(await unverifiedRouteSubtitle.count(), 1,
       "Unverified route details must identify one catalogue-basis distance subtitle.");
     const unverifiedRouteText = await unverifiedRouteSubtitle.innerText();
-    assert(unverifiedRouteText.includes("catalogue estimate (Cape Town basis)"),
-      "Unverified route details must not attribute Cape Town-based catalogue distance to the custom origin.");
+    assert(unverifiedRouteText.includes("catalogue estimate (Cape Town basis; not adjusted for Stellenbosch, Western Cape)"),
+      "Unverified route details must disclose that Cape Town-based catalogue distance is not adjusted for the custom origin.");
     assert(unverifiedRouteText.includes("route time not verified"),
       "Unverified route details must not present catalogue drive time as route-checked.");
     await page.locator("#trip-dialog .dialog-close").click();
